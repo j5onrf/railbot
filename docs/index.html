@@ -48,8 +48,8 @@
   /* Banner Hero Card */
   .hero-card {
     position: relative; border: 1px solid var(--border); border-radius: 16px;
-    background-color: #050508;
-    background-image: linear-gradient(90deg, #050508 32%, rgba(5,5,8,0.35) 62%, transparent 100%), url("assets/banner.png");
+    background-color: var(--hero-fade, #050508);
+    background-image: linear-gradient(90deg, var(--hero-fade, #050508) 32%, var(--hero-fade-mid, rgba(5,5,8,0.35)) 62%, transparent 100%), var(--hero-img);
     background-size: cover; background-position: right center;
     padding: 44px 48px; margin-bottom: 22px; overflow: hidden;
     box-shadow: 0 24px 60px rgba(0, 0, 0, .45);
@@ -186,10 +186,11 @@
   @media (max-width: 900px) { #d-git { display: none; } }
   @media (max-width: 860px) { .sb-r { display: none; } }
   @media (max-width: 720px) {
-    .hero-card { padding: 28px 22px; background-image: linear-gradient(180deg, rgba(5,5,8,0.88) 40%, rgba(5,5,8,0.72) 100%), url("assets/banner.png"); }
+    .hero-card { padding: 28px 22px; background-image: linear-gradient(180deg, color-mix(in srgb, var(--hero-fade, #050508) 90%, transparent) 40%, color-mix(in srgb, var(--hero-fade, #050508) 72%, transparent) 100%), var(--hero-img); }
   }
   @media (max-width: 640px) { .sb-l { display: none; } .frame { height: 500px; } }
 </style>
+<link rel="preload" as="image" href="assets/banner-eldritch.jpg" />
 </head>
 <body>
 <div class="wrap">
@@ -300,12 +301,14 @@ const THEMES = {
   dark: {
     bg: "#050507", panel: "#0c0d11", card: "#14161c", border: "#232631",
     text: "#f4f4f6", muted: "#8f96a6", accent: "#f8fafc", cyan: "#cbd5e1", fg: "#050507",
-    userBg: "rgba(248,250,252,0.10)", userBorder: "rgba(248,250,252,0.28)", railLine: "rgba(255,255,255,0.035)"
+    userBg: "rgba(248,250,252,0.10)", userBorder: "rgba(248,250,252,0.28)", railLine: "rgba(255,255,255,0.035)",
+    heroFade: "#050508", heroFadeMid: "rgba(5,5,8,0.35)", heroImg: 'url("assets/banner.png")'
   },
   eldritch: {
     bg: "#1b1d2e", panel: "#23253a", card: "#2c2f48", border: "#3f4362",
     text: "#ebfafa", muted: "#a4b1cd", accent: "#37f499", cyan: "#04d1f9", fg: "#05140a",
-    userBg: "rgba(55,244,153,0.14)", userBorder: "rgba(55,244,153,0.40)", railLine: "rgba(4,209,249,0.045)"
+    userBg: "rgba(55,244,153,0.14)", userBorder: "rgba(55,244,153,0.40)", railLine: "rgba(4,209,249,0.045)",
+    heroFade: "#1b1d2e", heroFadeMid: "rgba(27,29,46,0.35)", heroImg: 'url("assets/banner-eldritch.jpg")'
   }
 };
 
@@ -319,6 +322,7 @@ function setTheme(key) {
   r.setProperty("--accent", t.accent); r.setProperty("--cyan", t.cyan); r.setProperty("--accent-fg", t.fg);
   r.setProperty("--user-bg", t.userBg); r.setProperty("--user-border", t.userBorder);
   r.setProperty("--rail-line", t.railLine);
+  r.setProperty("--hero-fade", t.heroFade); r.setProperty("--hero-fade-mid", t.heroFadeMid); r.setProperty("--hero-img", t.heroImg);
   document.querySelectorAll("#theme-seg button").forEach(b => b.classList.toggle("active", b.dataset.theme === key));
 }
 document.querySelectorAll("#theme-seg button").forEach(b => b.onclick = () => setTheme(b.dataset.theme));
