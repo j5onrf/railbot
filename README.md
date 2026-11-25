@@ -1,3 +1,7 @@
+<div align="center">
+#%@# building...
+</div>
+
 <h1>
   <img alt="RailBot Logo" src="assets/logo.svg" width="38" height="38" align="absmiddle" />
   RailBot
