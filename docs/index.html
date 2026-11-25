@@ -1,6 +1,3 @@
-<div align="center">
-#%@# building...
-</div>
 <!doctype html>
 <html lang="en">
 <head>
@@ -9,149 +6,171 @@
 <meta name="color-scheme" content="dark" />
 <title>RailBot — Local-First Desktop &amp; Web AI Harness</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3.5' fill='%23050507'/%3E%3Cpath fill='%23f8fafc' fill-rule='evenodd' d='M5.7 1.8h4.6l3.2 3.2v4.4L11 11.9v3H9.4v-2.2H6.6v2.2H5v-3L2.5 9.4V5Zm-1.6 3.9q1.7.7 3.1 1.9-2.1.6-3.1-1.9Zm7.8 0q-1.7.7-3.1 1.9 2.1.6 3.1-1.9Z'/%3E%3C/svg%3E" />
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" />
 <style>
   :root {
-    --bg: #050507; --panel: #0c0d11; --card: #14161c; --hover: #1d2029; --border: #232631;
-    --text: #f4f4f6; --muted: #8f96a6; --dim: #646b7a; --accent: #f8fafc; --cyan: #cbd5e1;
-    --accent-fg: #050507; --user-bg: rgba(248,250,252,0.10); --user-border: rgba(248,250,252,0.26);
+    --bg: #1b1d2e; --panel: #23253a; --card: #2c2f48; --hover: #353956; --border: #3f4362;
+    --text: #ebfafa; --muted: #a4b1cd; --dim: #7984a3; --accent: #37f499; --cyan: #04d1f9;
+    --accent-fg: #05140a; --user-bg: rgba(55,244,153,0.14); --user-border: rgba(55,244,153,0.40);
     --add-bg: rgba(34,197,94,0.14); --add-text: #86efac;
     --del-bg: rgba(239,68,68,0.14); --del-text: #fca5a5;
-    --rail-line: rgba(255,255,255,0.035);
+    --warn-bg: rgba(245,158,11,0.10); --warn-border: rgba(245,158,11,0.45); --warn-text: #fcd34d;
+    --syn-kw: #8ab4f8; --syn-str: #86efac; --syn-num: #fcd34d; --syn-cmt: #7c85a2;
+    --rail-line: rgba(4,209,249,0.045);
+    --hero-fade: #1b1d2e; --hero-fade-mid: rgba(27,29,46,0.35); --hero-img: url("assets/banner-eldritch.jpg");
     --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
     --sans: "Geist", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   }
   * { box-sizing: border-box; }
   body {
-    margin: 0; min-height: 100vh; color: var(--text); font-family: var(--sans);
-    background-color: var(--bg);
+    margin: 0; min-height: 100vh; color: var(--text); font-family: var(--sans); background-color: var(--bg);
     background-image:
       repeating-linear-gradient(150deg, transparent 0 180px, var(--rail-line) 180px 181px, transparent 181px 194px, var(--rail-line) 194px 195px, transparent 195px 420px),
       radial-gradient(65% 40% at 50% 0%, color-mix(in srgb, var(--cyan) 10%, transparent), transparent 72%);
     transition: background-color .2s, color .2s;
   }
-  button, input { font: inherit; color: inherit; outline: none; }
-  .wrap { max-width: 1120px; margin: 0 auto; padding: 20px 24px 64px; }
+  button, input, select, textarea { font: inherit; color: inherit; outline: none; }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 20px 24px 44px; }
 
   /* Top Nav */
-  nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; gap: 12px; }
-  .brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; font-size: 15px; letter-spacing: -.01em; text-decoration: none; }
+  nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; gap: 12px; }
+  .brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; font-size: 15px; letter-spacing: -.01em; }
   .nav-right { display: flex; align-items: center; gap: 8px; }
   .seg { display: inline-flex; background: var(--panel); border: 1px solid var(--border); border-radius: 999px; padding: 2px; gap: 2px; }
   .seg button { border: none; background: transparent; color: var(--muted); border-radius: 999px; padding: 4px 11px; font-family: var(--mono); font-size: 11.5px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: .12s; }
   .seg button.active { background: var(--card); color: var(--text); border: 1px solid var(--border); font-weight: 600; }
   .swatch { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-  .pill-link {
-    border: 1px solid var(--border); background: var(--panel); color: var(--muted);
-    border-radius: 999px; padding: 5px 12px; font-size: 12px; font-family: var(--mono);
-    text-decoration: none; transition: .15s;
-  }
+  .pill-link { border: 1px solid var(--border); background: var(--panel); color: var(--muted); border-radius: 999px; padding: 5px 12px; font-size: 12px; font-family: var(--mono); text-decoration: none; transition: .15s; }
   .pill-link:hover { color: var(--text); border-color: var(--cyan); background: var(--card); }
 
-  /* Banner Hero Card */
+  /* Hero Card with Banner */
   .hero-card {
     position: relative; border: 1px solid var(--border); border-radius: 16px;
-    background-color: #050508;
-    background-image: linear-gradient(90deg, #050508 32%, rgba(5,5,8,0.35) 62%, transparent 100%), url("assets/banner.png");
+    background-color: var(--hero-fade);
+    background-image: linear-gradient(90deg, var(--hero-fade) 32%, var(--hero-fade-mid) 62%, transparent 100%), var(--hero-img);
     background-size: cover; background-position: right center;
-    padding: 44px 48px; margin-bottom: 22px; overflow: hidden;
+    padding: 38px 44px; margin-bottom: 22px; overflow: hidden;
     box-shadow: 0 24px 60px rgba(0, 0, 0, .45);
   }
   .hero-inner { position: relative; z-index: 2; max-width: 500px; display: flex; flex-direction: column; gap: 14px; }
   .hero-title-row { display: flex; align-items: center; gap: 14px; }
-  .hero-logo { width: 46px; height: 46px; flex-shrink: 0; }
-  h1 { margin: 0; font-size: clamp(32px, 4.4vw, 46px); line-height: 1.05; letter-spacing: -.03em; color: #f8fafc; }
-  .sub { margin: 0; font-size: 15px; line-height: 1.55; color: #9ca3af; }
+  .hero-logo { width: 44px; height: 44px; flex-shrink: 0; }
+  h1 { margin: 0; font-size: clamp(30px, 4.2vw, 44px); line-height: 1.05; letter-spacing: -.03em; color: #f8fafc; }
+  .sub { margin: 0; font-size: 14.5px; line-height: 1.55; color: #b6c2d9; }
   .sub code { font-family: var(--mono); font-size: 12.5px; color: #f8fafc; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.14); padding: 1px 6px; border-radius: 5px; }
-  .actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 6px; }
-  .cta {
-    background: var(--accent); color: var(--accent-fg); border: 1px solid var(--accent);
-    border-radius: 9px; padding: 9px 17px; font-weight: 600; font-size: 13px; text-decoration: none;
-  }
-  .cta:hover { filter: brightness(0.92); }
-  .cmd {
-    border: 1px solid rgba(255,255,255,0.16); background: rgba(12,13,17,0.86); color: #e5e7eb;
-    border-radius: 9px; padding: 8px 13px; font-family: var(--mono); font-size: 11.5px;
-    cursor: pointer; display: inline-flex; align-items: center; gap: 10px;
-  }
+  .actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
+  .cta { background: var(--accent); color: var(--accent-fg); border: 1px solid var(--accent); border-radius: 9px; padding: 9px 17px; font-weight: 600; font-size: 13px; text-decoration: none; cursor: pointer; }
+  .cta:hover { filter: brightness(0.94); }
+  .cmd { border: 1px solid var(--cmd-border, rgba(4,209,249,0.32)); background: var(--cmd-bg, rgba(27,29,46,0.90)); color: #ebfafa; border-radius: 9px; padding: 8px 13px; font-family: var(--mono); font-size: 11.5px; cursor: pointer; display: inline-flex; align-items: center; gap: 10px; }
   .cmd:hover { border-color: var(--cyan); }
   .cmd span { color: var(--accent); font-size: 11px; font-weight: 600; }
 
-  /* Embedded Interactive RailBot Demo */
-  .frame {
-    border: 1px solid var(--border); border-radius: 14px; background: var(--bg);
-    box-shadow: 0 28px 80px rgba(0, 0, 0, .5); overflow: hidden;
-    font-family: var(--mono); font-size: 12.5px; height: 560px;
-    display: flex; flex-direction: column;
-  }
-  .app-top {
-    height: 38px; min-height: 38px; background: var(--panel); border-bottom: 1px solid var(--border);
-    display: flex; align-items: center; justify-content: space-between; padding: 0 10px; gap: 10px;
-  }
-  .tb-l, .tb-r { display: flex; align-items: center; gap: 7px; min-width: 0; }
-  .app-brand { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; color: var(--text); white-space: nowrap; }
-  .pill { font-size: 11px; color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; display: inline-flex; align-items: center; gap: 5px; background: var(--card); border: 1px solid var(--border); border-radius: 999px; padding: 2px 9px; }
-  .pill strong { color: var(--text); font-weight: 500; }
-  .ctx-bar { width: 40px; height: 4px; background: color-mix(in srgb, var(--text) 16%, transparent); border-radius: 99px; overflow: hidden; }
-  .ctx-fill { display: block; height: 100%; background: var(--accent); border-radius: 99px; transition: width .2s; }
-  .g-btn { width: 25px; height: 25px; border-radius: 999px; border: 1px solid var(--border); background: var(--card); color: var(--muted); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
-  .g-btn:hover { background: var(--hover); color: var(--text); }
+  /* 6px Thin Scrollbars */
+  .stream::-webkit-scrollbar, .proj-list::-webkit-scrollbar, .file-list::-webkit-scrollbar, .act-list::-webkit-scrollbar, .modal-pane::-webkit-scrollbar, .fm-body::-webkit-scrollbar { width: 6px; height: 6px; }
+  .stream::-webkit-scrollbar-track, .proj-list::-webkit-scrollbar-track, .file-list::-webkit-scrollbar-track, .act-list::-webkit-scrollbar-track, .modal-pane::-webkit-scrollbar-track, .fm-body::-webkit-scrollbar-track { background: transparent; }
+  .stream::-webkit-scrollbar-thumb, .proj-list::-webkit-scrollbar-thumb, .file-list::-webkit-scrollbar-thumb, .act-list::-webkit-scrollbar-thumb, .modal-pane::-webkit-scrollbar-thumb, .fm-body::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--muted) 35%, transparent); border-radius: 99px; }
+  .stream::-webkit-scrollbar-thumb:hover, .proj-list::-webkit-scrollbar-thumb:hover { background: color-mix(in srgb, var(--muted) 65%, transparent); }
+  .stream, .proj-list, .file-list, .act-list, .modal-pane, .fm-body { scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--muted) 35%, transparent) transparent; }
 
-  .app-main { flex: 1; display: flex; min-height: 0; }
-  .sb-l { width: 212px; background: var(--panel); border-right: 1px solid var(--border); display: flex; flex-direction: column; min-height: 0; }
-  .sb-r { width: 214px; background: var(--panel); border-left: 1px solid var(--border); display: flex; flex-direction: column; min-height: 0; }
+  /* Embedded RailBot Frame */
+  .frame { position: relative; border: 1px solid var(--border); border-radius: 14px; background: var(--bg); box-shadow: 0 28px 80px rgba(0,0,0,.5); overflow: hidden; font-family: var(--mono); font-size: 12px; height: 610px; display: flex; flex-direction: column; }
+  .app-top { height: 40px; min-height: 40px; background: var(--panel); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 12px; gap: 8px; flex-shrink: 0; }
+  .tb-l, .tb-r { display: flex; align-items: center; gap: 6px; min-width: 0; }
+  .c-btn { width: 26px; height: 26px; border-radius: 999px; border: 1px solid var(--border); background: var(--card); color: var(--muted); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; transition: .12s; flex-shrink: 0; }
+  .c-btn:hover { background: var(--hover); color: var(--text); border-color: color-mix(in srgb, var(--accent) 40%, var(--border)); }
+  .c-btn.brand-bot { color: var(--accent); }
+  .c-btn.close-x:hover { color: var(--del-text); background: var(--del-bg); border-color: rgba(239,68,68,.4); }
+  .tele { position: relative; font-size: 11.5px; color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; display: inline-flex; align-items: center; gap: 1.2ch; background: var(--card); border: 1px solid var(--border); border-radius: 999px; padding: 2px 9px; cursor: default; user-select: none; }
+  .tele strong { color: var(--text); font-weight: 500; }
+  .git-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--dim); flex-shrink: 0; }
+  .git-dot.dirty { background: var(--accent); }
+  #d-git-txt { display: inline-flex; align-items: center; gap: 1.5ch; }
+  .ctx-bar { display: block; width: 100%; height: 4px; background: color-mix(in srgb, var(--text) 14%, transparent); border-radius: 99px; overflow: hidden; }
+  .ctx-fill { display: block; height: 100%; background: var(--accent); border-radius: 99px; }
+  .ctx-tip { position: absolute; right: 0; top: calc(100% + 7px); min-width: 165px; background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; font-size: 11px; line-height: 1.4; color: var(--text); box-shadow: 0 10px 24px rgba(0,0,0,.4); display: flex; flex-direction: column; gap: 4px; opacity: 0; pointer-events: none; transform: translateY(-2px); transition: .12s; z-index: 40; }
+  .tele:hover .ctx-tip { opacity: 1; transform: translateY(0); }
+
+  /* 3-Pane Body */
+  .app-main { flex: 1 1 0%; min-height: 0; display: flex; }
+  .sb-l { width: 222px; flex-shrink: 0; background: var(--panel); border-right: 1px solid var(--border); display: flex; flex-direction: column; min-height: 0; }
+  .sb-r { width: 222px; flex-shrink: 0; background: var(--panel); border-left: 1px solid var(--border); display: flex; flex-direction: column; min-height: 0; }
   .sb-l.hidden, .sb-r.hidden { display: none; }
-  .sb-head { padding: 8px 9px 6px; display: flex; justify-content: space-between; align-items: center; gap: 6px; }
+  .sb-head { padding: 8px 10px 6px; display: flex; justify-content: space-between; align-items: center; gap: 6px; flex-shrink: 0; }
   .tabs { display: flex; gap: 3px; }
   .tab { background: transparent; border: 1px solid transparent; border-radius: 5px; padding: 2px 7px; font-size: 11px; color: var(--dim); cursor: pointer; }
   .tab.active { background: var(--card); border-color: var(--border); color: var(--text); }
   .btn-xs { background: var(--card); border: 1px solid var(--border); border-radius: 6px; padding: 2px 7px; font-size: 11px; color: var(--text); cursor: pointer; white-space: nowrap; }
   .btn-xs:hover { background: var(--hover); }
-  .btn-xs:disabled { opacity: 0.45; cursor: default; }
+  .btn-icon { background: transparent; border: 1px solid transparent; border-radius: 5px; padding: 3px 5px; color: var(--muted); cursor: pointer; display: inline-flex; align-items: center; }
+  .btn-icon:hover { background: var(--hover); color: var(--text); }
 
-  .proj-list { flex: 1; overflow-y: auto; padding: 4px 6px; display: flex; flex-direction: column; gap: 2px; }
+  .proj-list { flex: 1 1 0%; overflow-y: auto; padding: 4px 6px; display: flex; flex-direction: column; gap: 2px; }
+  .sb-foot { padding: 4px 8px 8px; display: flex; align-items: center; flex-shrink: 0; }
+  .sb-foot .btn-icon { opacity: 0; transition: opacity .15s, background .12s, color .12s; }
+  .sb-l:hover .sb-foot .btn-icon, .sb-foot .btn-icon:focus-visible { opacity: 1; }
   .proj-item { padding: 5px 8px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 7px; border: 1px solid transparent; color: var(--muted); }
   .proj-item:hover { background: var(--hover); color: var(--text); }
   .proj-item.active { background: var(--user-bg); border-color: var(--user-border); color: var(--text); }
-  .proj-l { display: flex; align-items: center; gap: 8px; min-width: 0; }
-  .proj-badge { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; color: var(--muted); }
+  .proj-l { display: flex; align-items: center; gap: 8px; min-width: 0; flex: 1; }
+  .proj-badge { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; color: var(--muted); font-size: 9.5px; font-weight: 600; text-transform: uppercase; }
+  .proj-badge.let { width: 20px; height: 20px; border-radius: 4px; background: var(--card); border: 1px solid var(--border); }
   .proj-item:hover .proj-badge { color: var(--text); }
   .proj-item.active .proj-badge { color: var(--accent); }
+  .proj-item.active .proj-badge.let { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, transparent); }
   .proj-meta { min-width: 0; display: flex; flex-direction: column; gap: 1px; }
   .proj-name { font-size: 11.5px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .proj-item.active .proj-name { font-weight: 600; }
   .proj-sub { font-size: 9.5px; color: var(--dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .proj-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--dim); opacity: 0; flex-shrink: 0; }
+  .proj-acts { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+  .proj-call { background: transparent; border: none; padding: 2px; border-radius: 4px; color: var(--muted); cursor: pointer; display: none; align-items: center; }
+  .proj-item:hover .proj-call { display: inline-flex; }
+  .proj-call:hover { color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, transparent); }
+  .proj-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--dim); opacity: 0; }
   .proj-dot.dirty { background: var(--accent); opacity: 0.95; }
-  .proj-item:hover .proj-dot { opacity: 0.75; }
-  .git-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--dim); flex-shrink: 0; }
-  .git-dot.dirty { background: var(--accent); }
+  .proj-item:hover .proj-dot { opacity: 0.7; }
 
-  .rs-top { flex: 1; display: flex; flex-direction: column; min-height: 0; border-bottom: 1px solid var(--border); }
-  .rs-lbl { font-size: 11px; color: var(--muted); }
-  .file-list { flex: 1; overflow-y: auto; padding: 2px 6px 8px; display: flex; flex-direction: column; gap: 2px; }
-  .file-row { padding: 4px 7px; border-radius: 5px; font-size: 11px; color: var(--muted); cursor: pointer; }
+  .rs-top { flex: 1 1 0%; display: flex; flex-direction: column; min-height: 0; border-bottom: 1px solid var(--border); }
+  .rs-lbl { font-size: 11.5px; color: var(--muted); }
+  .file-list { flex: 1 1 0%; overflow-y: auto; padding: 2px 6px 8px; display: flex; flex-direction: column; gap: 2px; }
+  .file-row { padding: 4px 8px; border-radius: 5px; font-size: 11.5px; color: var(--muted); cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .file-row:hover { background: var(--hover); color: var(--text); }
-  .rs-bot { height: 42%; min-height: 150px; display: flex; flex-direction: column; }
-  .act-list { flex: 1; padding: 6px 8px; display: flex; flex-direction: column; gap: 5px; overflow-y: auto; }
+  .rs-bot { height: 43%; min-height: 160px; display: flex; flex-direction: column; flex-shrink: 0; }
+  .act-list { flex: 1 1 0%; padding: 6px 8px; display: flex; flex-direction: column; gap: 5px; overflow-y: auto; }
   .act-row { padding: 6px 8px; border-radius: 6px; border: 1px solid var(--border); background: var(--card); display: flex; align-items: center; justify-content: space-between; gap: 8px; cursor: pointer; font-size: 11px; }
   .act-row:hover { background: var(--hover); border-color: color-mix(in srgb, var(--accent) 40%, var(--border)); }
-  .act-cmd { font-weight: 600; color: var(--text); }
-  .act-desc { color: var(--dim); font-size: 10.5px; }
+  .act-cmd { font-weight: 600; color: var(--text); display: inline-flex; align-items: center; gap: 5px; }
+  .act-desc { color: var(--dim); font-size: 10px; }
+  .mem-box { flex: 1 1 0%; margin: 4px 8px 8px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 7px 8px; font-size: 11px; color: var(--text); resize: none; line-height: 1.45; }
+  .mem-box:focus { border-color: var(--accent); }
 
-  /* Center Stream */
-  .center { flex: 1; display: flex; flex-direction: column; min-width: 0; min-height: 0; background: var(--bg); }
-  .stream { flex: 1; overflow-y: auto; padding: 16px 20px; display: flex; flex-direction: column; gap: 11px; }
-  .turn-wrap { max-width: 720px; width: 100%; margin: 0 auto; display: flex; flex-direction: column; gap: 11px; }
-  .msg-u { align-self: flex-end; background: var(--user-bg); border: 1px solid var(--user-border); color: var(--text); padding: 7px 11px; border-radius: 8px; max-width: 76%; line-height: 1.48; font-size: 12.5px; }
+  /* Center Pane: Pure Flexbox (Stream Takes Full Space, Composer Anchored at Bottom) */
+  .center { flex: 1 1 0%; min-width: 0; min-height: 0; display: flex; flex-direction: column; background: var(--bg); overflow: hidden; }
+  .stream { flex: 1 1 0%; min-height: 0; overflow-y: auto; overflow-x: hidden; padding: 16px 22px 10px; display: flex; flex-direction: column; gap: 11px; }
+  .turn-wrap { max-width: 740px; width: 100%; margin: 0 auto; display: flex; flex-direction: column; gap: 10px; }
+  .comp-wrap { flex-shrink: 0; padding: 6px 22px 12px; background: var(--bg); }
+  .composer { position: relative; max-width: 740px; margin: 0 auto; background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px 9px; display: flex; flex-direction: column; gap: 9px; }
+  .composer:focus-within { border-color: color-mix(in srgb, var(--accent) 50%, var(--border)); }
+  .composer input { width: 100%; background: transparent; border: none; color: var(--text); font-size: 12px; padding: 2px 0; }
+  .composer input::placeholder { color: var(--muted); opacity: 0.65; }
+
+  /* Startpage Empty State (Centered inside stream) */
+  .empty-state { margin: 70px auto 0; text-align: center; color: var(--muted); max-width: 520px; line-height: 1.55; }
+  .empty-title { font-size: 21px; font-weight: 600; letter-spacing: -0.02em; color: var(--text); text-wrap: balance; }
+  .empty-sub { font-size: 12px; color: var(--muted); opacity: 0.72; margin-top: 6px; text-wrap: balance; }
+
+  /* Message & Diff Styles */
+  .msg-u { align-self: flex-end; background: var(--user-bg); border: 1px solid var(--user-border); color: var(--text); padding: 7px 11px; border-radius: 8px; max-width: 78%; line-height: 1.48; font-size: 12px; }
   .msg-a { display: flex; flex-direction: column; gap: 7px; }
   .stream.chat-mode .msg-a { align-self: flex-start; max-width: 76%; background: var(--panel); border: 1px solid var(--border); padding: 9px 13px; border-radius: 8px; }
   .think summary { list-style: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--muted); user-select: none; }
+  .think summary strong { color: var(--text); font-weight: 500; }
   .think summary::-webkit-details-marker { display: none; }
   .think-body { margin: 5px 0 3px 5px; padding-left: 10px; border-left: 1px solid var(--border); color: var(--muted); font-size: 11.5px; line-height: 1.45; }
-  .ans-row { display: flex; align-items: flex-start; gap: 8px; line-height: 1.5; font-size: 12.5px; }
-  .bullet { width: 6px; height: 6px; border-radius: 50%; background: var(--cyan); margin-top: calc((1.5em - 6px) / 2); flex-shrink: 0; }
+  .ans-row { display: flex; align-items: flex-start; gap: 8px; line-height: 1.5; font-size: 12px; }
+  .ans-row code { background: var(--card); border: 1px solid var(--border); padding: 1px 5px; border-radius: 4px; font-size: 11.5px; }
+  .bullet { width: 6px; height: 6px; border-radius: 50%; background: var(--cyan); margin-top: 6px; flex-shrink: 0; }
   .stream.chat-mode .ans-row .bullet { display: none; }
+
   .t-card { border: 1px solid var(--border); background: var(--panel); border-radius: 6px; overflow: hidden; font-size: 11.5px; }
   .t-head { padding: 6px 10px; display: flex; align-items: center; justify-content: space-between; gap: 8px; cursor: pointer; }
   .t-head:hover { background: var(--hover); }
@@ -159,52 +178,123 @@
   .t-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .t-title .bullet { margin-top: 0; }
   .t-sum { color: var(--dim); padding: 0 10px 6px 23px; font-size: 11px; }
-  .t-diff { border-top: 1px solid var(--border); padding: 4px 10px; color: var(--add-text); background: var(--add-bg); border-left: 2px solid var(--add-text); }
+  .diff-box { border-top: 1px solid var(--border); background: color-mix(in srgb, var(--bg) 75%, var(--panel)); padding: 4px 0; overflow-x: auto; font-size: 11px; }
+  .diff-line { display: flex; gap: 10px; padding: 0 10px 0 0; white-space: pre; border-left: 2px solid transparent; min-width: max-content; }
+  .diff-line.add { background: var(--add-bg); border-left-color: var(--add-text); }
+  .diff-line.del { background: var(--del-bg); border-left-color: var(--del-text); }
+  .diff-num { width: 42px; padding: 1px 6px; text-align: right; color: var(--dim); user-select: none; flex-shrink: 0; }
+  .diff-line.add .diff-num { color: var(--add-text); }
+  .diff-line.del .diff-num { color: var(--del-text); }
+  .tok-k { color: var(--syn-kw); } .tok-s { color: var(--syn-str); } .tok-n { color: var(--syn-num); } .tok-c { color: var(--syn-cmt); font-style: italic; }
   .t-raw { display: none; margin: 0; padding: 7px 10px; border-top: 1px solid var(--border); background: var(--bg); color: var(--muted); font-size: 11px; white-space: pre-wrap; }
   .t-card.open .t-raw { display: block; }
 
-  /* Composer */
-  .comp-wrap { padding: 8px 20px 14px; }
-  .composer { position: relative; max-width: 720px; margin: 0 auto; background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 9px 11px 8px; display: flex; flex-direction: column; gap: 7px; }
-  .composer:focus-within { border-color: color-mix(in srgb, var(--accent) 50%, var(--border)); }
-  .composer input { width: 100%; background: transparent; border: none; color: var(--text); font-size: 12.5px; }
-  .composer input::placeholder { color: var(--muted); opacity: 0.72; }
+  .peer-card { border: 1px solid color-mix(in srgb, var(--cyan) 38%, var(--border)); background: var(--panel); border-radius: 8px; overflow: hidden; }
+  .peer-head { padding: 6px 10px; display: flex; align-items: center; justify-content: space-between; gap: 8px; border-bottom: 1px solid var(--border); background: color-mix(in srgb, var(--cyan) 7%, var(--panel)); font-size: 11.5px; cursor: pointer; }
+  .peer-head:hover { background: var(--hover); }
+  .peer-title { display: flex; align-items: center; gap: 7px; min-width: 0; flex: 1; overflow: hidden; }
+  .peer-tag { font-size: 10px; color: var(--cyan); padding: 1px 7px; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--cyan) 35%, var(--border)); background: color-mix(in srgb, var(--cyan) 10%, transparent); flex-shrink: 0; }
+  .peer-brief { color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .peer-body { padding: 9px 11px; font-size: 11.5px; line-height: 1.5; }
+  .peer-body code { background: var(--card); border: 1px solid var(--border); padding: 1px 5px; border-radius: 4px; }
+  .peer-card .t-raw { border-top: 1px solid var(--border); }
+  .peer-card.open .t-raw { display: block; }
+
+  /* Composer Controls */
   .comp-bar { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-  .comp-l { display: flex; align-items: center; gap: 6px; position: relative; }
-  .m-pill { height: 24px; background: var(--panel); border: 1px solid var(--border); border-radius: 999px; padding: 0 9px; font-size: 11px; color: var(--text); cursor: pointer; display: inline-flex; align-items: center; gap: 4px; }
+  .comp-l { display: flex; align-items: center; gap: 6px; position: relative; flex-wrap: wrap; }
+  .m-pill { height: 24px; background: var(--panel); border: 1px solid var(--border); border-radius: 999px; padding: 0 9px; font-size: 11px; color: var(--text); cursor: pointer; display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
   .m-pill:hover { background: var(--hover); }
   .m-pill.muted { color: var(--muted); }
-  .pop { position: absolute; bottom: calc(100% + 6px); left: 140px; min-width: 130px; background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 4px; display: none; flex-direction: column; gap: 1px; z-index: 30; }
+  .m-pill.warn { color: var(--warn-text); border-color: var(--warn-border); background: var(--warn-bg); }
+  .skill-chip { height: 24px; font-size: 11px; padding: 0 8px; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--cyan) 42%, var(--border)); color: var(--cyan); background: color-mix(in srgb, var(--cyan) 12%, transparent); cursor: pointer; display: inline-flex; align-items: center; gap: 5px; }
+  .pop-wrap { position: relative; display: inline-flex; }
+  .pop { position: absolute; bottom: calc(100% + 6px); left: 0; min-width: 155px; background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 4px; display: none; flex-direction: column; gap: 1px; z-index: 30; box-shadow: 0 12px 28px rgba(0,0,0,.45); }
   .pop.open { display: flex; }
-  .pop button { background: transparent; border: none; border-radius: 5px; padding: 5px 8px; text-align: left; font-size: 11px; color: var(--muted); cursor: pointer; display: flex; justify-content: space-between; }
+  .pop button { background: transparent; border: none; border-radius: 5px; padding: 5px 8px; text-align: left; font-size: 11px; color: var(--muted); cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 8px; white-space: nowrap; }
   .pop button:hover, .pop button.on { background: var(--hover); color: var(--text); }
   .pop button.on { color: var(--accent); font-weight: 600; }
-  .send-btn { width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--border); background: var(--panel); color: var(--muted); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
+  .ac-pop { position: absolute; bottom: calc(100% + 7px); left: 0; right: 0; background: var(--panel); border: 1px solid var(--border); border-radius: 9px; padding: 4px; display: none; flex-direction: column; gap: 2px; z-index: 30; box-shadow: 0 12px 28px rgba(0,0,0,.5); }
+  .ac-pop.open { display: flex; }
+  .ac-item { background: transparent; border: none; border-radius: 5px; padding: 5px 9px; text-align: left; cursor: pointer; display: flex; gap: 10px; font-size: 11px; color: var(--muted); }
+  .ac-item:hover { background: var(--hover); color: var(--text); }
+  .ac-item strong { color: var(--text); }
+  .send-btn { width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--border); background: var(--panel); color: var(--muted); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
   .send-btn.ready { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); }
 
-  .hover-card { position: fixed; z-index: 50; pointer-events: none; background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; min-width: 185px; display: none; flex-direction: column; gap: 4px; font-family: var(--mono); font-size: 11px; box-shadow: 0 12px 28px rgba(0,0,0,.45); }
-  .hover-card.open { display: flex; }
-  .hc-row { display: flex; justify-content: space-between; color: var(--muted); }
+  /* Modals */
+  .frame-modal { position: absolute; inset: 0; background: rgba(0,0,0,.64); display: none; align-items: center; justify-content: center; z-index: 45; padding: 14px; }
+  .frame-modal.open { display: flex; }
+  .fm-box { width: 470px; max-width: 96%; max-height: 92%; background: var(--panel); border: 1px solid var(--border); border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 24px 60px rgba(0,0,0,.6); }
+  .fm-box.wide { width: 730px; height: 500px; }
+  .fm-head { padding: 11px 15px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; font-weight: 600; font-size: 12.5px; flex-shrink: 0; }
+  .fm-body { padding: 14px; overflow-y: auto; display: flex; flex-direction: column; gap: 11px; }
+  .fm-pre { margin: 0; padding: 10px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; overflow-x: auto; font-size: 11px; line-height: 1.45; }
 
-  @media (max-width: 900px) { #d-git { display: none; } }
+  .modal-body { flex: 1 1 0%; display: flex; min-height: 0; }
+  .modal-nav { width: 178px; border-right: 1px solid var(--border); padding: 10px 8px; display: flex; flex-direction: column; gap: 2px; background: color-mix(in srgb, var(--bg) 55%, var(--panel)); flex-shrink: 0; }
+  .nav-group { font-size: 10px; color: var(--dim); padding: 6px 10px 4px; font-weight: 600; letter-spacing: .08em; }
+  .nav-btn + .nav-group { margin-top: 6px; padding-top: 10px; border-top: 1px solid color-mix(in srgb, var(--border) 65%, transparent); }
+  .nav-btn { text-align: left; background: transparent; border: 1px solid transparent; padding: 6px 10px; border-radius: 6px; cursor: pointer; color: var(--muted); font-size: 11.5px; }
+  .nav-btn:hover { background: var(--hover); color: var(--text); }
+  .nav-btn.active { background: color-mix(in srgb, var(--accent) 14%, transparent); border-color: color-mix(in srgb, var(--accent) 45%, transparent); color: var(--accent); font-weight: 600; }
+  .modal-pane { flex: 1 1 0%; padding: 16px 18px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+  .s-row { display: flex; justify-content: space-between; align-items: center; padding: 9px 11px; background: var(--card); border: 1px solid var(--border); border-radius: 8px; gap: 12px; font-size: 11.5px; }
+  .s-row.active-slot { border-color: color-mix(in srgb, var(--accent) 50%, transparent); background: color-mix(in srgb, var(--accent) 10%, var(--card)); }
+  .s-sub { font-size: 10.5px; color: var(--muted); margin-top: 2px; }
+  .s-sel { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 4px 8px; font-size: 11px; color: var(--text); cursor: pointer; }
+  .switch { width: 32px; height: 18px; border-radius: 99px; border: 1px solid var(--border); background: var(--bg); position: relative; cursor: pointer; flex-shrink: 0; transition: .15s; }
+  .switch::after { content: ""; position: absolute; top: 2px; left: 2px; width: 12px; height: 12px; border-radius: 50%; background: var(--muted); transition: .15s; }
+  .switch.on { background: var(--accent); border-color: var(--accent); }
+  .switch.on::after { transform: translateX(14px); background: var(--accent-fg); }
+  .tag-pill { display: inline-block; padding: 1px 6px; border-radius: 999px; font-size: 10px; border: 1px solid var(--border); background: var(--panel); color: var(--muted); margin-right: 4px; }
+
+  .bot-grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 7px; }
+  .bot-opt { height: 42px; background: var(--card); border: 1px solid var(--border); border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--muted); transition: .12s; }
+  .bot-opt:hover:not(:disabled) { background: var(--hover); color: var(--text); border-color: color-mix(in srgb, var(--accent) 45%, var(--border)); }
+  .bot-opt.active { background: color-mix(in srgb, var(--accent) 14%, transparent); border-color: var(--accent); color: var(--accent); }
+  .bot-opt:disabled { opacity: 0.25; cursor: not-allowed; }
+  .collab-chip { height: 26px; padding: 0 9px; border-radius: 999px; border: 1px solid var(--border); background: var(--card); color: var(--muted); font-size: 11px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+  .collab-chip:hover { background: var(--hover); color: var(--text); }
+  .collab-chip.on { background: color-mix(in srgb, var(--accent) 14%, transparent); border-color: var(--accent); color: var(--accent); font-weight: 500; }
+
+  .call-route { display: flex; align-items: center; gap: 8px; }
+  .call-node { flex: 1; background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 7px 10px; display: flex; align-items: center; gap: 8px; font-size: 11.5px; }
+  .call-node select { background: transparent; border: none; color: var(--text); font: inherit; font-weight: 600; width: 100%; cursor: pointer; }
+  .call-node select option { background: var(--panel); color: var(--text); }
+  .call-ta { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; resize: vertical; min-height: 68px; font-size: 11.5px; }
+  .call-ta:focus { border-color: var(--accent); }
+  .btn-primary { background: var(--accent); color: var(--accent-fg); border: 1px solid var(--accent); border-radius: 6px; padding: 5px 12px; font-weight: 600; font-size: 11.5px; cursor: pointer; }
+
+  .explore-bar { margin-top: 14px; display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; font-family: var(--mono); font-size: 11.5px; color: var(--dim); }
+  .exp-btn { border: 1px solid var(--border); background: var(--panel); color: var(--muted); border-radius: 999px; padding: 4px 11px; font-size: 11px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: .12s; }
+  .exp-btn:hover { color: var(--text); border-color: var(--cyan); background: var(--card); }
+
+  .hover-card { position: fixed; z-index: 50; pointer-events: none; background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; min-width: 195px; display: none; flex-direction: column; gap: 4px; font-family: var(--mono); font-size: 11px; box-shadow: 0 12px 28px rgba(0,0,0,.45); }
+  .hover-card.open { display: flex; }
+  .hc-row { display: flex; justify-content: space-between; color: var(--muted); gap: 12px; }
+
+  @media (max-width: 920px) { #d-git { display: none; } }
   @media (max-width: 860px) { .sb-r { display: none; } }
   @media (max-width: 720px) {
-    .hero-card { padding: 28px 22px; background-image: linear-gradient(180deg, rgba(5,5,8,0.88) 40%, rgba(5,5,8,0.72) 100%), url("assets/banner.png"); }
+    .hero-card { padding: 26px 20px; background-image: linear-gradient(180deg, color-mix(in srgb, var(--hero-fade) 90%, transparent) 40%, color-mix(in srgb, var(--hero-fade) 72%, transparent) 100%), var(--hero-img); }
   }
-  @media (max-width: 640px) { .sb-l { display: none; } .frame { height: 500px; } }
+  @media (max-width: 640px) {
+    .sb-l { display: none; } .frame { height: 520px; }
+    .modal-body { flex-direction: column; }
+    .modal-nav { width: 100%; flex-direction: row; overflow-x: auto; border-right: none; border-bottom: 1px solid var(--border); }
+    .nav-group { display: none; }
+  }
 </style>
 </head>
 <body>
 <div class="wrap">
   <nav>
-    <div class="brand">
-      <img src="assets/logo.svg" alt="RailBot" width="24" height="24" />
-      <span>RailBot</span>
-    </div>
+    <div class="brand"><img id="nav-logo" src="assets/logo-eldritch.svg" alt="RailBot" width="24" height="24" /><span>RailBot</span></div>
     <div class="nav-right">
       <div class="seg" id="theme-seg">
-        <button type="button" data-theme="dark" class="active"><span class="swatch" style="background:#f8fafc"></span>Dark</button>
-        <button type="button" data-theme="eldritch"><span class="swatch" style="background:#37f499"></span>Eldritch</button>
+        <button type="button" data-theme="dark"><span class="swatch" style="background:#f8fafc"></span>Dark</button>
+        <button type="button" data-theme="eldritch" class="active"><span class="swatch" style="background:#37f499"></span>Eldritch</button>
       </div>
       <a class="pill-link" href="https://github.com/j5onrf/railbot">GitHub ↗</a>
     </div>
@@ -213,7 +303,7 @@
   <section class="hero-card">
     <div class="hero-inner">
       <div class="hero-title-row">
-        <img class="hero-logo" src="assets/logo.svg" alt="RailBot Logo" />
+        <img class="hero-logo" id="hero-logo" src="assets/logo-eldritch.svg" alt="RailBot Logo" />
         <h1>RailBot</h1>
       </div>
       <p class="sub">
@@ -226,49 +316,66 @@
     </div>
   </section>
 
-  <!-- Interactive RailBot Live Demo -->
   <div class="frame" id="demo-frame">
     <header class="app-top">
       <div class="tb-l">
-        <button type="button" class="g-btn" id="btn-sb-l" title="Toggle Projects Sidebar">
-          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2.5" width="12" height="11" rx="2"/><line x1="6" y1="2.5" x2="6" y2="13.5"/></svg>
-        </button>
-        <span class="app-brand" id="d-brand-icon"></span>
-        <span class="pill" id="d-prof"><strong>chat</strong><span>no tools</span><span>t250</span></span>
-        <span class="pill" id="d-git" style="display:none"><span class="git-dot" id="d-git-dot"></span><span id="d-git-txt"></span></span>
+        <button type="button" class="c-btn" id="btn-sb-l" title="Toggle sidebar"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2.5" width="12" height="11" rx="2"/><line x1="6" y1="2.5" x2="6" y2="13.5"/></svg></button>
+        <button type="button" class="c-btn brand-bot" id="d-brand-icon" title="Bot Setup &amp; Auto-Collaborators"></button>
+        <span class="tele" id="d-prof"></span>
+        <span class="tele" id="d-git" style="display:none"><span class="git-dot" id="d-git-dot"></span><span id="d-git-txt"></span></span>
       </div>
       <div class="tb-r">
-        <span class="pill" id="d-stats">92% · 142.9 t/s</span>
-        <span class="pill"><span id="d-ctx">6.4%</span> <span class="ctx-bar"><span class="ctx-fill" id="d-ctx-fill" style="width:6.4%"></span></span></span>
-        <button type="button" class="g-btn" id="btn-sb-r" title="Toggle Workspace Panel">
-          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2.5" width="12" height="11" rx="2"/><line x1="10" y1="2.5" x2="10" y2="13.5"/></svg>
-        </button>
+        <span class="tele" id="d-ch">99%<span class="ctx-tip"><span class="ctx-bar"><span class="ctx-fill" style="width:99%"></span></span><div><strong>8,110</strong> / 8,192 cached</div></span></span>
+        <span class="tele" id="d-spd">67.5 t/s<span class="ctx-tip"><div><strong>188</strong> generated in <strong>2.8s</strong></div></span></span>
+        <span class="tele" id="d-ctx-pill"><span id="d-ctx">28.3%</span><span class="ctx-tip" id="d-ctx-tip"></span></span>
+        <button type="button" class="c-btn" id="btn-sb-r" title="Toggle workspace panel"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2.5" width="12" height="11" rx="2"/><line x1="10" y1="2.5" x2="10" y2="13.5"/></svg></button>
+        <span class="c-btn close-x" title="Close RailBot">✕</span>
       </div>
     </header>
 
     <div class="app-main">
       <aside class="sb-l" id="sb-l">
         <div class="sb-head">
-          <div class="tabs"><span class="tab active">Projects</span><span class="tab">Profiles</span></div>
-          <button type="button" class="btn-xs">+</button>
+          <div class="tabs">
+            <button type="button" class="tab active" id="btn-nav-proj">Projects</button>
+            <button type="button" class="tab" id="btn-nav-prof">Profiles</button>
+          </div>
+          <button type="button" class="btn-xs" id="btn-new-ws" title="Manage Projects">+</button>
         </div>
         <div class="proj-list" id="proj-list"></div>
+        <div class="sb-foot">
+          <button type="button" class="btn-icon" id="btn-demo-settings" title="Settings">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
       </aside>
 
-      <section class="center">
-        <div class="stream chat-mode" id="stream">
-          <div class="turn-wrap" id="turn-wrap"></div>
-        </div>
+      <section class="center" id="center-pane">
+        <div class="stream" id="stream"><div class="turn-wrap" id="turn-wrap"></div></div>
         <div class="comp-wrap">
           <div class="composer">
-            <input id="d-input" placeholder="Message chat... (/ commands, /call peer)" />
+            <div class="ac-pop" id="ac-pop"></div>
+            <input id="d-input" placeholder="Ask surogate37... (/ commands, /call peer)" />
             <div class="comp-bar">
               <div class="comp-l">
-                <button type="button" class="m-pill" id="d-model">Ling-3.0-tiny · local</button>
-                <button type="button" class="m-pill muted" id="btn-reason"><span id="r-val">t250</span> ⌄</button>
-                <div class="pop" id="pop-r"></div>
+                <button type="button" class="m-pill" id="d-model">Surogate3.7-35B-A3B · local</button>
+                <div class="pop-wrap">
+                  <button type="button" class="m-pill muted" id="btn-reason"><span id="r-val">200</span> ⌄</button>
+                  <div class="pop" id="pop-r"></div>
+                </div>
+                <div class="pop-wrap" id="sec-wrap">
+                  <button type="button" class="m-pill muted" id="btn-sec" title="Security: Zero Trust">
+                    <span id="sec-ico" style="display:inline-flex;align-items:center;"></span>
+                    <span style="opacity:.65">⌄</span>
+                  </button>
+                  <div class="pop" id="pop-sec" style="min-width:190px;"></div>
+                </div>
+                <button type="button" class="m-pill muted" id="d-img" title="Attach image (cloud models)" style="display:none;padding:0 8px;">
+                  <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2.5" width="12" height="11" rx="2"/><circle cx="5.7" cy="6" r="1"/><path d="M2.5 11.5l3.2-3.2 2.4 2.4 2.1-2.1 3.3 2.9"/></svg>
+                </button>
+                <div id="d-skills-bar" style="display:contents;"></div>
               </div>
-              <button type="button" class="send-btn" id="d-send">↑</button>
+              <button type="button" class="send-btn" id="d-send" aria-label="Send">↑</button>
             </div>
           </div>
         </div>
@@ -277,8 +384,11 @@
       <aside class="sb-r" id="sb-r">
         <div class="rs-top">
           <div class="sb-head">
-            <span class="rs-lbl" id="d-files-lbl">1 file</span>
-            <div style="display:flex;gap:4px;"><button type="button" class="btn-xs">Reset</button><button type="button" class="btn-xs">Export</button></div>
+            <span class="rs-lbl" id="d-files-lbl">2 files</span>
+            <div style="display:flex;gap:2px;">
+              <button type="button" class="btn-icon" id="btn-demo-reset" title="Reset session"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 8a5.5 5.5 0 1 0 1.6-3.9L2.5 5.7"/><path d="M2.5 2.5v3.2h3.2"/></svg></button>
+              <button type="button" class="btn-icon" id="btn-demo-export" title="Export .md"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2.5v7.5"/><path d="M5 7l3 3 3-3"/><path d="M3 12.5h10"/></svg></button>
+            </div>
           </div>
           <div class="file-list" id="d-files"></div>
         </div>
@@ -290,43 +400,76 @@
             </div>
           </div>
           <div class="act-list" id="d-act-body"></div>
+          <textarea class="mem-box" id="d-mem-box" style="display:none;" placeholder="Workspace .rs/memory.md rules...">Always include negative &amp; boundary edge-case tests.</textarea>
         </div>
       </aside>
     </div>
+
+    <div class="frame-modal" id="frame-modal"><div class="fm-box" id="fm-box"></div></div>
+  </div>
+
+  <div class="explore-bar">
+    <span>Explore:</span>
+    <button type="button" class="exp-btn" id="exp-bot">Bot Picker &amp; Auto-Call</button>
+    <button type="button" class="exp-btn" id="exp-set">Settings Menu</button>
+    <button type="button" class="exp-btn" id="exp-call">Multi-Bot /call</button>
+    <button type="button" class="exp-btn" id="exp-mcp">MCP Plugins</button>
   </div>
 </div>
-
 <div class="hover-card" id="hover-card"></div>
 
 <script>
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+let curTheme = "eldritch", activeTab = "providers", botPage = 0, activeProj = "surogate37";
+let rsTab = "acts", allowAll = false, useLetters = false, compactSidebar = false, expandSteps = false;
+let activeProvider = "LOCAL", maxTokens = 8192, maxRounds = 15, activeSkills = [], extraTurns = [];
+
 const THEMES = {
   dark: {
-    bg: "#050507", panel: "#0c0d11", card: "#14161c", border: "#232631",
-    text: "#f4f4f6", muted: "#8f96a6", accent: "#f8fafc", cyan: "#cbd5e1", fg: "#050507",
-    userBg: "rgba(248,250,252,0.10)", userBorder: "rgba(248,250,252,0.28)", railLine: "rgba(255,255,255,0.035)"
+    bg: "#09090b", panel: "#0f0f12", card: "#16161a", border: "#232329", text: "#ececef",
+    muted: "#8e8e98", accent: "#f8fafc", cyan: "#94a3b8", fg: "#09090b",
+    userBg: "rgba(248,250,252,0.10)", userBorder: "rgba(248,250,252,0.28)", railLine: "rgba(255,255,255,0.035)",
+    heroFade: "#050508", heroFadeMid: "rgba(5,5,8,0.35)", heroImg: 'url("assets/banner.jpg")',
+    cmdBg: "rgba(14, 15, 20, 0.88)", cmdBorder: "rgba(255, 255, 255, 0.16)",
+    logo: "assets/logo.svg",
+    favicon: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3.5' fill='%23050507'/%3E%3Cpath fill='%23f8fafc' fill-rule='evenodd' d='M5.7 1.8h4.6l3.2 3.2v4.4L11 11.9v3H9.4v-2.2H6.6v2.2H5v-3L2.5 9.4V5Zm-1.6 3.9q1.7.7 3.1 1.9-2.1.6-3.1-1.9Zm7.8 0q-1.7.7-3.1 1.9 2.1.6 3.1-1.9Z'/%3E%3C/svg%3E"
   },
   eldritch: {
-    bg: "#1b1d2e", panel: "#23253a", card: "#2c2f48", border: "#3f4362",
-    text: "#ebfafa", muted: "#a4b1cd", accent: "#37f499", cyan: "#04d1f9", fg: "#05140a",
-    userBg: "rgba(55,244,153,0.14)", userBorder: "rgba(55,244,153,0.40)", railLine: "rgba(4,209,249,0.045)"
+    bg: "#1b1d2e", panel: "#23253a", card: "#2c2f48", border: "#3f4362", text: "#ebfafa",
+    muted: "#a4b1cd", accent: "#37f499", cyan: "#04d1f9", fg: "#05140a",
+    userBg: "rgba(55,244,153,0.14)", userBorder: "rgba(55,244,153,0.40)", railLine: "rgba(4,209,249,0.045)",
+    heroFade: "#1b1d2e", heroFadeMid: "rgba(27,29,46,0.35)", heroImg: 'url("assets/banner-eldritch.jpg")',
+    cmdBg: "rgba(27, 29, 46, 0.90)", cmdBorder: "rgba(4, 209, 249, 0.32)",
+    logo: "assets/logo-eldritch.svg",
+    favicon: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3.5' fill='%231b1d2e'/%3E%3Cpath fill='%2337f499' fill-rule='evenodd' d='M5.7 1.8h4.6l3.2 3.2v4.4L11 11.9v3H9.4v-2.2H6.6v2.2H5v-3L2.5 9.4V5Zm-1.6 3.9q1.7.7 3.1 1.9-2.1.6-3.1-1.9Zm7.8 0q-1.7.7-3.1 1.9 2.1.6 3.1-1.9Z'/%3E%3C/svg%3E"
   }
 };
 
 function setTheme(key) {
-  const t = THEMES[key] || THEMES.dark;
-  const r = document.documentElement.style;
+  curTheme = key;
+  const t = THEMES[key] || THEMES.eldritch, r = document.documentElement.style;
   r.setProperty("--bg", t.bg); r.setProperty("--panel", t.panel); r.setProperty("--card", t.card);
   r.setProperty("--hover", `color-mix(in srgb, ${t.text} 6%, ${t.card})`);
   r.setProperty("--border", t.border); r.setProperty("--text", t.text); r.setProperty("--muted", t.muted);
   r.setProperty("--dim", `color-mix(in srgb, ${t.muted} 82%, ${t.bg})`);
   r.setProperty("--accent", t.accent); r.setProperty("--cyan", t.cyan); r.setProperty("--accent-fg", t.fg);
-  r.setProperty("--user-bg", t.userBg); r.setProperty("--user-border", t.userBorder);
-  r.setProperty("--rail-line", t.railLine);
+  r.setProperty("--user-bg", t.userBg); r.setProperty("--user-border", t.userBorder); r.setProperty("--rail-line", t.railLine);
+  r.setProperty("--hero-fade", t.heroFade); r.setProperty("--hero-fade-mid", t.heroFadeMid); r.setProperty("--hero-img", t.heroImg);
+  r.setProperty("--cmd-bg", t.cmdBg); r.setProperty("--cmd-border", t.cmdBorder);
+
+  const nl = document.getElementById("nav-logo"), hl = document.getElementById("hero-logo");
+  if (nl) nl.src = t.logo;
+  if (hl) hl.src = t.logo;
+  const fav = document.querySelector('link[rel="icon"]');
+  if (fav && t.favicon) fav.href = t.favicon;
+
   document.querySelectorAll("#theme-seg button").forEach(b => b.classList.toggle("active", b.dataset.theme === key));
 }
-document.querySelectorAll("#theme-seg button").forEach(b => b.onclick = () => setTheme(b.dataset.theme));
+document.querySelectorAll("#theme-seg button").forEach(b => b.onclick = () => {
+  setTheme(b.dataset.theme);
+  if (document.getElementById("frame-modal").classList.contains("open") && document.getElementById("fm-box").classList.contains("wide")) renderSettingsModal();
+});
 
-// Mean Custom RailBot Vector Engine (synced with ui.html)
 const CHAT_BOT_MASK = 0x8010;
 const VEC_PRESETS = {
   0x8010: `<path fill-rule="evenodd" d="M4.2 2.4h7.6L14 4.8v5l-2.4 2.2H6.2l-3 2.2V12L2 10.6V4.8ZM4.1 5.7q1.7.7 3 1.8-2 .6-3-1.8Zm7.8 0q-1.7.7-3 1.8 2 .6 3-1.8Z"/>`,
@@ -338,6 +481,7 @@ const VEC_PRESETS = {
   0x8016: `<path d="M1.2 5.2 2.7 4.4v7l-1.5-.8Zm13.6 0-1.5-.8v7l1.5-.8Z"/><path fill-rule="evenodd" d="M5 2.6h6L12.9 5v6l-2.5 2.6H5.6L3.1 11V5Zm-.8 4.1 2.9 1.2-.3.9-2.6-1Zm7.6 0-2.9 1.2.3.9 2.6-1Z"/>`,
   0x8017: `<path fill-rule="evenodd" d="M8 1.8 13.2 5.2l.4 8.6-2.4-2.2-1.8 2.2L8 12l-1.4 1.8-1.8-2.2-2.4 2.2.4-8.6ZM4.1 6.5q1.7.7 3.1 1.9-2.1.6-3.1-1.9Zm7.8 0q-1.7.7-3.1 1.9 2.1.6 3.1-1.9Z"/>`
 };
+const VEC_PRESET_IDS = Object.keys(VEC_PRESETS).map(Number);
 const VEC_BASES = [
   { d: "M5.8 2.8h4.4l3.2 3.2v4l-2.4 2.4V15H9.4v-2H6.6v2H5v-2.6L2.6 10V6Z", ey: 8.0, top: 1 },
   { d: "M4.4 3.2h7.2l2 2.2v6l-2 2H4.4l-2-2v-6Z", ey: 8.2, top: 1 },
@@ -354,67 +498,274 @@ const vecEyes = (ey, k) => {
   if (k === 2) return `M4 ${ey-1.5}L8 ${ey-0.2}L12 ${ey-1.5}L11.3 ${ey+0.8}L8 ${ey+1.4}L4.7 ${ey+0.8}Z`;
   return `M4.1 ${ey-1.4}L7.1 ${ey+0.2}L5 ${ey+0.9}ZM11.9 ${ey-0.8}L8.9 ${ey+0.1}L9.3 ${ey+0.7}L11.7 ${ey+0.2}Z`;
 };
-const VEC_TOPS = [
-  "",
-  `<path d="M8 .3Q8 1.5 9.3 1.5Q8 1.5 8 2.7Q8 1.5 6.7 1.5Q8 1.5 8 .3Z"/>`,
-  `<path d="M3.8 1 6.2 2.4 5 3.4 3.4 2Zm8.4 0-2.4 1.4 1.2 1 1.6-1.4Z"/>`,
-  `<path d="M4.2 1.2h7.6l-1 1.1H5.2Z"/>`
-];
+const VEC_TOPS = ["", `<path d="M8 .3Q8 1.5 9.3 1.5Q8 1.5 8 .3Z"/>`, `<path d="M3.8 1 6.2 2.4 5 3.4 3.4 2Zm8.4 0-2.4 1.4 1.2 1 1.6-1.4Z"/>`, `<path d="M4.2 1.2h7.6l-1 1.1H5.2Z"/>`];
+const vecParts = (m) => (m & 0x8000)
+  ? { preset: VEC_PRESETS[m] || VEC_PRESETS[0x8011], key: `p:${m}` }
+  : (() => { const b = (m & 0xf) | ((m >> 1) & 0x3ff0), bi = b & 7; return { bIdx: bi, eIdx: (b >> 3) & 3, tIdx: VEC_BASES[bi].top ? ((b >> 5) & 3) : 0, key: `g:${bi}:${(b>>3)&3}:${VEC_BASES[bi].top?((b>>5)&3):0}` }; })();
 function hashBotMask(name) {
   if (name === "chat" || name === "chatbot") return CHAT_BOT_MASK;
   let h = 2166136261;
   for (let i = 0; i < name.length; i++) h = Math.imul(h ^ name.charCodeAt(i), 16777619);
   return (h & 0x7fff) | (1 << 4);
 }
-function botSvg(name, size = 18) {
-  const mask = hashBotMask(name);
-  if (mask & 0x8000) {
-    return `<svg width="${size}" height="${size}" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">${VEC_PRESETS[mask] || VEC_PRESETS[0x8011]}</svg>`;
+const projMask = (name) => (PROJECTS.find(x => x.name === name)?.customMask) || hashBotMask(name);
+function botSvgFromMask(mask, size = 18) {
+  const g = vecParts(mask);
+  if (g.preset) return `<svg width="${size}" height="${size}" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">${g.preset}</svg>`;
+  const base = VEC_BASES[g.bIdx];
+  return `<svg width="${size}" height="${size}" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">${VEC_TOPS[g.tIdx]}${base.ex||""}<path fill-rule="evenodd" d="${base.d}${vecEyes(base.ey, g.eIdx)}"/></svg>`;
+}
+const botSvg = (name, size = 18) => botSvgFromMask(projMask(name), size);
+
+function highlightCode(raw) {
+  const re = /(\/\/[^\n]*|#[^\n]*|\/\*[\s\S]*?\*\/)|("{3}[\s\S]*?"{3}|'{3}[\s\S]*?'{3}|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\\n])*')|\b(fn|let|mut|pub|struct|if|elif|else|for|while|return|def|class|import|from|in|not|and|or|None|True|False|true|false)\b|\b(\d+(?:\.\d+)?)\b/g;
+  let out = "", last = 0, m;
+  while ((m = re.exec(raw)) !== null) {
+    if (m.index > last) out += esc(raw.slice(last, m.index));
+    out += `<span class="${m[1]?"tok-c":m[2]?"tok-s":m[3]?"tok-k":"tok-n"}">${esc(m[0])}</span>`;
+    last = re.lastIndex;
   }
-  const bits = (mask & 0xf) | ((mask >> 1) & 0x3ff0);
-  const bIdx = bits & 7, eIdx = (bits >> 3) & 3, tIdx = VEC_BASES[bIdx].top ? ((bits >> 5) & 3) : 0;
-  const base = VEC_BASES[bIdx];
-  return `<svg width="${size}" height="${size}" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">${VEC_TOPS[tIdx]}${base.ex || ""}<path fill-rule="evenodd" d="${base.d}${vecEyes(base.ey, eIdx)}"/></svg>`;
+  return out + esc(raw.slice(last));
 }
 
-const PROJECTS = [
-  { name:"chatbot",   sub:"Adaptive",        prof:"chat",     files:1, mode:"chat",  hud:"no tools", adp:false, cloud:false, model:"Ling-3.0-tiny · local",                    reason:"t250",   ctx:"8.2k",  pct:"6.4%" },
-  { name:"flint",     sub:"Recursive",       prof:"flint",    files:2, mode:"agent", hud:"mb",       adp:true,  cloud:false, model:"Flint-40B-A2.5B · local",                  reason:"t350",   ctx:"8.2k",  pct:"18.2%" },
-  { name:"gem35",     sub:"Google",          prof:"gem35",    files:1, mode:"agent", hud:"core4",    adp:false, cloud:true,  model:"gemini-3.5-flash-lite · gemini",           reason:"medium", ctx:"65.5k", pct:"4.1%" },
-  { name:"groot",     sub:"Groot-19B-A3B",   prof:"groot",    files:3, mode:"agent", hud:"mb",       adp:true,  cloud:false, model:"Groot-19B-A3B · local",                    reason:"t500",   ctx:"8.2k",  pct:"22.0%" },
-  { name:"inkling2",  sub:"Inkling-2-Mini",  prof:"inkling2", files:1, mode:"agent", hud:"mb",       adp:true,  cloud:false, model:"Inkling-2-Mini · local",                   reason:"t200",   ctx:"8.2k",  pct:"16.8%", stats:"98% · 62.4 t/s", git:"main · 2", dirty:true },
-  { name:"lfm3",      sub:"Liquid-lora",     prof:"lfm3",     files:1, mode:"agent", hud:"mb",       adp:true,  cloud:false, model:"LFM3-1.7B · local",                        reason:"t250",   ctx:"8.2k",  pct:"14.5%", stats:"84% · 20.9 t/s", git:"master · 2", dirty:true },
-  { name:"ling-tiny", sub:"Ling-3.0-tiny",   prof:"lingtiny", files:2, mode:"agent", hud:"mb",       adp:true,  cloud:false, model:"Ling-3.0-tiny · local",                    reason:"t350",   ctx:"8.2k",  pct:"20.4%" },
-  { name:"nemo",      sub:"NVIDIA",          prof:"nemo",     files:4, mode:"agent", hud:"core4",    adp:false, cloud:true,  model:"nemotron-3.5-lightning:free · openrouter", reason:"medium", ctx:"65.5k", pct:"3.8%",  git:"main · clean", dirty:false },
-  { name:"qwen38",    sub:"Qwen3.8-35B-D",   prof:"qwen38",   files:2, mode:"agent", hud:"mb",       adp:true,  cloud:false, model:"Qwen3.8-35B-D · local",                    reason:"t500",   ctx:"8.2k",  pct:"19.0%" },
-  { name:"sage",      sub:"InternScience",   prof:"sage",     files:1, mode:"agent", hud:"mb",       adp:true,  cloud:false, model:"Sage-A1.5-35B · local",                    reason:"t500",   ctx:"8.2k",  pct:"16.4%" },
-  { name:"tokenlab",  sub:"AMD Token",       prof:"tokenlab", files:0, mode:"agent", hud:"core4",    adp:false, cloud:true,  model:"DeepSeek-V4.1-Flash · tokenlab",           reason:"medium", ctx:"65.5k", pct:"3.2%" }
-];
+const SAMPLE_FILES = {
+  "math_demo.py": `def is_prime(n):\n    """Return True if n is a prime number, False otherwise."""\n    if n <= 1:\n        return False\n    if n <= 3:\n        return True\n    if n % 2 == 0 or n % 3 == 0:\n        return False\n    i = 5\n    while i * i <= n:\n        if n % i == 0 or n % (i + 2) == 0:\n            return False\n        i += 6\n    return True\n\nif __name__ == "__main__":\n    for x in [2, 15, 97, 100]:\n        print(x, is_prime(x))`,
+  "test_calc.py": `from math_demo import is_prime\n\ndef test_basic_primes():\n    assert is_prime(2) is True\n    assert is_prime(97) is True\n\ndef test_negative_edge_cases():\n    assert is_prime(-5) is False\n    assert is_prime(0) is False\n    assert is_prime(1) is False`,
+  "notes.md": `# Chat Scratchpad\nPure conversational mode (~180t schema, zero tool overhead).`
+};
 
-let demoMode = "agent", activeProj = "lfm3", rsTab = "acts", extraMsgs = [];
+const PROJECTS = [
+  { name:"chatbot",    sub:"Adaptive",        prof:"chat",       files:["notes.md"],                     mode:"chat",  hud:"no tools", cloud:false, model:"LFM3-1.7B",             ep:"local",      reason:"250",    pct:"6.4%",  ch:"92%", tps:"142.9 t/s", collabs:[],         labels:["chat"],            empty:false, tagline:"Pure conversational mode (~180t, zero tool overhead)" },
+  { name:"flint",      sub:"Recursive",       prof:"flint",      files:["math_demo.py"],                 mode:"agent", hud:"adp",      cloud:false, model:"Flint-40B-A2.5B",       ep:"local",      reason:"350",    pct:"0.0%",  ch:"",    tps:"",          collabs:["gem35"],  labels:["local","railbot"], empty:true,  tagline:"Recursive 40B local agent tuned for multi-step refactoring" },
+  { name:"gem35",      sub:"Google",          prof:"gem35",      files:["review.md"],                    mode:"agent", hud:"core4",    cloud:true,  model:"gemini-3.5-flash-lite", ep:"gemini",     reason:"medium", pct:"0.0%",  ch:"",    tps:"",          collabs:[],         labels:["cloud","railbot"], empty:true,  tagline:"Google Gemini peer reviewer & fast cloud specialist", peerProv:"GEMINI" },
+  { name:"inkling2",   sub:"Inkling-2-Mini",  prof:"inkling2",   files:["math_demo.py"],                 mode:"agent", hud:"adp",      cloud:false, model:"Inkling-2-Mini",        ep:"local",      reason:"200",    pct:"16.8%", ch:"98%", tps:"62.4 t/s",  collabs:[],         labels:["local"],           empty:false, tagline:"Primary local edge baseline with fast tool loops", git:"main · 2", dirty:true },
+  { name:"lfm3",       sub:"Liquid-lora",     prof:"lfm3",       files:["math_demo.py"],                 mode:"agent", hud:"adp",      cloud:false, model:"LFM3-1.7B",             ep:"local",      reason:"250",    pct:"29.4%", ch:"84%", tps:"20.9 t/s",  collabs:["gem35"],  labels:["local","railbot"], empty:false, tagline:"1.7B ultra-fast SLM for single-turn edits & checks", git:"master · 2", dirty:true },
+  { name:"ling-tiny",  sub:"Ling-3.0-tiny",   prof:"ling-tiny",  files:[],                               mode:"agent", hud:"adp",      cloud:false, model:"Ling-3.0-tiny",         ep:"local",      reason:"350",    pct:"0.0%",  ch:"",    tps:"",          collabs:[],         labels:["local"],           empty:true,  tagline:"High-speed edge SLM for instant local dispatch" },
+  { name:"nemo",       sub:"NVIDIA",          prof:"nemo",       files:["math_demo.py","test_calc.py"],  mode:"agent", hud:"core4",    cloud:true,  model:"nemotron-3.5-lightning",ep:"openrouter", reason:"medium", pct:"3.8%",  ch:"89%", tps:"96.4 t/s",  collabs:[],         labels:["cloud"],           empty:false, tagline:"Cloud Nemotron Lightning core4 agent", git:"main · clean", dirty:false },
+  { name:"qwen38",     sub:"Qwen3.8-35B-D",   prof:"qwen38",     files:[],                               mode:"agent", hud:"adp",      cloud:false, model:"Qwen3.8-35B-D",         ep:"local",      reason:"500",    pct:"0.0%",  ch:"",    tps:"",          collabs:[],         labels:["local"],           empty:true,  tagline:"35B distilled reasoning workspace for complex logic" },
+  { name:"sage",       sub:"InternScience",   prof:"sage",       files:[],                               mode:"agent", hud:"adp",      cloud:false, model:"Sage-A1.5-35B",         ep:"local",      reason:"500",    pct:"0.0%",  ch:"",    tps:"",          collabs:[],         labels:["local"],           empty:true,  tagline:"Systems & scientific reasoning workspace" },
+  { name:"surogate37", sub:"Surogate",        prof:"surogate37", files:["math_demo.py","test_calc.py"],  mode:"agent", hud:"adp",      cloud:false, model:"Surogate3.7-35B-A3B",   ep:"local",      reason:"200",    pct:"28.3%", ch:"99%", tps:"67.5 t/s",  collabs:["gem35"],  labels:["local","railbot"], empty:false, tagline:"35B-A3B multi-bot coder with Gemini peer review", git:"master · 3", dirty:true },
+  { name:"tokenlab",   sub:"AMD Token",       prof:"tokenlab",   files:[],                               mode:"agent", hud:"core4",    cloud:true,  model:"DeepSeek-V4.1-Flash",   ep:"tokenlab",   reason:"medium", pct:"0.0%",  ch:"",    tps:"",          collabs:[],         labels:["cloud","railbot"], empty:true,  tagline:"AMD Token Lab DeepSeek-V4.1 cloud endpoint", peerProv:"CUSTOM1" }
+];
+const PROVIDERS = [
+  { id:"LOCAL",      name:"Local llama-server (:8080)", model:"LFM3-1.7B / Surogate3.7-35B-A3B", ep:"local" },
+  { id:"GEMINI",     name:"Google Gemini",              model:"gemini-3.5-flash-lite, gemini-4-hydrogen", ep:"gemini" },
+  { id:"OPENROUTER", name:"OpenRouter",                 model:"nvidia/nemotron-3.5-lightning:free", ep:"openrouter" },
+  { id:"CUSTOM1",    name:"TokenHarbor",                model:"deepseek-v4.1-flash:free", ep:"tokenlab" },
+  { id:"CUSTOM2",    name:"AMD Token Lab",              model:"DeepSeek-V4.1-Flash, Qwen3.8-27B", ep:"amd" }
+];
+const PROFILES = [
+  { name:"lfm3",       desc:"High-speed local coding (6-tool · adp · t250)", hud:"adp" },
+  { name:"surogate37", desc:"Multi-bot coder with auto-collaborators (6-tool · adp)", hud:"adp" },
+  { name:"core4",      desc:"Minimal 4-tool schema (~480t) for 27B+ & cloud", hud:"core4" },
+  { name:"purebash",   desc:"Single run_command dispatch (~95t schema)", hud:"purebash" },
+  { name:"chat",       desc:"Pure conversation & fast reasoning (0 tools)", hud:"no tools" }
+];
+const SKILLS = [
+  { name:"ponytail",   desc:"Concise direct engineering tone, zero fluff" },
+  { name:"humanizer",  desc:"Natural readable prose without robotic phrasing" },
+  { name:"ub-mode",    desc:"Strict undefined-behavior & memory safety checks" },
+  { name:"test-first", desc:"Write failing boundary tests before implementation" }
+];
+const MCP_SERVERS = [
+  { name:"photocraft", cmd:"npx", args:["-y","@rs-mcp/photocraft"], tools:["doc_new — Create layered canvas","doc_save — Export PNG/WebP","layer_filter — Apply sharpen/curves"] },
+  { name:"blender",    cmd:"uvx", args:["blender-mcp"],             tools:["scene_info — Inspect meshes & cameras","mesh_create — Add procedural geometry","render_frame — Output headless render"] },
+  { name:"mailcraft",  cmd:"node",args:["plugins/mcp/mailcraft.js"],tools:["draft_reply — Compose sandboxed draft","thread_search — Query local mbox index"] },
+  { name:"firecrawl",  cmd:"npx", args:["-y","firecrawl-mcp"],      tools:["firecrawl_scrape — Clean markdown fetch","firecrawl_search — Web search results"] }
+];
+const SHIELD_ZT = `<svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 1.8l5 2v4.1c0 3.1-2.1 5.2-5 6.1-2.9-.9-5-3-5-6.1V3.8l5-2z"/><path d="M6 8.2l1.4 1.4 2.8-2.8"/></svg>`;
+const SHIELD_AA = `<svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 1.8l5 2v4.1c0 3.1-2.1 5.2-5 6.1-2.9-.9-5-3-5-6.1V3.8l5-2z"/><path d="M8 5.2v3.3"/><circle cx="8" cy="10.8" r="0.6" fill="currentColor" stroke="none"/></svg>`;
 const curProj = () => PROJECTS.find(p => p.name === activeProj) || PROJECTS[0];
+
+function closePops() { ["pop-r","pop-sec","ac-pop"].forEach(id => document.getElementById(id).classList.remove("open")); }
+function closeModal() { document.getElementById("frame-modal").classList.remove("open"); }
+
+function openFileModal(fname, rawOverride) {
+  const box = document.getElementById("fm-box");
+  box.classList.remove("wide");
+  box.innerHTML = `<div class="fm-head"><span>${esc(fname)}</span><button type="button" class="btn-xs" id="fm-close">✕</button></div><div class="fm-body"><pre class="fm-pre">${highlightCode(rawOverride ?? SAMPLE_FILES[fname] ?? `// ${fname}\nprint("ready")`)}</pre></div>`;
+  box.querySelector("#fm-close").onclick = closeModal;
+  document.getElementById("frame-modal").classList.add("open");
+}
+
+function openCallModal(prefTarget) {
+  const ap = curProj(), siblings = PROJECTS.filter(p => p.name !== ap.name && !p.hidden), defT = prefTarget || ap.collabs[0] || "gem35";
+  const box = document.getElementById("fm-box");
+  box.classList.remove("wide");
+  box.innerHTML = `
+    <div class="fm-head"><span>Call Peer Bot</span><button type="button" class="btn-xs" id="fm-close">✕</button></div>
+    <div class="fm-body">
+      <div class="call-route">
+        <div class="call-node">${botSvg(ap.name, 16)}<strong>${esc(ap.name)}</strong></div>
+        <span style="color:var(--muted)">→</span>
+        <div class="call-node"><select id="call-sel">${siblings.map(s => `<option value="${esc(s.name)}" ${s.name===defT?"selected":""}>${esc(s.name)} (${esc(s.ep)})</option>`).join("")}</select></div>
+      </div>
+      <textarea class="call-ta" id="call-ta" placeholder="e.g. Check edge cases in math_demo.py...">Check edge cases in math_demo.py and test_calc.py.</textarea>
+      <div style="display:flex;justify-content:flex-end;gap:8px;"><button type="button" class="btn-xs" id="fm-cancel">Cancel</button><button type="button" class="btn-primary" id="fm-ask">Ask Bot</button></div>
+    </div>`;
+  box.querySelector("#fm-close").onclick = box.querySelector("#fm-cancel").onclick = closeModal;
+  box.querySelector("#fm-ask").onclick = () => {
+    const target = box.querySelector("#call-sel").value, prompt = box.querySelector("#call-ta").value.trim() || "Review workspace files.";
+    const tgt = PROJECTS.find(p => p.name === target) || PROJECTS[2];
+    closeModal();
+    extraTurns.push({ kind:"peer", target, ep:tgt.ep, prompt, reply:`Inspected workspace files read-only. <code>is_prime(n)</code> handles <code>n &lt;= 1</code>, <code>2</code>, and <code>3</code> cleanly; adding explicit negative and <code>0/1</code> assertions in <code>test_calc.py</code> locks coverage.` });
+    renderDemo();
+  };
+  document.getElementById("frame-modal").classList.add("open");
+  box.querySelector("#call-ta").focus();
+}
+
+function buildBotCandidates(curMask, defMask, taken, page) {
+  const out = [curMask], seen = new Set([curMask]), vis = new Set([vecParts(curMask).key]);
+  const push = (m) => { const k = vecParts(m).key; if (!seen.has(m) && !vis.has(k)) { vis.add(k); out.push(m); seen.add(m); } };
+  if (defMask !== curMask && !taken.has(defMask)) push(defMask);
+  if (page === 0) for (const pm of VEC_PRESET_IDS) push(pm);
+  let s = (0x9e3779b9 ^ Math.imul(page + 1, 0x85ebca6b)) >>> 0;
+  for (let i = 0; out.length < 24 && i < 2000; i++) {
+    s = (Math.imul(s ^ (s >>> 15), 0x85ebca6b) + 0x27d4eb2d) >>> 0;
+    const m = (s & 0x7fff) | (1 << 4);
+    if (!seen.has(m) && !taken.has(m)) push(m);
+  }
+  return out;
+}
+
+function openBotPicker() { botPage = 0; renderBotPicker(); document.getElementById("frame-modal").classList.add("open"); }
+function renderBotPicker() {
+  const ap = curProj(), taken = new Map();
+  for (const p of PROJECTS) if (p.name !== ap.name) taken.set(projMask(p.name), p.name);
+  const curMask = projMask(ap.name), defMask = hashBotMask(ap.name), box = document.getElementById("fm-box");
+  box.classList.remove("wide");
+  const cands = buildBotCandidates(curMask, defMask, taken, botPage), siblings = PROJECTS.filter(p => p.name !== ap.name && !p.hidden);
+  box.innerHTML = `
+    <div class="fm-head"><span>RailBot Picker</span><button type="button" class="btn-xs" id="fm-close">✕</button></div>
+    <div class="fm-body">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span style="width:34px;height:34px;border-radius:8px;background:var(--card);border:1px solid var(--border);display:inline-flex;align-items:center;justify-content:center;color:var(--accent);">${botSvgFromMask(curMask, 22)}</span>
+          <div><div style="font-weight:600;font-size:12px;">${esc(ap.name)}</div><div style="font-size:10.5px;color:var(--muted);">Pick a unique RailBot</div></div>
+        </div>
+        <div style="display:flex;gap:6px;">${curMask!==defMask?`<button type="button" class="btn-xs" id="bp-def">Default</button>`:""}<button type="button" class="btn-xs" id="bp-shuf">Shuffle</button></div>
+      </div>
+      <div class="bot-grid" id="bp-grid">${cands.map(m => { const o = taken.get(m); return `<button type="button" class="bot-opt ${m===curMask?"active":""}" data-m="${m}" ${o?`disabled title="Used by ${esc(o)}"`:""}>${botSvgFromMask(m,20)}</button>`; }).join("")}</div>
+      ${ap.mode==="agent"?`<div style="display:flex;flex-direction:column;gap:6px;border-top:1px solid var(--border);padding-top:10px;">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;"><span style="font-weight:600;font-size:11.5px;">Can auto-call</span><span style="font-size:10.5px;color:var(--muted);">Sibling bots for call_bot &amp; Actions</span></div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;" id="bp-collabs">${siblings.map(s=>`<button type="button" class="collab-chip ${ap.collabs.includes(s.name)?"on":""}" data-c="${esc(s.name)}">${botSvg(s.name,12)}<span>${esc(s.name)}</span></button>`).join("")}</div>
+      </div>`:""}
+    </div>`;
+  box.querySelector("#fm-close").onclick = closeModal;
+  box.querySelector("#bp-shuf").onclick = () => { botPage += 1; renderBotPicker(); };
+  box.querySelector("#bp-def")?.addEventListener("click", () => { ap.customMask = null; renderBotPicker(); renderDemo(); });
+  box.querySelectorAll("#bp-grid .bot-opt:not(:disabled)").forEach(b => b.onclick = () => { const m = Number(b.dataset.m); ap.customMask = m === defMask ? null : m; renderBotPicker(); renderDemo(); });
+  box.querySelectorAll("#bp-collabs .collab-chip").forEach(b => b.onclick = () => { const c = b.dataset.c, i = ap.collabs.indexOf(c); if (i >= 0) ap.collabs.splice(i,1); else if (ap.collabs.length < 8) ap.collabs.push(c); renderBotPicker(); renderDemo(); });
+}
+
+function openSettings(tab) { if (tab) activeTab = tab; renderSettingsModal(); document.getElementById("frame-modal").classList.add("open"); }
+function renderSettingsModal() {
+  const box = document.getElementById("fm-box"); box.classList.add("wide");
+  const nav = [
+    { group:"RAILBOT" }, { id:"providers", label:"Providers & Models" }, { id:"projects", label:"Projects" },
+    { id:"profiles", label:"Profiles" }, { id:"skills", label:"Skills" }, { id:"mcp", label:"MCP / Plugins" },
+    { group:"INTERFACE" }, { id:"commands", label:"Commands" }, { id:"appearance", label:"Appearance" }
+  ];
+  box.innerHTML = `<div class="fm-head"><span>Settings</span><button type="button" class="btn-xs" id="fm-close">✕</button></div><div class="modal-body"><nav class="modal-nav">${nav.map(n=>n.group?`<div class="nav-group">${n.group}</div>`:`<button type="button" class="nav-btn ${n.id===activeTab?"active":""}" data-tab="${n.id}">${n.label}</button>`).join("")}</nav><div class="modal-pane" id="sm-pane"></div></div>`;
+  box.querySelector("#fm-close").onclick = closeModal;
+  box.querySelectorAll(".nav-btn").forEach(b => b.onclick = () => { activeTab = b.dataset.tab; renderSettingsModal(); });
+  const pane = box.querySelector("#sm-pane"), ap = curProj();
+
+  if (activeTab === "providers") {
+    pane.innerHTML = `<div><div style="font-weight:600">Providers &amp; Runtime Governors</div><div class="s-sub">Click a configured .env slot to activate, or use Local :8080. Keys stay strictly server-side.</div></div>`;
+    PROVIDERS.forEach(s => {
+      const on = activeProvider === s.id, row = document.createElement("div");
+      row.className = "s-row" + (on ? " active-slot" : "");
+      row.innerHTML = `<div><strong>${esc(s.name)}</strong><div class="s-sub">${esc(s.model)}</div></div><button type="button" class="${on?"btn-primary":"btn-xs"}">${on?"Active":"Activate"}</button>`;
+      row.querySelector("button").onclick = () => { activeProvider = s.id; renderSettingsModal(); renderDemo(); };
+      pane.appendChild(row);
+    });
+    const gov = document.createElement("div"); gov.className = "s-row";
+    gov.innerHTML = `<div style="flex:1"><div class="s-sub" style="margin-bottom:4px;">Context Budget (AI_MAX_TOKENS)</div><select class="s-sel" id="g-tok" style="width:100%">${[8192,16384,32768,65536,131072].map(v=>`<option value="${v}" ${maxTokens===v?"selected":""}>${v.toLocaleString()}</option>`).join("")}</select></div><div style="flex:1"><div class="s-sub" style="margin-bottom:4px;">Max Steps (AI_MAX_AGENT_ROUNDS)</div><select class="s-sel" id="g-rnd" style="width:100%">${[5,10,15,25,0].map(v=>`<option value="${v}" ${maxRounds===v?"selected":""}>${v===0?"Unlimited":v+" steps"}</option>`).join("")}</select></div>`;
+    pane.appendChild(gov);
+    gov.querySelector("#g-tok").onchange = (e) => { maxTokens = +e.target.value; renderDemo(); };
+    gov.querySelector("#g-rnd").onchange = (e) => { maxRounds = +e.target.value; renderDemo(); };
+  } else if (activeTab === "projects") {
+    pane.innerHTML = `<div><div style="font-weight:600">Projects (${PROJECTS.filter(p=>!p.hidden).length}/${PROJECTS.length} shown)</div><div class="s-sub">Toggle sidebar visibility or assign per-bot peer cloud providers.</div></div>`;
+    PROJECTS.forEach(p => {
+      const row = document.createElement("div"); row.className = "s-row" + (p.name === ap.name ? " active-slot" : "");
+      row.innerHTML = `<div style="min-width:0;flex:1;"><div><strong>${esc(p.name)}</strong> <span style="color:var(--muted)">${p.files.length} file(s)</span></div><div style="margin-top:4px;">${p.labels.map(l=>`<span class="tag-pill">${esc(l)}</span>`).join("")}</div></div><div style="display:flex;align-items:center;gap:8px;"><select class="s-sel">${[["","Active (Default)"],["LOCAL","Local (:8080)"],["GEMINI","Google Gemini"],["OPENROUTER","OpenRouter"],["CUSTOM1","TokenHarbor"]].map(([v,l])=>`<option value="${v}" ${(p.peerProv||"")===v?"selected":""}>${l}</option>`).join("")}</select><button type="button" class="switch ${!p.hidden?"on":""}"></button></div>`;
+      row.querySelector("select").onchange = (e) => { p.peerProv = e.target.value; renderDemo(); };
+      row.querySelector(".switch").onclick = () => { if (p.name === ap.name && !p.hidden) return; p.hidden = !p.hidden; renderSettingsModal(); renderDemo(); };
+      pane.appendChild(row);
+    });
+  } else if (activeTab === "profiles") {
+    const locked = ap.mode === "chat";
+    pane.innerHTML = `<div><div style="font-weight:600">Workspace Profile</div><div class="s-sub">${locked?"Chat mode is locked to <code>chat</code>.":"Select which profile in <code>profiles/*.md</code> drives the active bot."}</div></div>`;
+    PROFILES.forEach(pr => {
+      const cur = ap.prof === pr.name, row = document.createElement("div");
+      row.className = "s-row" + (cur ? " active-slot" : "");
+      row.innerHTML = `<div><strong>${esc(pr.name)}</strong><div class="s-sub">${esc(pr.desc)}</div></div><button type="button" class="${cur?"btn-primary":"btn-xs"}" ${locked?"disabled":""}>${cur?"Active":"Select"}</button>`;
+      row.querySelector("button").onclick = () => { ap.prof = pr.name; ap.hud = pr.hud; renderSettingsModal(); renderDemo(); };
+      pane.appendChild(row);
+    });
+  } else if (activeTab === "skills") {
+    pane.innerHTML = `<div><div style="font-weight:600">Skills (${activeSkills.length}/3 active)</div><div class="s-sub">Toggle runtime directives injected into the system prompt and composer bar.</div></div>`;
+    SKILLS.forEach(sk => {
+      const on = activeSkills.includes(sk.name), full = !on && activeSkills.length >= 3, row = document.createElement("div");
+      row.className = "s-row" + (on ? " active-slot" : "");
+      row.innerHTML = `<div><strong>${esc(sk.name)}</strong><div class="s-sub">${esc(sk.desc)}</div></div><button type="button" class="switch ${on?"on":""}" ${full?"disabled":""}></button>`;
+      row.querySelector("button").onclick = () => { const i = activeSkills.indexOf(sk.name); if (i >= 0) activeSkills.splice(i,1); else if (activeSkills.length < 3) activeSkills.push(sk.name); renderSettingsModal(); renderDemo(); };
+      pane.appendChild(row);
+    });
+  } else if (activeTab === "mcp") {
+    pane.innerHTML = `<div><div style="font-weight:600">MCP Servers (plugins/mcp/servers.json)</div><div class="s-sub">Stdio MCP servers attached to profiles via <code>mcp: &lt;name&gt;</code>.</div></div>`;
+    MCP_SERVERS.forEach(m => {
+      const row = document.createElement("div"); row.className = "s-row";
+      row.innerHTML = `<div style="min-width:0"><strong>${esc(m.name)}</strong><div class="s-sub">${esc(m.cmd)} ${esc(m.args.join(" "))}</div></div><button type="button" class="btn-xs">Inspect Tools</button>`;
+      row.querySelector("button").onclick = () => openFileModal(`MCP: ${m.name} (${m.tools.length} tools)`, m.tools.map(t => "• " + t).join("\n"));
+      pane.appendChild(row);
+    });
+  } else if (activeTab === "commands") {
+    pane.innerHTML = `<div><div style="font-weight:600">Slash Commands</div><div class="s-sub">Type <code>/</code> in the composer or run any command below.</div></div>`;
+    [["/call","Open peer micro-bot picker"],["/tk","Toggle auto-expand thinking steps"],["/export","Export workspace transcript to .md"],["/r","Reset active demo session"]].forEach(([cmd, desc]) => {
+      const row = document.createElement("div"); row.className = "s-row";
+      row.innerHTML = `<div><strong>${cmd}</strong><div class="s-sub">${desc}</div></div><button type="button" class="btn-xs">Run</button>`;
+      row.querySelector("button").onclick = () => {
+        closeModal();
+        if (cmd === "/call") openCallModal();
+        else if (cmd === "/tk") { expandSteps = !expandSteps; renderDemo(); }
+        else if (cmd === "/export") document.getElementById("btn-demo-export").click();
+        else { extraTurns = []; curProj().cleared = true; renderDemo(); }
+      };
+      pane.appendChild(row);
+    });
+  } else if (activeTab === "appearance") {
+    pane.innerHTML = `<div><div style="font-weight:600">Appearance &amp; Layout</div><div class="s-sub">Live themes, RailBot icon style, sidebar density, and step expansion.</div></div>`;
+    const addRow = (html) => { const r = document.createElement("div"); r.className = "s-row"; r.innerHTML = html; pane.appendChild(r); return r; };
+    addRow(`<div><strong>Theme</strong><div class="s-sub">Syncs with the topbar Dark / Eldritch switch</div></div><div class="seg"><button type="button" class="${curTheme==="dark"?"active":""}" data-t="dark">Dark</button><button type="button" class="${curTheme==="eldritch"?"active":""}" data-t="eldritch">Eldritch</button></div>`)
+      .querySelectorAll("button").forEach(b => b.onclick = () => { setTheme(b.dataset.t); renderSettingsModal(); });
+    addRow(`<div><strong>RailBot Style</strong><div class="s-sub">Custom mean vector RailBots or letter badges</div></div><div class="seg"><button type="button" class="${!useLetters?"active":""}" data-b="vec">Vector</button><button type="button" class="${useLetters?"active":""}" data-b="let">Letters</button></div>`)
+      .querySelectorAll("button").forEach(b => b.onclick = () => { useLetters = b.dataset.b === "let"; renderSettingsModal(); renderDemo(); });
+    addRow(`<div><strong>Sidebar Density</strong><div class="s-sub">Show descriptions or compact single-line rows</div></div><button type="button" class="btn-xs">${compactSidebar?"Compact":"Detailed"}</button>`)
+      .querySelector("button").onclick = () => { compactSidebar = !compactSidebar; renderSettingsModal(); renderDemo(); };
+    addRow(`<div><strong>Auto-Expand Steps</strong><div class="s-sub">Expand reasoning steps by default</div></div><button type="button" class="btn-xs">${expandSteps?"Expanded":"Collapsed"}</button>`)
+      .querySelector("button").onclick = () => { expandSteps = !expandSteps; renderSettingsModal(); renderDemo(); };
+  }
+}
 
 function renderProjects() {
   const list = document.getElementById("proj-list"), hc = document.getElementById("hover-card");
   list.innerHTML = "";
-  PROJECTS.forEach(p => {
+  PROJECTS.filter(p => !p.hidden).forEach(p => {
     const el = document.createElement("div");
     el.className = "proj-item" + (p.name === activeProj ? " active" : "");
-    el.innerHTML = `
-      <div class="proj-l">
-        <span class="proj-badge">${botSvg(p.name, 19)}</span>
-        <span class="proj-meta"><span class="proj-name">${p.name}</span><span class="proj-sub">${p.sub}</span></span>
-      </div>
-      <span class="proj-dot ${p.dirty ? "dirty" : ""}"></span>`;
-    el.onclick = () => {
-      demoMode = p.mode; activeProj = p.name; extraMsgs = [];
-      document.getElementById("r-val").textContent = p.reason;
-      renderDemo();
-    };
+    const badge = useLetters ? `<span class="proj-badge let">${esc(p.name.slice(0,2))}</span>` : `<span class="proj-badge">${botSvg(p.name, compactSidebar?16:22)}</span>`;
+    const callHtml = p.name !== activeProj ? `<button type="button" class="proj-call" title="Call ${esc(p.name)}"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 3.5h11v7.5h-6l-3 2.5V11H2.5z"/></svg></button>` : "";
+    const metaHtml = compactSidebar ? `<span class="proj-name">${esc(p.name)}</span>` : `<span class="proj-meta"><span class="proj-name">${esc(p.name)}</span><span class="proj-sub">${esc(p.sub)}</span></span>`;
+    el.innerHTML = `<div class="proj-l">${badge}${metaHtml}</div><div class="proj-acts">${callHtml}<span class="proj-dot ${p.dirty?"dirty":""}"></span></div>`;
+    el.onclick = () => { hc.classList.remove("open"); activeProj = p.name; extraTurns = []; document.getElementById("r-val").textContent = p.reason; renderDemo(); };
+    el.querySelector(".proj-call")?.addEventListener("click", (e) => { e.stopPropagation(); hc.classList.remove("open"); openCallModal(p.name); });
     el.onmouseenter = () => {
       const rect = el.getBoundingClientRect();
-      hc.innerHTML = `<div style="font-weight:600;color:var(--text)">${p.name}</div><div class="hc-row"><span>Profile</span><span>${p.prof}</span></div><div class="hc-row"><span>Workspace</span><span>${p.files ? p.files + " file(s)" : "empty"}</span></div>${p.git ? `<div class="hc-row"><span>Git</span><span>${p.git}</span></div>` : ""}`;
-      hc.style.left = `${rect.right + 8}px`; hc.style.top = `${Math.min(rect.top, window.innerHeight - 120)}px`;
+      hc.innerHTML = `<div style="font-weight:600;color:var(--text)">${esc(p.name)}</div><div class="hc-row"><span>Profile</span><span>${esc(p.prof)}</span></div><div class="hc-row"><span>Workspace</span><span>${p.files.length} file(s)</span></div>${curProj().collabs.includes(p.name)?`<div class="hc-row"><span>Collaborator</span><span style="color:var(--accent)">linked</span></div>`:""}${p.peerProv?`<div class="hc-row"><span>Provider</span><span>${esc(p.peerProv)}</span></div>`:""}${p.git?`<div class="hc-row"><span>Git</span><span>${esc(p.git)}</span></div>`:""}`;
+      hc.style.left = `${rect.right + 8}px`; hc.style.top = `${Math.min(rect.top, window.innerHeight - 135)}px`;
       hc.classList.add("open");
     };
     el.onmouseleave = () => hc.classList.remove("open");
@@ -423,119 +774,192 @@ function renderProjects() {
 }
 
 function renderRightBottom() {
-  const body = document.getElementById("d-act-body");
-  document.getElementById("rt-acts").classList.toggle("active", rsTab === "acts");
-  document.getElementById("rt-mem").classList.toggle("active", rsTab === "mem");
-  if (rsTab === "mem") {
-    body.innerHTML = `<div style="font-size:11px;color:var(--muted);line-height:1.5;padding:4px 2px;">Workspace <code>.rs/memory.md</code> rules stay isolated per bot.</div>`;
-    return;
-  }
-  const acts = demoMode === "chat"
-    ? [{ cmd: "/call gem35", desc: "Ask peer" }]
-    : [{ cmd: "/task", desc: "Start goal" }, { cmd: "/call", desc: "Pick peer" }, { cmd: "/call gem35", desc: "Ask peer" }];
-  body.innerHTML = acts.map(a => `<div class="act-row"><span class="act-cmd">${a.cmd}</span><span class="act-desc">${a.desc}</span></div>`).join("");
-  body.querySelectorAll(".act-row").forEach(row => {
-    row.onclick = () => {
-      const inp = document.getElementById("d-input");
-      inp.value = row.querySelector(".act-cmd").textContent + " ";
-      document.getElementById("d-send").classList.add("ready");
-      inp.focus();
-    };
+  const isActs = rsTab === "acts";
+  document.getElementById("rt-acts").classList.toggle("active", isActs);
+  document.getElementById("rt-mem").classList.toggle("active", !isActs);
+  document.getElementById("d-act-body").style.display = isActs ? "flex" : "none";
+  document.getElementById("d-mem-box").style.display = isActs ? "none" : "block";
+  if (!isActs) return;
+  const p = curProj(), body = document.getElementById("d-act-body"), acts = [];
+  if (p.mode !== "chat") acts.push({ cmd: "/task", desc: "Start autonomous goal" });
+  acts.push({ cmd: "/call", desc: "Open peer bot picker" });
+  (p.collabs.length ? p.collabs : ["gem35"]).forEach(c => acts.push({ cmd: `/call ${c}`, desc: "Ask peer", bot: c }));
+  body.innerHTML = acts.map(a => `<div class="act-row"><span class="act-cmd">${a.bot?botSvg(a.bot,12):""}${esc(a.cmd)}</span><span class="act-desc">${esc(a.desc)}</span></div>`).join("");
+  body.querySelectorAll(".act-row").forEach(row => row.onclick = () => {
+    const cmd = row.querySelector(".act-cmd").textContent.trim();
+    if (cmd === "/call") return openCallModal();
+    if (cmd.startsWith("/call ")) return openCallModal(cmd.slice(6).trim());
+    const inp = document.getElementById("d-input");
+    inp.value = cmd + " "; document.getElementById("d-send").classList.add("ready"); inp.focus();
   });
 }
 
+const diffHtml = (lines) => `<div class="diff-box">${lines.map(([num, kind, text]) => `<div class="diff-line ${kind}"><span class="diff-num">${num} ${kind==="add"?"+":kind==="del"?"-":" "}</span><span>${highlightCode(text)}</span></div>`).join("")}</div>`;
+const peerCardHtml = (target, tag, brief, elapsed, bodyHtml, trace) => `<div class="peer-card" onclick="this.classList.toggle('open')"><div class="peer-head"><div class="peer-title">${botSvg(target,14)}<strong>${esc(target)}</strong><span class="peer-tag">${esc(tag)}</span><span class="peer-brief">${esc(brief)}</span></div><span style="color:var(--muted)">${esc(elapsed)}</span></div><div class="peer-body">${bodyHtml}</div><pre class="t-raw">${esc(trace)}</pre></div>`;
+
 function renderDemo() {
-  const p = curProj();
-  const isChat = demoMode === "chat";
-  const reason = document.getElementById("r-val").textContent;
+  const p = curProj(), isChat = p.mode === "chat", reason = document.getElementById("r-val").textContent;
+  const slotObj = PROVIDERS.find(x => x.id === activeProvider), effectiveCloud = activeProvider !== "LOCAL" ? true : p.cloud;
+  const shownModel = activeProvider !== "LOCAL" ? slotObj.model.split(",")[0].trim() : p.model;
+  const shownEp = activeProvider !== "LOCAL" ? slotObj.ep : p.ep;
+
   document.getElementById("d-brand-icon").innerHTML = botSvg(p.name, 16);
-  document.getElementById("d-prof").innerHTML = isChat
-    ? `<strong>${p.name}</strong><span>no tools</span><span>${reason}</span>`
-    : `<strong>${p.name}</strong>${p.hud ? `<span>${p.hud}</span>` : ""}<span>${reason}</span>${p.adp ? "<span>adp</span>" : ""}`;
-  document.getElementById("d-model").textContent = p.model;
+  const parts = p.hud.split(" ").filter(Boolean);
+  if (p.mode === "agent" && (p.collabs.length || p.peerProv)) parts.push("mb");
+  document.getElementById("d-prof").innerHTML = `<strong>${esc(p.name)}</strong>${parts.map(x => `<span>${esc(x)}</span>`).join("")}`;
+
   const hasGit = Boolean(p.git);
   document.getElementById("d-git").style.display = hasGit ? "" : "none";
   if (hasGit) {
     document.getElementById("d-git-dot").classList.toggle("dirty", Boolean(p.dirty));
-    document.getElementById("d-git-txt").textContent = p.git;
+    document.getElementById("d-git-txt").innerHTML = p.git.split(" · ").map(x => `<span>${esc(x)}</span>`).join("");
   }
-  document.getElementById("d-stats").textContent = p.stats || (isChat ? "92% · 142.9 t/s" : (p.cloud ? "88% · 94.2 t/s" : "99% · 157.6 t/s"));
-  document.getElementById("d-ctx").textContent = p.pct;
-  document.getElementById("d-ctx-fill").style.width = p.pct;
+
+  const isEmpty = (p.empty || p.cleared) && extraTurns.length === 0;
+  const chEl = document.getElementById("d-ch"), spdEl = document.getElementById("d-spd");
+  chEl.style.display = (!isEmpty && p.ch) ? "" : "none";
+  spdEl.style.display = (!isEmpty && p.tps) ? "" : "none";
+  if (p.ch) chEl.firstChild.textContent = p.ch;
+  if (p.tps) spdEl.firstChild.textContent = p.tps;
+  const shownPct = isEmpty ? "0.0%" : (p.pct === "0.0%" ? "4.2%" : p.pct);
+  document.getElementById("d-ctx").textContent = shownPct;
+  document.getElementById("d-ctx-tip").innerHTML = `<span class="ctx-bar"><span class="ctx-fill" style="width:${shownPct}"></span></span><div><strong>${shownPct}</strong> of ${maxTokens.toLocaleString()} context</div>`;
+  document.getElementById("btn-demo-reset").style.display = isEmpty ? "none" : "inline-flex";
+
+  document.getElementById("d-model").innerHTML = `<span>${esc(shownModel)}</span> <span style="color:var(--muted)">${esc(shownEp)}</span>`;
+  document.getElementById("d-img").style.display = effectiveCloud ? "inline-flex" : "none";
+  document.getElementById("sec-wrap").style.display = isChat ? "none" : "inline-flex";
+  const secBtn = document.getElementById("btn-sec");
+  document.getElementById("sec-ico").innerHTML = allowAll ? SHIELD_AA : SHIELD_ZT;
+  secBtn.classList.toggle("warn", allowAll); secBtn.classList.toggle("muted", !allowAll);
+  secBtn.title = allowAll ? "Security: Allow All (autonomous; .env blocked)" : "Security: Zero Trust";
+
+  const sbar = document.getElementById("d-skills-bar");
+  sbar.innerHTML = activeSkills.map(sk => `<button type="button" class="skill-chip" data-sk="${esc(sk)}">${esc(sk)} ✕</button>`).join("");
+  sbar.querySelectorAll("button").forEach(b => b.onclick = () => { activeSkills = activeSkills.filter(x => x !== b.dataset.sk); renderDemo(); });
+
+  const opts = effectiveCloud ? ["Default","Off","low","medium","high","xhigh"] : ["Default","Off","250","350","500","1000"];
+  document.getElementById("pop-r").innerHTML = opts.map(o => `<button type="button" data-r="${o}" class="${o===reason?"on":""}"><span>${o}</span><span>${o===reason?"✓":""}</span></button>`).join("");
+  document.getElementById("pop-sec").innerHTML = [["zero","Zero Trust","Confirm edits & commands",!allowAll],["allow","Allow All","Autonomous (.env blocked)",allowAll]].map(([k,l,h,on]) => `<button type="button" data-s="${k}" class="${on?"on":""}"><span>${l}<div style="font-size:10px;color:var(--dim)">${h}</div></span><span>${on?"✓":""}</span></button>`).join("");
+
   document.getElementById("d-input").placeholder = isChat ? `Message ${p.name}... (/ commands)` : `Ask ${p.name}... (/ commands, /call peer)`;
-
-  const opts = p.cloud ? ["Off", "low", "medium", "high", "xhigh"] : ["Off", "t250", "t350", "t500", "high"];
-  document.getElementById("pop-r").innerHTML = opts.map(o => `<button data-r="${o}" class="${o===reason?"on":""}"><span>${o}</span><span>${o===reason?"✓":""}</span></button>`).join("");
-
-  const files = isChat ? ["notes.md"] : ["math_demo.py", "hello_test.py"];
-  document.getElementById("d-files-lbl").textContent = `${files.length} ${files.length === 1 ? "file" : "files"}`;
-  document.getElementById("d-files").innerHTML = files.map(f => `<div class="file-row">${f}</div>`).join("");
+  document.getElementById("d-files-lbl").textContent = `${p.files.length} ${p.files.length === 1 ? "file" : "files"}`;
+  const flist = document.getElementById("d-files");
+  flist.innerHTML = p.files.length ? p.files.map(f => `<div class="file-row" data-f="${esc(f)}">${esc(f)}</div>`).join("") : `<div style="padding:4px 8px;font-size:11px;color:var(--dim);">Empty workspace</div>`;
+  flist.querySelectorAll(".file-row").forEach(r => r.onclick = () => openFileModal(r.dataset.f));
   renderRightBottom();
 
   const stream = document.getElementById("stream"), wrap = document.getElementById("turn-wrap");
   stream.classList.toggle("chat-mode", isChat);
-  if (isChat) {
+  const op = expandSteps ? " open" : "";
+
+  if (isEmpty) {
+    wrap.innerHTML = `<div class="empty-state"><div class="empty-title">What should we ${isChat?"explore":"build"} in ${esc(p.name)}?</div><div class="empty-sub">${esc(p.tagline||"")}</div></div>`;
+  } else if (isChat) {
     wrap.innerHTML = `
-      <div class="msg-u">summarize why local rust harnesses feel instant</div>
+      <div class="msg-u">Why does RailBot feel instant compared to Node/Python tools?</div>
       <div class="msg-a">
-        <details class="think"><summary><span>Thought 0.9s ›</span></summary><div class="think-body">Listing single-binary startup, zero GC pauses, and prompt cache reuse.</div></details>
-        <div class="ans-row"><span class="bullet"></span><div>Zero runtime startup overhead, native HTTP/SSE streaming straight to <code>llama-server</code>, and prefix cache hits keep latency sub-millisecond before token generation even starts.</div></div>
+        <details class="think"${op}><summary><strong>Thought</strong> <span>0.9s ›</span></summary><div class="think-body">Summarizing native single-binary startup, zero GC overhead, and local prefix caching.</div></details>
+        <div class="ans-row"><span class="bullet"></span><div>Single native Rust binary with <code>ui.html</code> compiled in, direct HTTP/SSE streaming to <code>llama-server</code>, and prefix cache reuse keep latency sub-millisecond before tokens start streaming.</div></div>
       </div>`;
+  } else if (p.name === "surogate37") {
+    wrap.innerHTML = `
+      ${peerCardHtml("gem35", "last turn · gemini · 2 read(s)", "Read test_calc.py and name one edge case missing in 1 sentence.", "4.0s", `<code>test_calc.py</code> is missing tests for negative numbers (e.g., adding or subtracting negative inputs).`, "Model: gemini-3.5-flash-lite (gemini)\nread_file(test_calc.py) -> 24 line(s)")}
+      <div class="msg-u">Use call_bot to ask gem35 what function is missing from test_calc.py, then add it to test_calc.py.</div>
+      <details class="think"${op}><summary><strong>1 Step</strong> <span>25s ›</span></summary><div class="think-body">Calling gem35 read-only via call_bot to identify the missing function.</div></details>
+      ${peerCardHtml("gem35", "auto · gemini · 2 read(s)", "Read test_calc.py and name the missing test function.", "27.9s", `<code>is_prime</code>`, "Model: gemini-3.5-flash-lite (gemini)\nread_file(test_calc.py) -> 24 line(s)\nread_file(math_demo.py) -> 32 line(s)")}
+      <details class="think"${op}><summary><strong>2 Step</strong> <span>11s ›</span></summary><div class="think-body">Adding test_negative_edge_cases for is_prime inside test_calc.py.</div></details>
+      <div class="t-card"><div class="t-head"><span class="t-title"><span class="bullet"></span><span class="t-label"><strong>Edit</strong> <span style="color:var(--muted)">(test_calc.py)</span></span></span><span style="color:var(--muted)">0.0s</span></div><div class="t-sum">⎿ Updated test_calc.py (+6 -0)</div>${diffHtml([[12,"add","def is_prime(n):"],[13,"add","    if n < 2:"],[14,"add","        return False"],[15,"add","    return True"]])}</div>
+      <div class="ans-row"><span class="bullet"></span><div>Added missing <code>is_prime</code> coverage to <code>test_calc.py</code> after consulting <code>gem35</code>.</div></div>`;
   } else {
     wrap.innerHTML = `
-      <div class="msg-u">Write math_demo.py with is_prime(n) and run it with python3.</div>
-      <details class="think"><summary><span>1 Step 1.1s ›</span></summary><div class="think-body">Creating math_demo.py via write_file and verifying stdout with run_command.</div></details>
-      <div class="t-card"><div class="t-head"><span class="t-title"><span class="bullet"></span><span class="t-label"><strong>Write</strong> <span style="color:var(--muted)">(projects/${p.name}/math_demo.py)</span></span></span><span style="color:var(--muted)">0.0s</span></div><div class="t-sum">⎿ Updated projects/${p.name}/math_demo.py (+12 -0)</div><div class="t-diff">1 +  def is_prime(n): ...</div></div>
-      <details class="think"><summary><span>2 Step 0.6s ›</span></summary><div class="think-body">Executing script inside sandbox.</div></details>
-      <div class="t-card" onclick="this.classList.toggle('open')"><div class="t-head"><span class="t-title"><span class="bullet"></span><span class="t-label"><strong>Bash</strong> <span style="color:var(--muted)">(python3 projects/${p.name}/math_demo.py)</span></span></span><span style="color:var(--muted)">0.0s</span></div><div class="t-sum">⎿ 97 -> True</div><pre class="t-raw">is_prime(97) -> True
-exit code 0</pre></div>
-      <div class="ans-row"><span class="bullet"></span><div>Task complete: Created <code>math_demo.py</code> and verified prime checks in sandbox.</div></div>`;
+      <div class="msg-u">Write a python script math_demo.py with a function to check if a number is prime, inspect the file, and run it with python3.</div>
+      <details class="think"${op}><summary><strong>1 Step</strong> <span>15s ›</span></summary><div class="think-body">Creating math_demo.py via write_file using trial division up to sqrt(n).</div></details>
+      <div class="t-card"><div class="t-head"><span class="t-title"><span class="bullet"></span><span class="t-label"><strong>Write</strong> <span style="color:var(--muted)">(projects/${esc(p.name)}/math_demo.py)</span></span></span><span style="color:var(--muted)">0.0s</span></div><div class="t-sum">⎿ Updated projects/${esc(p.name)}/math_demo.py (+18 -0)</div>${diffHtml([[1,"add","def is_prime(n):"],[2,"add",'    """Return True if n is a prime number, False otherwise."""'],[3,"add","    if n <= 1:"],[4,"add","        return False"],[5,"add","    if n <= 3:"],[6,"add","        return True"],[7,"add","    if n % 2 == 0 or n % 3 == 0:"],[8,"add","        return False"],[9,"add","    i = 5"],[10,"add","    while i * i <= n:"],[11,"add","        if n % i == 0 or n % (i + 2) == 0:"],[12,"add","            return False"]])}</div>
+      <details class="think"${op}><summary><strong>2 Step</strong> <span>5.4s ›</span></summary><div class="think-body">Running math_demo.py inside workspace sandbox.</div></details>
+      <div class="t-card" onclick="this.classList.toggle('open')"><div class="t-head"><span class="t-title"><span class="bullet"></span><span class="t-label"><strong>Bash</strong> <span style="color:var(--muted)">(python3 projects/${esc(p.name)}/math_demo.py)</span></span></span><span style="color:var(--muted)">0.0s</span></div><div class="t-sum">⎿ 2 True · 15 False · 97 True · 100 False</div><pre class="t-raw">2 True\n15 False\n97 True\n100 False\nexit code 0</pre></div>
+      <details class="think"${op}><summary><strong>3 Step</strong> <span>2.9s ›</span></summary><div class="think-body">All prime checks passed.</div></details>
+      <div class="ans-row"><span class="bullet"></span><div>✓ Task complete: Created <code>math_demo.py</code> with an <code>is_prime</code> function, inspected the file, and ran it with <code>python3</code>.</div></div>`;
   }
-  extraMsgs.forEach(m => {
-    wrap.insertAdjacentHTML("beforeend", `<div class="msg-u">${m.u.replace(/</g,"&lt;")}</div><div class="msg-a"><div class="ans-row"><span class="bullet"></span><div>${m.a}</div></div></div>`);
-  });
+
+  for (const t of extraTurns) {
+    if (t.kind === "peer") wrap.insertAdjacentHTML("beforeend", peerCardHtml(t.target, `prompt only · ${t.ep}`, t.prompt, "1.8s", t.reply, `Model: ${t.target} (${t.ep})\nread_file(math_demo.py)`));
+    else wrap.insertAdjacentHTML("beforeend", `<div class="msg-u">${esc(t.u)}</div><div class="msg-a"><div class="ans-row"><span class="bullet"></span><div>${t.a}</div></div></div>`);
+  }
   stream.scrollTop = stream.scrollHeight;
   renderProjects();
 }
 
+document.getElementById("d-brand-icon").onclick = openBotPicker;
+document.getElementById("btn-demo-settings").onclick = () => openSettings("providers");
+document.getElementById("d-model").onclick = () => openSettings("providers");
+document.getElementById("btn-nav-prof").onclick = () => openSettings("profiles");
+document.getElementById("btn-new-ws").onclick = () => openSettings("projects");
+document.getElementById("exp-bot").onclick = openBotPicker;
+document.getElementById("exp-set").onclick = () => openSettings("providers");
+document.getElementById("exp-call").onclick = () => openCallModal();
+document.getElementById("exp-mcp").onclick = () => openSettings("mcp");
 document.getElementById("rt-acts").onclick = () => { rsTab = "acts"; renderRightBottom(); };
 document.getElementById("rt-mem").onclick = () => { rsTab = "mem"; renderRightBottom(); };
 document.getElementById("btn-sb-l").onclick = () => document.getElementById("sb-l").classList.toggle("hidden");
 document.getElementById("btn-sb-r").onclick = () => document.getElementById("sb-r").classList.toggle("hidden");
-document.getElementById("copy-cmd").onclick = (e) => {
-  navigator.clipboard.writeText("git clone https://github.com/j5onrf/railbot.git");
-  e.currentTarget.lastElementChild.textContent = "Copied";
-};
-document.getElementById("btn-reason").onclick = (e) => { e.stopPropagation(); document.getElementById("pop-r").classList.toggle("open"); };
-document.getElementById("pop-r").onclick = (e) => {
-  const b = e.target.closest("button");
-  if (!b) return;
-  document.getElementById("r-val").textContent = b.dataset.r;
-  document.getElementById("pop-r").classList.remove("open");
-  renderDemo();
-};
-document.addEventListener("click", (e) => {
-  if (!e.target.closest(".comp-l")) document.getElementById("pop-r").classList.remove("open");
-});
+document.getElementById("btn-demo-reset").onclick = () => { extraTurns = []; curProj().cleared = true; renderDemo(); };
+document.getElementById("btn-demo-export").onclick = () => openFileModal(".rs/transcripts/chat.md", `# RailBot Transcript — ${curProj().name}\n\nExported static demo transcript for ${curProj().name} (${curProj().model}).`);
+document.getElementById("copy-cmd").onclick = (e) => { navigator.clipboard.writeText("git clone https://github.com/j5onrf/railbot.git"); e.currentTarget.lastElementChild.textContent = "Copied"; };
 
-const inp = document.getElementById("d-input"), sendBtn = document.getElementById("d-send");
+document.getElementById("btn-reason").onclick = (e) => { e.stopPropagation(); const o = !document.getElementById("pop-r").classList.contains("open"); closePops(); if (o) document.getElementById("pop-r").classList.add("open"); };
+document.getElementById("pop-r").onclick = (e) => { const b = e.target.closest("button"); if (b) { document.getElementById("r-val").textContent = b.dataset.r; closePops(); renderDemo(); } };
+document.getElementById("btn-sec").onclick = (e) => { e.stopPropagation(); const o = !document.getElementById("pop-sec").classList.contains("open"); closePops(); if (o) document.getElementById("pop-sec").classList.add("open"); };
+document.getElementById("pop-sec").onclick = (e) => { const b = e.target.closest("button"); if (b) { allowAll = b.dataset.s === "allow"; closePops(); renderDemo(); } };
+document.getElementById("frame-modal").onclick = (e) => { if (e.target.id === "frame-modal") closeModal(); };
+document.addEventListener("click", (e) => { if (!e.target.closest(".composer")) closePops(); });
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") { closePops(); closeModal(); } });
+
+const SLASH = [["/task","Run autonomous goal loop"],["/call","Consult a peer micro-bot"],["/p","Open workspace profiles"],["/ms","Open providers & models"],["/s","Attach or detach skills"],["/tk","Toggle auto-expand steps"],["/r","Reset active demo session"]];
+const inp = document.getElementById("d-input"), sendBtn = document.getElementById("d-send"), acPop = document.getElementById("ac-pop");
+function updateAc() {
+  const v = inp.value;
+  if (!v.startsWith("/") || /\s/.test(v)) { acPop.classList.remove("open"); return; }
+  const q = v.slice(1).toLowerCase(), hits = SLASH.filter(([c]) => c.slice(1).startsWith(q));
+  if (!hits.length) { acPop.classList.remove("open"); return; }
+  acPop.innerHTML = hits.map(([c, d]) => `<button type="button" class="ac-item" data-c="${c}"><strong>${c}</strong><span>${d}</span></button>`).join("");
+  acPop.querySelectorAll("button").forEach(b => b.onmousedown = (e) => {
+    e.preventDefault(); acPop.classList.remove("open"); inp.value = "";
+    const cmd = b.dataset.c;
+    if (cmd === "/call") openCallModal();
+    else if (cmd === "/p") openSettings("profiles");
+    else if (cmd === "/ms") openSettings("providers");
+    else if (cmd === "/s") openSettings("skills");
+    else if (cmd === "/tk") { expandSteps = !expandSteps; renderDemo(); }
+    else if (cmd === "/r") { extraTurns = []; curProj().cleared = true; renderDemo(); }
+    else { inp.value = "/task "; inp.focus(); }
+  });
+  acPop.classList.add("open");
+}
+
 const sendDemo = () => {
   const txt = inp.value.trim();
   if (!txt) return;
-  inp.value = ""; sendBtn.classList.remove("ready");
-  extraMsgs.push({
-    u: txt,
-    a: demoMode === "chat"
-      ? "Interactive static preview — run <code>rail</code> locally to stream live responses from llama-server or cloud endpoints."
-      : "Interactive static preview — locally <strong>RailBot</strong> runs parallel tools, diffs, and <code>/call</code> peer micro-bots inside your sandbox."
-  });
+  inp.value = ""; sendBtn.classList.remove("ready"); closePops();
+  if (txt === "/r") { extraTurns = []; curProj().cleared = true; renderDemo(); return; }
+  if (txt === "/p") return openSettings("profiles");
+  if (txt === "/ms") return openSettings("providers");
+  if (txt === "/s") return openSettings("skills");
+  if (txt === "/tk") { expandSteps = !expandSteps; renderDemo(); return; }
+  if (txt === "/call") return openCallModal();
+  if (txt.startsWith("/call ")) {
+    const rest = txt.slice(6).trim().split(/\s+/), tgt = PROJECTS.find(p => p.name === rest[0]?.replace(/:$/, ""))?.name || "gem35";
+    extraTurns.push({ kind:"peer", target:tgt, ep:PROJECTS.find(p=>p.name===tgt)?.ep||"local", prompt:rest.slice(1).join(" ")||"Check workspace edge cases.", reply:`Checked read-only. <code>${esc(curProj().files[0]||"workspace")}</code> looks clean.` });
+    renderDemo(); return;
+  }
+  extraTurns.push({ kind:"msg", u:txt, a:curProj().mode==="chat" ? "Interactive static preview — run <code>rail</code> locally to stream live responses from <code>llama-server</code> or cloud providers." : "Interactive static preview — locally <strong>RailBot</strong> runs parallel tools, syntax diffs, and <code>/call</code> peer micro-bots inside your workspace sandbox." });
   renderDemo();
 };
-inp.addEventListener("input", () => sendBtn.classList.toggle("ready", inp.value.trim().length > 0));
+inp.addEventListener("input", () => { sendBtn.classList.toggle("ready", inp.value.trim().length > 0); updateAc(); });
 inp.addEventListener("keydown", (e) => { if (e.key === "Enter") sendDemo(); });
 sendBtn.onclick = sendDemo;
 
-setTheme("dark");
+setTheme("eldritch");
 renderDemo();
 </script>
 </body>
