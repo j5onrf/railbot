@@ -1,0 +1,1271 @@
+#[global_allocator]
+static GLOBAL: mimalloc::MiMalloc = mimalloc::MiMalloc;
+
+use clap::{Parser, Subcommand};
+use rs_agent::adapter;
+use rs_agent::client::{ChatMessage, LlmClient};
+use rs_agent::config::{ProviderConfig, WorkspaceConfig};
+use rs_agent::matcher::{self, ContextRouter};
+use rs_agent::profile::Profile;
+use rs_agent::security::SecurityBoundary;
+use rs_agent::skill::{Skill, SkillAction};
+use rs_agent::spinner::InlineSpinner;
+use rs_agent::state;
+use rs_agent::stream::StreamRenderer;
+use rs_agent::tools;
+use rs_agent::ui;
+use std::env;
+use std::fs;
+use std::io::{self, Write};
+use std::path::{Path, PathBuf};
+use std::time::Instant;
+
+extern "C" {
+    fn kill(pid: i32, sig: i32) -> i32;
+}
+
+use std::sync::Mutex;
+
+static CURRENT_LOCK_FILE: Mutex<Option<PathBuf>> = Mutex::new(None);
+
+pub struct InstanceLockGuard(pub PathBuf);
+
+impl AsRef<Path> for InstanceLockGuard {
+    fn as_ref(&self) -> &Path {
+        &self.0
+    }
+}
+
+impl Drop for InstanceLockGuard {
+    fn drop(&mut self) {
+        let _ = fs::remove_file(&self.0);
+        if let Ok(mut g) = CURRENT_LOCK_FILE.lock() {
+            if let Some(ref path) = *g {
+                if path == &self.0 {
+                    *g = None;
+                }
+            }
+        }
+    }
+}
+
+struct CursorHideGuard;
+
+impl Drop for CursorHideGuard {
+    fn drop(&mut self) {
+        print!("\x1b[?25h");
+        let _ = io::stdout().flush();
+    }
+}
+
+fn history_char_count(history: &[ChatMessage]) -> usize {
+    history.iter().map(|m| m.content_as_str().chars().count()).sum()
+}
+
+fn persist_cli_history(workspace: &Path, history: &[ChatMessage]) {
+    let mut s = state::load_workspace_session(workspace);
+    s.messages = history.iter().skip(1).cloned().collect();
+    s.ui_history = None;
+    state::save_workspace_session(workspace, &s);
+}
+
+fn instance_lock_dir() -> PathBuf {
+    #[cfg(target_os = "linux")]
+    {
+        PathBuf::from("/dev/shm/rs-agent-instances")
+    }
+    #[cfg(not(target_os = "linux"))]
+    {
+        std::env::temp_dir().join("rs-agent-instances")
+    }
+}
+
+fn is_rs_agent_process(pid: i32) -> bool {
+    #[cfg(target_os = "linux")]
+    {
+        if unsafe { kill(pid, 0) != 0 } {
+            return false;
+        }
+        if let Ok(comm) = fs::read_to_string(format!("/proc/{}/comm", pid)) {
+            let trimmed = comm.trim();
+            if trimmed == "ai" || trimmed == "rs-agent" {
+                return true;
+            }
+        }
+        if let Ok(cmdline) = fs::read_to_string(format!("/proc/{}/cmdline", pid)) {
+            if let Some(arg0) = cmdline.split('\0').next() {
+                if let Some(exe_name) = Path::new(arg0).file_name().and_then(|n| n.to_str()) {
+                    if exe_name == "ai" || exe_name == "rs-agent" {
+                        return true;
+                    }
+                }
+            }
+        }
+        false
+    }
+    #[cfg(not(target_os = "linux"))]
+    {
+        unsafe { kill(pid, 0) == 0 }
+    }
+}
+
+fn resolve_instance_number(profile: &str) -> (usize, InstanceLockGuard) {
+    let shm_dir = instance_lock_dir();
+    let _ = fs::create_dir_all(&shm_dir);
+    let lock_prof = profile.replace('/', "_");
+
+    let mut active_count = 0;
+    if let Ok(entries) = fs::read_dir(&shm_dir) {
+        for entry in entries.flatten() {
+            let path = entry.path();
+            if let Some(fname) = path.file_name().and_then(|n| n.to_str()) {
+                if let Some((pid_str, prof_str)) = fname.split_once('.') {
+                    if let Ok(pid) = pid_str.parse::<i32>() {
+                        let is_active = is_rs_agent_process(pid);
+                        if !is_active {
+                            let _ = fs::remove_file(&path);
+                        } else if prof_str == lock_prof {
+                            active_count += 1;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    let instance_num = active_count + 1;
+    let my_pid = std::process::id();
+    let lock_file = shm_dir.join(format!("{}.{}", my_pid, lock_prof));
+    let _ = fs::write(&lock_file, instance_num.to_string());
+    if let Ok(mut g) = CURRENT_LOCK_FILE.lock() {
+        *g = Some(lock_file.clone());
+    }
+    (instance_num, InstanceLockGuard(lock_file))
+}
+
+#[derive(Parser, Debug)]
+#[command(name = "rs-agent", about = "Minimal Rust AI Agent")]
+struct Cli {
+    #[command(subcommand)]
+    command: Option<Commands>,
+
+    #[arg(long)]
+    bridge: bool,
+}
+
+#[derive(Subcommand, Debug)]
+enum McpAction {
+    List { server: Option<String> },
+    Call { server: String, tool: String, args: Option<String> },
+    Schema { server: Option<String> },
+}
+
+#[derive(Subcommand, Debug)]
+enum Commands {
+    Init {
+        path: Option<String>,
+    },
+    Match {
+        query: Vec<String>,
+    },
+    New {
+        name: String,
+        intents: Option<String>,
+    },
+    Handoff,
+    Mcp {
+        #[command(subcommand)]
+        action: McpAction,
+    },
+}
+
+fn expand_path(p: &str) -> PathBuf {
+    if p == "~" {
+        dirs::home_dir().unwrap_or_else(|| PathBuf::from("."))
+    } else if let Some(stripped) = p.strip_prefix("~/") {
+        dirs::home_dir().map(|h| h.join(stripped)).unwrap_or_else(|| PathBuf::from(p))
+    } else {
+        PathBuf::from(p)
+    }
+}
+
+fn format_instance_label(is_agent: bool, profile_name: &str, instance_num: usize) -> String {
+    let base = if is_agent { profile_name } else { "chat" };
+    if instance_num > 1 {
+        format!("{} · {}", base, instance_num)
+    } else {
+        base.to_string()
+    }
+}
+
+fn tool_brief(final_args: &str) -> String {
+    serde_json::from_str::<serde_json::Value>(final_args)
+        .ok()
+        .and_then(|parsed| {
+            parsed
+                .get("path")
+                .or_else(|| parsed.get("command"))
+                .or_else(|| parsed.get("pattern"))
+                .and_then(|v| v.as_str())
+                .map(ToString::to_string)
+        })
+        .unwrap_or_default()
+}
+
+fn tool_display_name(fn_name: &str) -> &str {
+    match fn_name {
+        "read_file" => "Read",
+        "edit_file" => "Edit",
+        "write_file" => "Write",
+        "list_dir" => "List",
+        "search_code" => "Search",
+        "run_command" => "Bash",
+        "delegate_task" => "Agent",
+        other => other,
+    }
+}
+
+fn summarize_tool_output(fn_name: &str, out: &str, elapsed: f64) -> String {
+    match fn_name {
+        "read_file" => {
+            let line_count = out.lines().count().saturating_sub(1);
+            format!("Read {} line(s) ({:.1}s)", line_count, elapsed)
+        }
+        "list_dir" => {
+            let count = out.lines().filter(|l| !l.trim().is_empty()).count();
+            format!("Listed {} item(s) ({:.1}s)", count, elapsed)
+        }
+        "search_code" => {
+            if out.starts_with("No matches") {
+                format!("No matches ({:.1}s)", elapsed)
+            } else {
+                let count = out.lines().count().saturating_sub(1);
+                format!("Found {} match(es) ({:.1}s)", count, elapsed)
+            }
+        }
+        "run_command" => {
+            let first = out.lines().next().unwrap_or("(no output)").trim();
+            let clamped: String = first.chars().take(72).collect();
+            let ell = if first.chars().count() > 72 { "…" } else { "" };
+            format!("{}{} ({:.1}s)", clamped, ell, elapsed)
+        }
+        _ => format!("Done ({:.1}s)", elapsed),
+    }
+}
+
+fn diff_counts(old_text: &str, new_text: &str) -> (usize, usize) {
+    let old_lines: Vec<&str> = old_text.lines().collect();
+    let new_lines: Vec<&str> = new_text.lines().collect();
+    let min_len = old_lines.len().min(new_lines.len());
+    let mut prefix = 0;
+    while prefix < min_len && old_lines[prefix] == new_lines[prefix] {
+        prefix += 1;
+    }
+    let mut suffix = 0;
+    while suffix < (min_len - prefix)
+        && old_lines[old_lines.len() - 1 - suffix] == new_lines[new_lines.len() - 1 - suffix]
+    {
+        suffix += 1;
+    }
+    (new_lines.len() - prefix - suffix, old_lines.len() - prefix - suffix)
+}
+
+fn print_inline_diff(old_text: &str, new_text: &str) {
+    let old_lines: Vec<&str> = old_text.lines().collect();
+    let new_lines: Vec<&str> = new_text.lines().collect();
+    let min_len = old_lines.len().min(new_lines.len());
+    let mut prefix = 0;
+    while prefix < min_len && old_lines[prefix] == new_lines[prefix] {
+        prefix += 1;
+    }
+    let mut suffix = 0;
+    while suffix < (min_len - prefix)
+        && old_lines[old_lines.len() - 1 - suffix] == new_lines[new_lines.len() - 1 - suffix]
+    {
+        suffix += 1;
+    }
+
+    let removed = &old_lines[prefix..old_lines.len() - suffix];
+    let added = &new_lines[prefix..new_lines.len() - suffix];
+    if removed.is_empty() && added.is_empty() {
+        return;
+    }
+
+    let diff_w =
+        crossterm::terminal::size().map(|(w, _)| (w as usize).saturating_sub(16)).unwrap_or(68).clamp(32, 76);
+
+    if prefix > 0 {
+        println!("       \x1b[2m{:>3}   {}\x1b[0m", prefix, old_lines[prefix - 1]);
+    }
+    for (i, line) in removed.iter().take(6).enumerate() {
+        let pad_len = diff_w.saturating_sub(line.chars().count());
+        println!(
+            "       \x1b[31m{:>3} -\x1b[0m \x1b[48;2;64;26;26m{}{}\x1b[0m",
+            prefix + i + 1,
+            line,
+            " ".repeat(pad_len)
+        );
+    }
+    if removed.len() > 6 {
+        println!("       \x1b[2m... (-{} more lines)\x1b[0m", removed.len() - 6);
+    }
+    for (i, line) in added.iter().take(6).enumerate() {
+        let pad_len = diff_w.saturating_sub(line.chars().count());
+        println!(
+            "       \x1b[1;32m{:>3} +\x1b[0m \x1b[48;2;22;52;32m{}{}\x1b[0m",
+            prefix + i + 1,
+            line,
+            " ".repeat(pad_len)
+        );
+    }
+    if added.len() > 6 {
+        println!("       \x1b[2m... (+{} more lines)\x1b[0m", added.len() - 6);
+    }
+    if suffix > 0 {
+        let ctx_idx = old_lines.len() - suffix;
+        println!("       \x1b[2m{:>3}   {}\x1b[0m", ctx_idx + 1, old_lines[ctx_idx]);
+    }
+}
+
+async fn execute_tool_batch(
+    calls: &[serde_json::Value],
+    target_dir: &Path,
+    boundary: &SecurityBoundary,
+    use_adapters: bool,
+    history: &mut Vec<ChatMessage>,
+    spinner: &mut InlineSpinner,
+) -> usize {
+    let mut executed = 0;
+    let mut idx = 0;
+
+    while idx < calls.len() {
+        let fn_name = calls[idx]["function"]["name"].as_str().unwrap_or("tool");
+        if tools::is_read_only_tool(fn_name) {
+            let mut batch_end = idx + 1;
+            while batch_end < calls.len()
+                && tools::is_read_only_tool(calls[batch_end]["function"]["name"].as_str().unwrap_or("tool"))
+            {
+                batch_end += 1;
+            }
+
+            let count = batch_end - idx;
+            spinner.start(if count > 1 { "Reading workspace..." } else { "Inspecting..." });
+
+            let mut futs = Vec::with_capacity(count);
+            for call in &calls[idx..batch_end] {
+                executed += 1;
+                let call_id = call["id"].as_str().unwrap_or("call_0").to_string();
+                let c_name = call["function"]["name"].as_str().unwrap_or("tool").to_string();
+                let raw_args = call["function"]["arguments"].as_str().unwrap_or("{}");
+                let final_args =
+                    if use_adapters { adapter::repair_tool_args(&c_name, raw_args) } else { raw_args.to_string() };
+                let brief = tool_brief(&final_args);
+
+                futs.push(async move {
+                    let t_start = Instant::now();
+                    let res = tools::execute_tool(&c_name, &final_args, target_dir, boundary).await;
+                    (call_id, c_name, brief, res, t_start.elapsed().as_secs_f64())
+                });
+            }
+
+            let results = futures_util::future::join_all(futs).await;
+            spinner.stop();
+
+            for (call_id, c_name, brief, tool_res, elapsed) in results {
+                let label = tool_display_name(&c_name);
+                println!("  \x1b[1;36m●\x1b[0m \x1b[1;37m{}\x1b[0m\x1b[2m({})\x1b[0m", label, brief);
+                match tool_res {
+                    Ok(out) => {
+                        let summary = summarize_tool_output(&c_name, &out, elapsed);
+                        println!("    \x1b[90m⎿\x1b[0m  \x1b[2m{}\x1b[0m", summary);
+                        println!();
+                        history.push(ChatMessage::tool_response(call_id, out));
+                    }
+                    Err(err) => {
+                        println!("    \x1b[90m⎿\x1b[0m  \x1b[1;31m✗ {}\x1b[0m \x1b[2m({:.1}s)\x1b[0m", err, elapsed);
+                        println!();
+                        history.push(ChatMessage::tool_response(call_id, format!("[tool error] {}", err)));
+                    }
+                }
+            }
+            idx = batch_end;
+        } else {
+            executed += 1;
+            let call = &calls[idx];
+            let call_id = call["id"].as_str().unwrap_or("call_0").to_string();
+            let raw_args = call["function"]["arguments"].as_str().unwrap_or("{}");
+            let final_args =
+                if use_adapters { adapter::repair_tool_args(fn_name, raw_args) } else { raw_args.to_string() };
+            let brief = tool_brief(&final_args);
+
+            let pre_edit = if (fn_name == "edit_file" || fn_name == "write_file") && !brief.is_empty() {
+                let p = boundary.resolve_path(&brief);
+                if !boundary.is_outside(&p) { fs::read_to_string(&p).ok() } else { None }
+            } else {
+                None
+            };
+
+            let label = tool_display_name(fn_name);
+            spinner.start(&format!("Running {}({})...", label, brief));
+            let t_start = Instant::now();
+            let tool_res = tools::execute_tool(fn_name, &final_args, target_dir, boundary).await;
+            let elapsed = t_start.elapsed().as_secs_f64();
+            spinner.stop();
+
+            println!("  \x1b[1;36m●\x1b[0m \x1b[1;37m{}\x1b[0m\x1b[2m({})\x1b[0m", label, brief);
+            match tool_res {
+                Ok(out) => {
+                    if fn_name == "edit_file" || fn_name == "write_file" {
+                        let p = boundary.resolve_path(&brief);
+                        let new_disk = if !boundary.is_outside(&p) { fs::read_to_string(&p).ok() } else { None };
+                        if let Some(ref new_txt) = new_disk {
+                            let old_txt = pre_edit.as_deref().unwrap_or("");
+                            let (adds, rems) = diff_counts(old_txt, new_txt);
+                            println!(
+                                "    \x1b[90m⎿\x1b[0m  Updated \x1b[1;37m{}\x1b[0m with \x1b[1;32m{} addition(s)\x1b[0m and \x1b[31m{} removal(s)\x1b[0m \x1b[2m({:.1}s)\x1b[0m",
+                                brief, adds, rems, elapsed
+                            );
+                            print_inline_diff(old_txt, new_txt);
+                            println!();
+                        } else {
+                            println!("    \x1b[90m⎿\x1b[0m  \x1b[2mUpdated {} ({:.1}s)\x1b[0m", brief, elapsed);
+                            println!();
+                        }
+                    } else {
+                        let summary = summarize_tool_output(fn_name, &out, elapsed);
+                        println!("    \x1b[90m⎿\x1b[0m  \x1b[2m{}\x1b[0m", summary);
+                        println!();
+                    }
+                    history.push(ChatMessage::tool_response(call_id, out));
+                }
+                Err(err) => {
+                    println!("    \x1b[90m⎿\x1b[0m  \x1b[1;31m✗ {}\x1b[0m \x1b[2m({:.1}s)\x1b[0m", err, elapsed);
+                    println!();
+                    history.push(ChatMessage::tool_response(call_id, format!("[tool error] {}", err)));
+                }
+            }
+            idx += 1;
+        }
+    }
+
+    executed
+}
+
+
+
+fn handle_new_project(name: &str, intents_arg: Option<&str>) -> anyhow::Result<()> {
+    let slug = name.trim().to_lowercase().replace(' ', "-");
+    let base_cfg = dirs::home_dir().map(|h| h.join(".config/rs-agent")).unwrap_or_else(|| PathBuf::from("."));
+
+    let projects_dir = base_cfg.join("projects").join(&slug);
+    fs::create_dir_all(&projects_dir)?;
+    println!("\x1b[1;32m✓ Created workspace:\x1b[0m {}", projects_dir.display());
+
+    let profiles_dir = base_cfg.join("profiles");
+    fs::create_dir_all(&profiles_dir)?;
+    let profile_file = profiles_dir.join(format!("{}.md", slug));
+    if !profile_file.exists() {
+        let content = format!(
+            "---\ndescription: \"{} Workspace Profile\"\n---\nROLE: Autonomous Systems & Software Engineer for {}.\n\nDIRECTIVES:\n- Inspect -> Edit -> Verify.\n- Stop immediately when tests pass with '✓ Task complete: <summary>'.\n",
+            slug, slug
+        );
+        fs::write(&profile_file, content)?;
+        println!("\x1b[1;32m✓ Created profile:\x1b[0m {}", profile_file.display());
+    }
+
+    let ctx_file = base_cfg.join("rs-context.md");
+    let clean_intents = intents_arg.unwrap_or(&slug);
+    let entry = format!("ai init ~/.config/rs-agent/projects/{} ---> {}\n", slug, clean_intents);
+
+    let mut current_ctx = fs::read_to_string(&ctx_file).unwrap_or_default();
+    if !current_ctx.contains(&format!("projects/{}", slug)) {
+        if let Some(pos) = current_ctx.find("# --- Workspaces ---") {
+            let insert_pos = pos + "# --- Workspaces ---".len();
+            current_ctx.insert_str(insert_pos, &format!("\n{}", entry.trim_end()));
+        } else {
+            current_ctx.push_str(&entry);
+        }
+        fs::write(&ctx_file, current_ctx)?;
+        println!(
+            "\x1b[1;32m✓ Added to rs-context.md:\x1b[0m \x1b[36m{}\x1b[0m \x1b[2m--->\x1b[0m \x1b[33m{}\x1b[0m",
+            slug, clean_intents
+        );
+    }
+
+    println!("\n\x1b[2mLaunch workspace:\x1b[0m \x1b[1;32mtype '{}' in terminal\x1b[0m\n", slug);
+    Ok(())
+}
+
+#[allow(clippy::too_many_arguments)]
+async fn execute_task_loop(
+    target_dir: &Path,
+    goal: &str,
+    client: &LlmClient,
+    cfg: &WorkspaceConfig,
+    boundary: &SecurityBoundary,
+    history: &mut Vec<ChatMessage>,
+    active_tools: Option<serde_json::Value>,
+    spinner: &mut InlineSpinner,
+) -> anyhow::Result<bool> {
+    let max_rounds = rs_agent::config::get_max_rounds();
+    let max_lbl = if max_rounds == usize::MAX { "∞".to_string() } else { max_rounds.to_string() };
+    let display_goal: String = goal.chars().take(80).collect();
+    let ellipsis = if goal.chars().count() > 80 { "..." } else { "" };
+
+    println!("  \x1b[1;36m✦ [Task Loop]\x1b[0m Starting autonomous run in \x1b[1;37m{}\x1b[0m", target_dir.display());
+    println!("  \x1b[2mGoal: {}{} (Max steps: {})\x1b[0m\n", display_goal, ellipsis, max_lbl);
+
+    history.push(ChatMessage::user(goal.to_string()));
+
+    let mut total_tools_run = 0;
+
+    for turn in 0..max_rounds {
+        println!("  \x1b[1;34m─── Step {}/{} ───\x1b[0m", turn + 1, max_lbl);
+
+        let mut renderer = StreamRenderer::new(state::get_pad());
+        spinner.start("Executing autonomous step...");
+
+        print!("\x1b[?25l");
+        let _ = io::stdout().flush();
+        let cursor_guard = CursorHideGuard;
+
+        let stream_res = client.stream_chat(history, active_tools.clone(), &mut renderer, spinner).await;
+        spinner.stop();
+        drop(cursor_guard);
+        let (reply, reasoning, tool_calls, stats) = stream_res?;
+
+        renderer.finish(&stats, history_char_count(history));
+
+        let mut ran_tools = false;
+        if let Some(calls) = tool_calls {
+            if !calls.is_empty() {
+                ran_tools = true;
+                let mut assistant_msg = ChatMessage::assistant_with_reasoning(reply.clone(), reasoning.clone());
+                assistant_msg.tool_calls = Some(serde_json::Value::Array(calls.clone()));
+                history.push(assistant_msg);
+
+                total_tools_run +=
+                    execute_tool_batch(&calls, target_dir, boundary, cfg.adapters, history, spinner).await;
+            } else {
+                history.push(ChatMessage::assistant_with_reasoning(reply.clone(), reasoning.clone()));
+            }
+        } else {
+            history.push(ChatMessage::assistant_with_reasoning(reply.clone(), reasoning.clone()));
+        }
+
+        if !ran_tools && tools::is_task_complete(&reply) {
+            persist_cli_history(target_dir, history);
+            println!(
+                "  \x1b[1;32m✓ [Task Loop] Goal completed in {} step(s) ({} tool action(s) executed)!\x1b[0m\n",
+                turn + 1,
+                total_tools_run
+            );
+            return Ok(true);
+        }
+
+        if !ran_tools {
+            history.push(ChatMessage::user("Continue with the next action."));
+        }
+        persist_cli_history(target_dir, history);
+    }
+
+    println!("  \x1b[1;33m▲ [Task Loop] Reached max limit ({}) without completion marker.\x1b[0m\n", max_rounds);
+    Ok(false)
+}
+
+async fn run_session(target_dir: &Path, is_agent_init: bool) -> anyhow::Result<()> {
+    let mut provider = ProviderConfig::load().await;
+    Profile::ensure_model_workspace(&provider);
+    ui::set_endpoint(&provider.base_url);
+
+    if !target_dir.exists() {
+        std::fs::create_dir_all(target_dir)?;
+    }
+    let _ = env::set_current_dir(target_dir);
+
+    let mut client = LlmClient::new(provider.clone());
+    let boundary = SecurityBoundary::new(target_dir);
+
+    let mut cfg = if is_agent_init {
+        let mut c = WorkspaceConfig::load_or_default(target_dir);
+        c.is_agent = true;
+
+        let has_config = target_dir.join(".rs/config.json").is_file();
+        let dir_name = target_dir.file_name().and_then(|n| n.to_str()).unwrap_or("agent").to_string();
+
+        let needs_profile = !has_config || c.profile_name == "chat" || Profile::load(&c.profile_name).is_none();
+        if needs_profile {
+            let available = Profile::list_available();
+            let ws_candidates = Profile::find_workspace_candidates(&dir_name, &available);
+            if ws_candidates.len() == 1 {
+                c.profile_name = ws_candidates[0].clone();
+            } else if Profile::load(&dir_name).is_some() {
+                c.profile_name = dir_name;
+            } else if !ws_candidates.is_empty() {
+                c.profile_name =
+                    Profile::resolve_for_workspace(&dir_name, &provider.model, Some(&provider.base_url));
+            } else if std::io::IsTerminal::is_terminal(&std::io::stdin()) {
+                if let Some(selected) = Profile::select_interactive(target_dir, &c.profile_name) {
+                    c.profile_name = selected;
+                } else {
+                    c.profile_name =
+                        Profile::resolve_for_workspace(&dir_name, &provider.model, Some(&provider.base_url));
+                }
+            } else {
+                c.profile_name = Profile::resolve_for_workspace(&dir_name, &provider.model, Some(&provider.base_url));
+            }
+        }
+
+        if let Some(p) = Profile::load(&c.profile_name) {
+            c.tier = p.tier.clone();
+            c.adapters = p.adapters;
+            c.delegate = p.delegate;
+        }
+
+        let _ = c.save(target_dir);
+        c
+    } else {
+        let mut c = WorkspaceConfig::load_or_default(target_dir);
+        c.is_agent = false;
+        c.profile_name = "chat".to_string();
+        c
+    };
+
+    let mut active_profile = Profile::load(&cfg.profile_name)
+        .ok_or_else(|| anyhow::anyhow!("Profile '{}' not found in ~/.config/rs-agent/profiles/", cfg.profile_name))?;
+    client.set_reasoning(active_profile.reasoning_budget.clone());
+    rs_agent::config::set_profile_max_tokens(active_profile.ctx);
+
+    let (mut instance_num, first_guard) = resolve_instance_number(&cfg.profile_name);
+    let mut lock_guard = Some(first_guard);
+    let mut second_line = format_instance_label(cfg.is_agent, &cfg.profile_name, instance_num);
+
+    print!("\x1b]0;rs-agent: {}\x07", second_line);
+    let _ = io::stdout().flush();
+
+    let mut active_skills: Vec<String> = Vec::new();
+    let mut current_box_style = state::get_box_style();
+    let mut hud_meta = active_profile.hud_summary(cfg.is_agent);
+    let mut buffered_char = ui::draw_box_with_meta(&provider.model, &second_line, Some(&hud_meta), current_box_style, true);
+
+    let mut system_prompt =
+        rs_agent::profile::build_system_prompt(&active_profile, target_dir, cfg.is_agent, &active_skills);
+    let mut history = vec![ChatMessage::system(&system_prompt)];
+    let saved_session = state::load_workspace_session(target_dir);
+    if !saved_session.messages.is_empty() {
+        history.extend(saved_session.messages);
+        println!("  \x1b[2mResumed {} message(s) · /r to reset\x1b[0m\n", history.len() - 1);
+    }
+    let mcp_servers = active_profile.mcp_servers.clone();
+    let mut active_tools = if cfg.is_agent {
+        Some(tools::get_tools_schema_with_mcp(&cfg.tier, cfg.delegate, &mcp_servers, &active_profile.mcp_tools).await)
+    } else {
+        None
+    };
+
+    let mut spinner = InlineSpinner::new();
+    let mut last_stat_line: Option<String> = None;
+    let mut input_history: Vec<String> = history
+        .iter()
+        .skip(1)
+        .filter(|m| m.role == "user")
+        .map(|m| m.content_as_str().to_string())
+        .filter(|s| !s.is_empty())
+        .collect();
+    let mut router = matcher::ContextRouter::load();
+    let mut max_rounds = rs_agent::config::get_max_rounds();
+
+    loop {
+        let minimal_ui = current_box_style != 7 && current_box_style != 8;
+        let default_status = format!("{} · {}", second_line, provider.model);
+        let status_display = last_stat_line.as_deref().unwrap_or(&default_status);
+
+        let raw_input = match ui::read_ruled_input(status_display, &input_history, buffered_char.take(), minimal_ui)? {
+            ui::InputResult::Line(s) => s,
+            ui::InputResult::Eof => {
+                println!("Exiting session.");
+                break;
+            }
+        };
+        let input = raw_input.trim().to_string();
+        let input = input.as_str();
+        if input.is_empty() {
+            continue;
+        }
+        if !input.starts_with('/') && input != "q" && input != "exit" {
+            input_history.push(input.to_string());
+        }
+
+        if input == "q" || input == "exit" {
+            println!("Exiting session.");
+            break;
+        }
+
+        if input == "/t3" || input.starts_with("/t3 ") {
+            let sub = input.strip_prefix("/t3").unwrap().trim();
+            let launcher = dirs::home_dir()
+                .map(|h| h.join(".config/rs-agent/plugins/t3code/launch.sh"))
+                .unwrap_or_else(|| PathBuf::from("plugins/t3code/launch.sh"));
+
+            if launcher.is_file() {
+                let mut cmd = std::process::Command::new("bash");
+                cmd.arg(&launcher);
+                if sub == "web" || sub == "--web" {
+                    cmd.arg("web");
+                }
+                cmd.arg(target_dir);
+                cmd.env("AI_ACTIVE_PROFILE", &cfg.profile_name);
+                cmd.env("AI_IS_AGENT", if cfg.is_agent { "1" } else { "0" });
+                cmd.env("AI_ACTIVE_SKILLS", active_skills.join(","));
+                cmd.env("AI_WORKSPACE_PATH", target_dir);
+
+                println!("  \x1b[1;36m[t3code]\x1b[0m Handing over workspace to T3 Code...");
+                let _ = io::stdout().flush();
+
+                match cmd.status() {
+                    Ok(status) if status.success() => {
+                        println!("  \x1b[1;32m✓\x1b[0m \x1b[2mT3 Code session active for workspace\x1b[0m \x1b[1;36m{}\x1b[0m", target_dir.display());
+                        println!("  \x1b[1;33m▲\x1b[0m \x1b[2mTerminal window is safe to close. Exiting rs-agent...\x1b[0m\n");
+                        print!("\x1b[?25h");
+                        let _ = io::stdout().flush();
+                        if let Some(ref guard) = lock_guard {
+                            let _ = fs::remove_file(guard);
+                        }
+                        std::process::exit(0);
+                    }
+                    Ok(status) => {
+                        println!(
+                            "  \x1b[1;31m✗\x1b[0m \x1b[2mT3 Code launcher exited with status: {}\x1b[0m\n",
+                            status
+                        );
+                    }
+                    Err(e) => {
+                        println!("  \x1b[1;31m✗\x1b[0m \x1b[2mFailed launching T3 Code: {}\x1b[0m\n", e);
+                    }
+                }
+            } else {
+                println!("  \x1b[1;31m✗\x1b[0m \x1b[2mPlugin launcher missing: {}\x1b[0m\n", launcher.display());
+            }
+            continue;
+        }
+
+        if input == "/task" || input == "/goal" || input.starts_with("/task ") || input.starts_with("/goal ") {
+            if !cfg.is_agent {
+                println!("  \x1b[1;33m[info]\x1b[0m /task is only available in workspace agents (ai init <path>).");
+                println!("         Chat mode is pure conversation without tools.\n");
+                continue;
+            }
+            let direct_arg = if let Some(stripped) = input.strip_prefix("/task ") {
+                stripped.trim()
+            } else if let Some(stripped) = input.strip_prefix("/goal ") {
+                stripped.trim()
+            } else {
+                ""
+            };
+
+            let effective_goal =
+                if !direct_arg.is_empty() { Some(direct_arg.to_string()) } else { tools::read_task_spec(target_dir) };
+
+            if let Some(goal) = effective_goal {
+                if let Err(e) = execute_task_loop(
+                    target_dir,
+                    &goal,
+                    &client,
+                    &cfg,
+                    &boundary,
+                    &mut history,
+                    active_tools.clone(),
+                    &mut spinner,
+                )
+                .await
+                {
+                    println!("  \x1b[1;31m✗ [task error]\x1b[0m {}\n", e);
+                }
+            } else {
+                println!("  \x1b[1;33m[task]\x1b[0m No objective provided and no TASK.md found.");
+                println!("         \x1b[2m• Usage:  /task <describe goal>\x1b[0m");
+                println!("         \x1b[2m• Or:     Create TASK.md in project root with markdown checkboxes.\x1b[0m\n");
+            }
+            continue;
+        }
+
+        if input == "/ms" || input == "/model" {
+            match model_select::run_selector(true) {
+                Ok(outcome) => {
+                    if outcome.changed {
+                        provider = ProviderConfig::load().await;
+                        if Profile::ensure_model_workspace(&provider).is_some() {
+                            router = matcher::ContextRouter::load();
+                        }
+                        ui::set_endpoint(&provider.base_url);
+                        client = LlmClient::new(provider.clone());
+                        client.set_reasoning(active_profile.reasoning_budget.clone());
+                        rs_agent::config::set_profile_max_tokens(active_profile.ctx);
+                        max_rounds = rs_agent::config::get_max_rounds();
+                        last_stat_line = None;
+
+                        print!("\x1b]0;rs-agent: {}\x07", second_line);
+                        print!("\x1b[H\x1b[2J");
+                        println!();
+                        ui::draw_box_with_meta(&provider.model, &second_line, Some(&hud_meta), current_box_style, false);
+                        let _ = io::stdout().flush();
+                    } else {
+                        println!("  \x1b[2mModel unchanged.\x1b[0m\n");
+                    }
+                }
+                Err(e) => {
+                    println!("  \x1b[1;31m✗\x1b[0m \x1b[2m{}\x1b[0m\n", e);
+                }
+            }
+            continue;
+        }
+
+        if input == "/p" || input == "/profile" {
+            print!("\x1b[1A\r\x1b[2K");
+            let _ = io::stdout().flush();
+
+            if !cfg.is_agent {
+                println!("  \x1b[1;33m[info]\x1b[0m /p is only available in workspace agents (ai init <path>).");
+                println!("         Chat mode is locked to the pure conversation profile.\n");
+                continue;
+            }
+
+            let has_conversation = history.iter().any(|m| m.role == "user");
+            if has_conversation {
+                print!("  \x1b[1;33m[warn]\x1b[0m Switching profile will erase active conversation. Proceed? [y/N] ");
+                let _ = io::stdout().flush();
+                let mut conf = String::new();
+                if io::stdin().read_line(&mut conf).is_err()
+                    || !matches!(conf.trim().to_lowercase().as_str(), "y" | "yes")
+                {
+                    print!("\x1b[1A\r\x1b[2K");
+                    let _ = io::stdout().flush();
+                    println!("  \x1b[2mProfile switch cancelled.\x1b[0m\n");
+                    continue;
+                }
+                print!("\x1b[1A\r\x1b[2K");
+                let _ = io::stdout().flush();
+            }
+
+            if let Some(new_prof) = Profile::select_interactive(target_dir, &cfg.profile_name) {
+                if let Some(loaded) = Profile::load(&new_prof) {
+                    cfg.profile_name = new_prof;
+                    cfg.tier = loaded.tier.clone();
+                    cfg.adapters = loaded.adapters;
+                    cfg.delegate = loaded.delegate;
+                    client.set_reasoning(loaded.reasoning_budget.clone());
+                    let new_mcp = loaded.mcp_servers.clone();
+                    active_profile = loaded;
+                    rs_agent::config::set_profile_max_tokens(active_profile.ctx);
+                    hud_meta = active_profile.hud_summary(cfg.is_agent);
+
+                    system_prompt = rs_agent::profile::build_system_prompt(
+                        &active_profile,
+                        target_dir,
+                        cfg.is_agent,
+                        &active_skills,
+                    );
+                    let dir_name = target_dir.file_name().and_then(|n| n.to_str()).unwrap_or("");
+                    if Profile::find_workspace_candidates(dir_name, &Profile::list_available()).len() != 1 {
+                        let _ = cfg.save(target_dir);
+                    }
+                    router = matcher::ContextRouter::load();
+
+                    lock_guard.take();
+                    let (new_num, new_guard) = resolve_instance_number(&cfg.profile_name);
+                    instance_num = new_num;
+                    lock_guard = Some(new_guard);
+                    second_line = format_instance_label(cfg.is_agent, &cfg.profile_name, instance_num);
+
+                    history.clear();
+                    input_history.clear();
+                    last_stat_line = None;
+                    state::clear_workspace_session(target_dir);
+                    history.push(ChatMessage::system(&system_prompt));
+                    active_tools = if cfg.is_agent {
+                        Some(tools::get_tools_schema_with_mcp(&cfg.tier, cfg.delegate, &new_mcp, &active_profile.mcp_tools).await)
+                    } else {
+                        None
+                    };
+
+                    print!("\x1b]0;rs-agent: {}\x07", second_line);
+                    print!("\x1b[H\x1b[2J");
+                    println!();
+                    ui::draw_box_with_meta(&provider.model, &second_line, Some(&hud_meta), current_box_style, false);
+                    let _ = io::stdout().flush();
+                } else {
+                    println!("  \x1b[1;31m✗\x1b[0m \x1b[2mProfile '{}' not found in profiles/\x1b[0m\n", new_prof);
+                }
+            }
+            continue;
+        }
+
+        if input == "/s" || input == "/skill" || input.starts_with("/s ") || input.starts_with("/skill ") {
+            let direct_arg = if let Some(stripped) = input.strip_prefix("/s ") {
+                stripped.trim().to_lowercase()
+            } else if let Some(stripped) = input.strip_prefix("/skill ") {
+                stripped.trim().to_lowercase()
+            } else {
+                String::new()
+            };
+
+            print!("\x1b[1A\r\x1b[2K");
+            let _ = io::stdout().flush();
+
+            let action = if !direct_arg.is_empty() {
+                if direct_arg == "clear" || direct_arg == "none" || direct_arg == "reset" {
+                    Some(SkillAction::DetachAll)
+                } else if active_skills.contains(&direct_arg) {
+                    Some(SkillAction::Detach(direct_arg))
+                } else {
+                    Some(SkillAction::Attach(direct_arg))
+                }
+            } else {
+                Skill::select_interactive(&active_skills)
+            };
+
+            if let Some(act) = action {
+                match act {
+                    SkillAction::Attach(skill_name) => {
+                        if !active_skills.contains(&skill_name) && active_skills.len() < 3 {
+                            if let Some(sk) = Skill::load(&skill_name) {
+                                active_skills.push(sk.name.clone());
+                                println!(
+                                    "  \x1b[1;32m✓\x1b[0m \x1b[2mSkill attached:\x1b[0m \x1b[1;36m{}\x1b[0m\n",
+                                    sk.name
+                                );
+                            }
+                        } else if active_skills.len() >= 3 {
+                            println!("  \x1b[1;31m✗\x1b[0m \x1b[2mMax 3 skills reached (detach one first)\x1b[0m\n");
+                        }
+                    }
+                    SkillAction::Detach(skill_name) => {
+                        if let Some(pos) = active_skills.iter().position(|x| x == &skill_name) {
+                            active_skills.remove(pos);
+                            println!(
+                                "  \x1b[1;33m✗\x1b[0m \x1b[2mSkill detached:\x1b[0m \x1b[1;33m{}\x1b[0m\n",
+                                skill_name
+                            );
+                        }
+                    }
+                    SkillAction::DetachAll => {
+                        active_skills.clear();
+                        println!("  \x1b[1;33m✗\x1b[0m \x1b[2mAll skills detached\x1b[0m\n");
+                    }
+                }
+
+                system_prompt =
+                    rs_agent::profile::build_system_prompt(&active_profile, target_dir, cfg.is_agent, &active_skills);
+                if let Some(first) = history.first_mut() {
+                    first.content = serde_json::Value::String(system_prompt.clone());
+                }
+                let _ = io::stdout().flush();
+            }
+            continue;
+        }
+
+        if input == "/pad" {
+            let new_pad = !state::get_pad();
+            state::set_pad(new_pad);
+            let status = if new_pad { "enabled (spaced layout)" } else { "disabled (dense layout)" };
+            println!("  \x1b[1;32m✓\x1b[0m \x1b[2mPadding:\x1b[0m \x1b[1;36m{}\x1b[0m\n", status);
+            let _ = io::stdout().flush();
+            continue;
+        }
+
+        if input == "/think" || input == "/tk" {
+            let next = match state::get_show_thinking_summaries() {
+                None => Some(true),
+                Some(true) => Some(false),
+                Some(false) => None,
+            };
+            state::set_show_thinking_summaries(next);
+            let label = match next {
+                None => "gutter (│)",
+                Some(true) => "expanded (∴)",
+                Some(false) => "collapsed (∴ Thought for Xs)",
+            };
+            println!("  \x1b[1;32m✓\x1b[0m \x1b[2mThinking view:\x1b[0m \x1b[1;36m{}\x1b[0m\n", label);
+            let _ = io::stdout().flush();
+            continue;
+        }
+
+        if input == "/b" || input.starts_with("/b ") || input == "/box" || input.starts_with("/box ") {
+            let parts: Vec<&str> = input.split_whitespace().collect();
+            current_box_style = if parts.len() > 1 {
+                let parsed = parts[1].parse::<usize>().unwrap_or((current_box_style % 8) + 1);
+                if (1..=8).contains(&parsed) {
+                    parsed
+                } else {
+                    (current_box_style % 8) + 1
+                }
+            } else {
+                (current_box_style % 8) + 1
+            };
+            state::set_box_style(current_box_style);
+
+            let second_line = format_instance_label(cfg.is_agent, &cfg.profile_name, instance_num);
+            ui::draw_box_with_meta(&provider.model, &second_line, Some(&hud_meta), current_box_style, true);
+            let _ = io::stdout().flush();
+            continue;
+        }
+
+        if input == "/r" || input == "/reset" {
+            print!("\x1b[1A\r\x1b[2K");
+            let _ = io::stdout().flush();
+
+            history.clear();
+            input_history.clear();
+            last_stat_line = None;
+            state::clear_workspace_session(target_dir);
+            system_prompt =
+                rs_agent::profile::build_system_prompt(&active_profile, target_dir, cfg.is_agent, &active_skills);
+            history.push(ChatMessage::system(&system_prompt));
+
+            print!("\x1b[H\x1b[2J");
+            println!();
+            let second_line = format_instance_label(cfg.is_agent, &cfg.profile_name, instance_num);
+            ui::draw_box_with_meta(&provider.model, &second_line, Some(&hud_meta), current_box_style, false);
+            let _ = io::stdout().flush();
+            continue;
+        }
+
+        if input == "/clear" || input == "/c" {
+            print!("\x1b[H\x1b[2J");
+            println!();
+            let second_line = format_instance_label(cfg.is_agent, &cfg.profile_name, instance_num);
+            ui::draw_box_with_meta(&provider.model, &second_line, Some(&hud_meta), current_box_style, false);
+            let _ = io::stdout().flush();
+            continue;
+        }
+
+        if let Some(entry) = router.resolve_entry(input) {
+            let cmd = entry.command;
+
+            let is_destructive =
+                cmd.split_whitespace().any(|w| w == "rm" || w == "sudo") || cmd.contains("reset --hard");
+            if entry.gated || is_destructive {
+                print!("  \x1b[1;33m[gate]\x1b[0m Execute '\x1b[1;36m{}\x1b[0m'? [y/N] ", cmd);
+                let _ = io::stdout().flush();
+                let mut conf = String::new();
+                if io::stdin().read_line(&mut conf).is_err()
+                    || !matches!(conf.trim().to_lowercase().as_str(), "y" | "yes")
+                {
+                    println!("  \x1b[2mCancelled.\x1b[0m\n");
+                    continue;
+                }
+                println!();
+            }
+            if cmd.starts_with("ai init ") {
+                println!(
+                    "  \x1b[1;33m[info]\x1b[0m Workspace teleports ('{}') are used from your terminal shell.\n",
+                    input
+                );
+                continue;
+            }
+
+            let expanded_cmd =
+                if let Ok(home) = std::env::var("HOME") { cmd.replace("~/", &format!("{}/", home)) } else { cmd };
+
+            let _ = std::process::Command::new("sh").arg("-c").arg(&expanded_cmd).status();
+
+            println!();
+            continue;
+        }
+
+        let pad = state::get_pad();
+        println!();
+        io::stdout().flush()?;
+
+        history.push(ChatMessage::user(input));
+
+        for round in 0..max_rounds {
+            let mut renderer = StreamRenderer::new(state::get_pad());
+
+            if round == 0 && history.len() <= 2 {
+                spinner.start("Prefilling...");
+            } else if round == 0 {
+                spinner.start("Working...");
+            } else {
+                spinner.start("Evaluating tool results...");
+            }
+
+            print!("\x1b[?25l");
+            let _ = io::stdout().flush();
+            let cursor_guard = CursorHideGuard;
+
+            let stream_res = client.stream_chat(&history, active_tools.clone(), &mut renderer, &mut spinner).await;
+            spinner.stop();
+            drop(cursor_guard);
+            let (reply, reasoning, tool_calls, stats) = match stream_res {
+                Ok(v) => v,
+                Err(e) => {
+                    if round == 0 {
+                        history.pop();
+                    }
+                    println!("  \x1b[1;31m✗\x1b[0m {}\n", e);
+                    break;
+                }
+            };
+
+            if tool_calls.is_none() || tool_calls.as_ref().map(|v| v.is_empty()).unwrap_or(true) {
+                let stat_str = renderer.finish_with_print(&stats, history_char_count(&history), current_box_style != 7 && current_box_style != 8);
+                last_stat_line = Some(stat_str);
+
+                let used_model = client.last_model();
+                let mut footer_notes: Vec<String> = Vec::new();
+                if used_model != provider.model {
+                    footer_notes.push(format!("↳ {}", used_model));
+                }
+                footer_notes.extend(active_skills.iter().cloned());
+                if !footer_notes.is_empty() {
+                    println!("  \x1b[2m{}\x1b[0m\n", footer_notes.join(" · "));
+                }
+
+                history.push(ChatMessage::assistant_with_reasoning(reply, reasoning));
+                break;
+            }
+
+            let calls = tool_calls.unwrap();
+            let mut assistant_msg = ChatMessage::assistant_with_reasoning(reply.clone(), reasoning.clone());
+            assistant_msg.tool_calls = Some(serde_json::Value::Array(calls.clone()));
+            history.push(assistant_msg);
+
+            if renderer.answer_chars > 0 {
+                if !renderer.at_line_start {
+                    println!();
+                }
+                println!();
+            } else if !pad && renderer.thinking_started {
+                println!();
+            }
+            execute_tool_batch(&calls, target_dir, &boundary, cfg.adapters, &mut history, &mut spinner).await;
+        }
+        if history.len() > 1 {
+            persist_cli_history(target_dir, &history);
+        }
+    }
+
+    Ok(())
+}
+
+#[tokio::main]
+async fn main() -> anyhow::Result<()> {
+    tokio::spawn(async {
+        if tokio::signal::ctrl_c().await.is_ok() {
+            if let Ok(mut guard) = CURRENT_LOCK_FILE.lock() {
+                if let Some(ref path) = *guard {
+                    let _ = fs::remove_file(path);
+                    *guard = None;
+                }
+            }
+            let _ = crossterm::terminal::disable_raw_mode();
+            print!("\x1b[?2004l\x1b[?25h\r\n");
+            let _ = io::stdout().flush();
+            std::process::exit(0);
+        }
+    });
+
+    let cli = Cli::parse();
+    let current_dir = env::current_dir()?;
+
+    if let Some(Commands::Handoff) = &cli.command {
+        let base_cfg = dirs::home_dir()
+            .map(|h| h.join(".config/rs-agent/HANDOFF.md"))
+            .unwrap_or_else(|| PathBuf::from("HANDOFF.md"));
+
+        if let Ok(content) = fs::read_to_string(&base_cfg) {
+            println!("{}", content);
+        } else {
+            eprintln!("\x1b[1;31mError:\x1b[0m Could not locate {}", base_cfg.display());
+        }
+        return Ok(());
+    }
+
+    if let Some(Commands::Match { query }) = &cli.command {
+        let q = query.join(" ");
+        let router = ContextRouter::load();
+        if let Some(cmd) = router.resolve(&q) {
+            println!("{}", cmd);
+            std::process::exit(0);
+        }
+        std::process::exit(127);
+    }
+
+    if let Some(Commands::New { name, intents }) = &cli.command {
+        handle_new_project(name, intents.as_deref())?;
+        return Ok(());
+    }
+
+    if let Some(Commands::Mcp { action }) = &cli.command {
+        match action {
+            McpAction::List { server } => {
+                let servers = rs_agent::mcp::load_servers_config();
+                if let Some(s) = server {
+                    match rs_agent::mcp::get_server_tools_schema(s).await {
+                        Ok(tools) => {
+                            println!("Server: {} ({} tools)", s, tools.len());
+                            for t in tools {
+                                let name = t["function"]["name"].as_str().unwrap_or("");
+                                let desc = t["function"]["description"].as_str().unwrap_or("");
+                                println!("  - {:<32} {}", name, desc);
+                            }
+                        }
+                        Err(e) => eprintln!("Error loading server {}: {}", s, e),
+                    }
+                } else {
+                    println!("Configured MCP Servers ({}):", servers.len());
+                    for (name, cfg) in servers {
+                        println!("  • {:<16} ({})", name, cfg.command);
+                    }
+                    println!("\nUse: ai mcp list <server> to inspect tools");
+                }
+            }
+            McpAction::Call { server, tool, args } => {
+                let payload: serde_json::Value =
+                    args.as_deref().and_then(|a| serde_json::from_str(a).ok()).unwrap_or_else(|| serde_json::json!({}));
+                match rs_agent::mcp::call_tool(server, tool, &payload).await {
+                    Ok(out) => println!("{}", out),
+                    Err(e) => eprintln!("[mcp error] {}", e),
+                }
+            }
+            McpAction::Schema { server } => {
+                let servers = rs_agent::mcp::load_servers_config();
+                let targets: Vec<String> =
+                    if let Some(s) = server { vec![s.clone()] } else { servers.keys().cloned().collect() };
+                let mut all_schemas = Vec::new();
+                for s in targets {
+                    if let Ok(schemas) = rs_agent::mcp::get_server_tools_schema(&s).await {
+                        all_schemas.extend(schemas);
+                    }
+                }
+                println!("{}", serde_json::to_string_pretty(&all_schemas).unwrap_or_default());
+            }
+        }
+        return Ok(());
+    }
+
+    if cli.bridge {
+        return rs_agent::bridge::run_bridge().await;
+    }
+
+    match cli.command {
+        Some(Commands::Init { path }) => {
+            let target_path = path.map(|p| expand_path(&p)).unwrap_or(current_dir);
+            run_session(&target_path, true).await?;
+        }
+        Some(Commands::Match { .. })
+        | Some(Commands::New { .. })
+        | Some(Commands::Handoff)
+        | Some(Commands::Mcp { .. }) => unreachable!(),
+        None => {
+            let chat_dir = dirs::home_dir()
+                .map(|h| h.join(".config/rs-agent/projects/chat"))
+                .unwrap_or_else(|| PathBuf::from("projects/chat"));
+            fs::create_dir_all(&chat_dir).ok();
+            run_session(&chat_dir, false).await?;
+        }
+    }
+
+    Ok(())
+}

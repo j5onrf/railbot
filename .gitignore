@@ -1,0 +1,26 @@
+/target
+.env
+*.tmp*
+.active_sessions
+*.db
+*.db-wal
+*.db-shm
+.rs/
+state.json
+target/
+projects/chat/
+ta_probe.txt
+plugins/mcp/*.db
+rustfmt.toml
+
+# Python execution caches
+__pycache__/
+*.pyc
+*.pyo
+
+# Ephemeral scratchpads
+.rs/scratchpad.log
+
+# T3 Code ACP URI artifacts
+**/acp:*
+acp:*

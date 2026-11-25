@@ -1,0 +1,3111 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta name="color-scheme" content="dark light" />
+<meta name="darkreader-lock" />
+<title>RS Rail</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Fira+Code:wght@400;500;600&display=swap" />
+<style>
+  :root {
+    --bg: #0c0c0e;
+    --panel: #111215;
+    --card: #18191d;
+    --hover: #202228;
+    --border: #26282e;
+    --nav-bg: #0e0f12;
+    --code-bg: #0f1014;
+    --code-border: #26282e;
+    --code-head: #111215;
+    --text: #e5e7eb;
+    --muted: #8e95a3;
+    --dim: #5c6370;
+    --accent: #22c55e;
+    --accent-fg: #05140a;
+    --accent-bg: rgba(34, 197, 94, 0.12);
+    --user-bg: #16261d;
+    --user-border: #244732;
+    --user-text: #ecfdf5;
+    --cyan: #38bdf8;
+    --err-text: #fca5a5;
+    --del-bg: rgba(239, 68, 68, 0.14);
+    --del-text: #fca5a5;
+    --add-bg: rgba(34, 197, 94, 0.14);
+    --add-text: #86efac;
+    --mono: "JetBrainsMono Nerd Font", "JetBrainsMono NF", "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    --sans: "JetBrainsMono Nerd Font", "JetBrainsMono NF", "JetBrains Mono", "Geist", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --warn-bg: rgba(245, 158, 11, 0.08);
+    --warn-border: rgba(245, 158, 11, 0.45);
+    --warn-text: #fcd34d;
+    --syn-kw: #8ab4f8;
+    --syn-str: #86efac;
+    --syn-num: #fcd34d;
+    --syn-cmt: #717885;
+    --code-size: 12px;
+    --ui-size: 13px;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; background: var(--bg); color: var(--text); font-family: var(--sans); font-size: var(--ui-size); overflow: hidden; font-synthesis: style; }
+  body.theme-dark { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+  button, input, select, textarea, [tabindex] { font: inherit; color: inherit; outline: none; }
+  input::placeholder, textarea::placeholder { color: var(--muted); opacity: 0.82; }
+  #msg-input::placeholder { opacity: 0.48; }
+  button:focus-visible, [tabindex]:focus-visible { outline: 2px solid color-mix(in srgb, var(--accent) 70%, transparent); outline-offset: 2px; }
+  button:disabled { opacity: 0.42; cursor: not-allowed; filter: none; }
+  .app { display: flex; flex-direction: column; height: 100vh; }
+
+  /* Topbar */
+  .topbar { height: 40px; min-height: 40px; background: var(--topbar-bg, var(--panel)); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 12px; gap: 10px; }
+  .tb-left, .tb-right { display: flex; align-items: center; gap: 6px; min-width: 0; }
+  .brand { font-weight: 600; letter-spacing: .2px; display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; padding: 0; color: var(--text); white-space: nowrap; background: var(--card); border: 1px solid var(--border); border-radius: 999px; cursor: default; }
+  .brand.clickable { cursor: pointer; }
+  .brand.clickable:hover { background: var(--hover); border-color: color-mix(in srgb, var(--accent) 30%, var(--border)); }
+  .tele { font-family: var(--mono); font-size: 12px; color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; display: inline-flex; align-items: center; gap: 6px; user-select: none; }
+  .tele strong { color: var(--text); font-weight: 500; }
+  #tb-git-txt { display: inline-flex; align-items: center; gap: 1.5ch; }
+  #tb-profile, #tb-git, #tb-stats, #tb-ctx { background: var(--card); border: 1px solid var(--border); border-radius: 999px; padding: 2px 9px; gap: 1.5ch; }
+  .git-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--dim); flex-shrink: 0; }
+  .git-dot.dirty { background: var(--accent); }
+  #tb-stats, #tb-ctx { position: relative; cursor: default; }
+  .ctx-bar { display: block; width: 100%; height: 4px; background: color-mix(in srgb, var(--text) 14%, transparent); border-radius: 99px; overflow: hidden; }
+  .ctx-fill { display: block; height: 100%; background: var(--accent); border-radius: 99px; width: 0%; transition: width .22s ease, background .2s; }
+  .ctx-tip { position: absolute; right: 0; top: calc(100% + 8px); min-width: 170px; background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; font-size: 11px; line-height: 1.4; color: var(--text); white-space: nowrap; box-shadow: 0 10px 24px rgba(0,0,0,.35); display: flex; flex-direction: column; gap: 5px; opacity: 0; pointer-events: none; transform: translateY(-2px); transition: opacity .12s ease, transform .12s ease; z-index: 40; }
+  .ctx-tip .muted { font-size: 10.5px; }
+  .ctx-tip:empty { display: none; }
+  #tb-stats:hover .ctx-tip, #tb-ctx:hover .ctx-tip { opacity: 1; transform: translateY(0); }
+  .btn { background: var(--card); border: 1px solid var(--border); border-radius: 6px; padding: 4px 10px; cursor: pointer; font-size: 12px; color: var(--text); display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+  .btn:hover { background: var(--hover); }
+  .btn-primary { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); font-weight: 600; }
+  .btn-primary:hover { filter: brightness(1.08); }
+  .btn-danger { background: var(--del-bg); color: var(--err-text); border-color: rgba(239,68,68,.4); }
+  .btn-sm { padding: 2px 8px; font-size: 11px; }
+  .btn-icon { padding: 4px 6px; }
+  .topbar .btn-icon { background: var(--card); border: 1px solid var(--border); border-radius: 999px; color: var(--muted); width: 26px; height: 26px; padding: 0; display: inline-flex; align-items: center; justify-content: center; }
+  .topbar .btn-icon:hover { background: var(--hover); color: var(--text); border-color: color-mix(in srgb, var(--accent) 30%, var(--border)); }
+  #btn-close-app { margin-left: 6px; transition: background .12s, color .12s, border-color .12s; }
+  #btn-close-app:hover { color: var(--err-text); background: var(--del-bg); border-color: rgba(239,68,68,.4); }
+  .btn-send-circle { width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--border); background: var(--card); color: var(--muted); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; transition: background .12s, border-color .12s, color .12s, filter .12s; }
+  .btn-send-circle:hover { background: var(--hover); color: var(--text); }
+  .btn-send-circle.ready { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); }
+  .btn-send-circle.ready:hover { filter: brightness(1.08); }
+  .btn-send-circle.stop { background: var(--del-bg); border-color: rgba(239,68,68,.45); color: var(--err-text); }
+  .btn-send-circle.stop:hover { filter: brightness(1.08); }
+  .tok-k { color: var(--syn-kw); }
+  .tok-s { color: var(--syn-str); }
+  .tok-n { color: var(--syn-num); }
+  .tok-c { color: var(--syn-cmt); font-style: italic; }
+
+  /* Main 3-pane body */
+  .main { flex: 1; display: flex; min-height: 0; }
+  .sidebar-left { width: 230px; min-width: 200px; background: var(--panel); border-right: 1px solid var(--border); display: flex; flex-direction: column; min-height: 0; }
+  .sidebar-right { width: 230px; min-width: 200px; background: var(--panel); border-left: 1px solid var(--border); display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+  .sidebar-left.hidden, .sidebar-right.hidden { display: none; }
+  .sec-head { padding: 10px 12px 6px; font-size: 12px; font-weight: 600; color: var(--muted); display: flex; justify-content: space-between; align-items: center; }
+  .rs-head { padding: 8px 10px 6px; font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--dim); display: flex; justify-content: space-between; align-items: center; gap: 6px; }
+  .rs-head .btn-icon { background: transparent; border-color: transparent; color: var(--muted); padding: 3px 5px; }
+  .rs-head .btn-icon:hover { background: var(--hover); color: var(--text); }
+  .rs-head .btn-icon.btn-danger { background: var(--del-bg); border-color: rgba(239,68,68,.4); color: var(--err-text); padding: 2px 7px; }
+  .proj-list { flex: 1; overflow-y: auto; padding: 6px 6px 8px; }
+  .sb-foot { padding: 6px 8px 8px; display: flex; align-items: center; }
+  .sb-foot .btn-icon { background: transparent; border-color: transparent; color: var(--muted); opacity: 0; transition: opacity .15s, background .12s, color .12s; }
+  .sidebar-left:hover .sb-foot .btn-icon, .sb-foot .btn-icon:focus-visible { opacity: 1; }
+  .sb-foot .btn-icon:hover { opacity: 1; background: var(--hover); color: var(--text); }
+  .proj-item { padding: 5px 8px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 3px; border: 1px solid transparent; }
+  .proj-item:hover { background: var(--hover); }
+  .proj-item.active { background: var(--active-bg, var(--user-bg)); border-color: var(--active-border, var(--user-border)); }
+  .proj-left { display: flex; align-items: center; gap: 8px; min-width: 0; flex: 1; }
+  .proj-badge { width: 18px; height: 18px; border-radius: 4px; background: var(--card); border: 1px solid var(--border); color: var(--muted); font-size: 9.5px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; text-transform: uppercase; }
+  .proj-badge.bot { border-radius: 999px; }
+  .proj-item.active .proj-badge { background: var(--accent-bg); border-color: var(--accent); color: var(--accent); }
+  .proj-name { font-weight: 500; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .proj-meta { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 2px; }
+  .proj-sub { font-size: 10px; color: var(--dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 1.25; transition: color .12s; }
+  .proj-item:hover .proj-sub, .proj-item.active .proj-sub { color: var(--muted); }
+  .proj-item.active .proj-name { font-weight: 600; }
+  .proj-acts { display: flex; align-items: center; gap: 5px; flex-shrink: 0; }
+  .proj-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--dim); opacity: 0; transition: opacity .12s; }
+  .proj-dot.dirty { background: var(--accent); opacity: 0.9; }
+  .proj-item:hover .proj-dot { opacity: 0.75; }
+  .proj-item:hover .proj-dot.dirty { opacity: 1; }
+  .proj-del { background: transparent; border: none; padding: 2px; border-radius: 4px; color: var(--muted); cursor: pointer; display: none; align-items: center; justify-content: center; line-height: 0; }
+  .proj-item:hover .proj-del { display: inline-flex; }
+  .proj-del:hover { color: var(--err-text); background: var(--del-bg); }
+  .proj-hover { position: fixed; z-index: 60; pointer-events: none; background: var(--panel); border: 1px solid var(--border); border-radius: 9px; padding: 9px 11px; min-width: 210px; max-width: 260px; box-shadow: 0 12px 30px rgba(0,0,0,.5); display: none; flex-direction: column; gap: 5px; font-size: 12px; }
+  .proj-hover.open { display: flex; }
+  .proj-tags { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; margin-top: 4px; }
+  .proj-tag { display: inline-flex; align-items: center; gap: 4px; padding: 1px 7px; border-radius: 999px; font-size: 11px; border: 1px solid var(--border); background: var(--panel); color: var(--muted); }
+  .proj-tag button, .lbl-chip button { background: transparent; border: none; padding: 0 1px; cursor: pointer; color: var(--dim); font-size: 10px; line-height: 1; }
+  .proj-tag button:hover, .lbl-chip button:hover { color: var(--text); }
+  .proj-ren { background: transparent; border: none; padding: 0 3px; cursor: pointer; color: var(--dim); font-size: 11px; line-height: 1; }
+  .proj-ren:hover { color: var(--text); }
+  .proj-tag button.arm, .lbl-chip button.arm { color: var(--err-text); background: var(--del-bg); border-radius: 4px; padding: 1px 4px; }
+  .tag-inp { width: 96px; background: var(--bg); border: 1px solid var(--accent); border-radius: 999px; padding: 1px 8px; font-size: 11px; color: var(--text); outline: none; }
+  .lbl-bar { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .lbl-chip { display: inline-flex; align-items: center; gap: 5px; padding: 3px 8px; border-radius: 999px; font-size: 12px; border: 1px solid var(--border); background: var(--card); color: var(--text); }
+  .lbl-name { cursor: pointer; }
+  .lbl-name:hover { color: var(--accent); }
+  .ph-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-weight: 600; color: var(--text); }
+  .ph-row { color: var(--muted); display: flex; justify-content: space-between; gap: 10px; }
+
+  /* Right Sidebar 2-Pane Split: Files + [Actions | Memory] */
+  .rs-top { flex: 1; display: flex; flex-direction: column; min-height: 0; border-bottom: 1px solid var(--border); }
+  .file-list { flex: 1; overflow-y: auto; padding: 2px 6px 8px; display: flex; flex-direction: column; gap: 1px; }
+  .file-row { padding: 5px 8px; border-radius: 5px; display: flex; align-items: center; justify-content: space-between; gap: 6px; font-family: var(--mono); font-size: 12px; color: var(--muted); cursor: pointer; }
+  .file-row:hover { background: var(--hover); color: var(--text); }
+  .file-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .file-del { background: transparent; border: none; color: var(--dim); cursor: pointer; font-size: 10px; padding: 1px 4px; border-radius: 4px; display: none; }
+  .file-row:hover .file-del, .file-del.arm { display: inline-block; }
+  .file-del.arm { color: var(--err-text); background: var(--del-bg); }
+  .rs-bot { height: 42%; min-height: 175px; display: flex; flex-direction: column; flex-shrink: 0; }
+  .rs-tabs { display: flex; gap: 4px; }
+  .rs-tab { background: transparent; border: 1px solid transparent; border-radius: 5px; padding: 2px 7px; font-size: 11px; color: var(--dim); cursor: pointer; text-transform: none; letter-spacing: 0; font-weight: 500; white-space: nowrap; }
+  .rs-tab.active { background: var(--card); border-color: var(--border); color: var(--text); }
+  .rs-pane { flex: 1; display: none; flex-direction: column; min-height: 0; }
+  .rs-pane.open { display: flex; }
+  .act-list { flex: 1; overflow-y: auto; padding: 6px 8px; display: flex; flex-direction: column; gap: 5px; }
+  .task-box { border: 1px solid var(--border); background: color-mix(in srgb, var(--accent) 7%, var(--card)); border-radius: 6px; padding: 7px 9px; display: flex; flex-direction: column; gap: 4px; }
+  .task-box-head { display: flex; justify-content: space-between; align-items: center; }
+  .task-box-title { font-size: 11px; font-weight: 600; color: var(--accent); }
+  .task-box-body { font-size: 11px; color: var(--muted); line-height: 1.4; white-space: pre-wrap; max-height: 90px; overflow-y: auto; font-family: var(--mono); }
+  .act-row { padding: 6px 8px; border-radius: 6px; display: flex; align-items: center; justify-content: space-between; gap: 8px; cursor: pointer; border: 1px solid var(--border); background: var(--card); transition: background .12s, border-color .12s; min-width: 0; }
+  .act-row:hover { background: var(--hover); border-color: color-mix(in srgb, var(--accent) 40%, var(--border)); }
+  .act-cmd { font-family: var(--mono); font-size: 11.5px; color: var(--text); font-weight: 600; display: inline-flex; align-items: center; gap: 6px; min-width: 0; flex: 0 1 auto; }
+  .act-cmd svg { flex-shrink: 0; }
+  .act-cmd > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .act-desc { font-size: 10.5px; color: var(--dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; text-align: right; flex: 0 3 auto; }
+  .mem-input { flex: 1; margin: 4px 10px 6px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 7px 8px; font-family: var(--mono); font-size: 12px; color: var(--text); resize: none; outline: none; line-height: 1.45; }
+  .mem-input:focus { border-color: var(--accent); }
+  /* Micro-Bot Peer Cards & Sidebar Call Button */
+  .proj-call { background: transparent; border: none; padding: 2px; border-radius: 4px; color: var(--muted); cursor: pointer; display: none; align-items: center; justify-content: center; line-height: 0; }
+  .proj-item:hover .proj-call { display: inline-flex; }
+  .proj-call:hover { color: var(--accent); background: var(--accent-bg); }
+  .peer-card { border: 1px solid color-mix(in srgb, var(--cyan) 35%, var(--border)); background: var(--panel); border-radius: 8px; overflow: hidden; margin-bottom: 2px; }
+  .peer-head { padding: 7px 11px; display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 12px; border-bottom: 1px solid var(--border); background: color-mix(in srgb, var(--cyan) 6%, var(--panel)); cursor: pointer; }
+  .peer-head:hover { background: var(--hover); }
+  .peer-title { display: flex; align-items: center; gap: 7px; min-width: 0; flex: 1; overflow: hidden; }
+  .peer-brief { color: var(--muted); font-family: var(--mono); font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .peer-tag { font-family: var(--mono); font-size: 10.5px; color: var(--cyan); padding: 1px 6px; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--cyan) 35%, var(--border)); background: color-mix(in srgb, var(--cyan) 10%, transparent); flex-shrink: 0;  display: inline-flex; align-items: center; gap: 1.2ch; }
+  .peer-body { padding: 10px 12px; line-height: 1.55; }
+  .peer-card .tool-raw { border-top: 1px solid var(--border); display: none; }
+  .peer-card.open .tool-raw { display: block; }
+  .call-route { display: flex; align-items: stretch; gap: 8px; }
+  .call-node { flex: 1; min-width: 0; background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; display: flex; align-items: center; gap: 8px; text-align: left; }
+  .call-node-btn { cursor: pointer; transition: background .12s, border-color .12s; }
+  .call-node-btn:hover, .call-node-btn.open { background: var(--hover); border-color: color-mix(in srgb, var(--accent) 45%, var(--border)); }
+  .call-node-btn.open .chev { transform: rotate(180deg); }
+  .call-arrow { display: flex; align-items: center; color: var(--muted); flex-shrink: 0; font-size: 13px; }
+  .call-meta { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 1px; }
+  .call-name { font-weight: 600; font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .call-sub { font-family: var(--mono); font-size: 10.5px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;  display: flex; align-items: center; gap: 1.2ch; }
+  .call-targets { max-height: 168px; overflow-y: auto; display: none; flex-direction: column; gap: 4px; padding: 4px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; }
+  .call-targets.open { display: flex; }
+  .call-target-opt { background: transparent; border: 1px solid transparent; border-radius: 6px; padding: 6px 8px; display: flex; align-items: center; justify-content: space-between; gap: 8px; cursor: pointer; text-align: left; }
+  .call-target-opt:hover { background: var(--hover); }
+  .call-target-opt.active { background: var(--accent-bg); border-color: color-mix(in srgb, var(--accent) 45%, transparent); }
+  .call-prompt { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; resize: vertical; min-height: 76px; max-height: 180px; line-height: 1.45; }
+  .call-prompt:focus { border-color: var(--accent); }
+  .bot-grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; }
+  .bot-opt { height: 46px; background: var(--card); border: 1px solid var(--border); border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--muted); padding: 0; transition: background .12s, border-color .12s, color .12s; }
+  .bot-opt:hover:not(:disabled) { background: var(--hover); color: var(--text); border-color: color-mix(in srgb, var(--accent) 40%, var(--border)); }
+  .bot-opt.active { background: var(--accent-bg); border-color: var(--accent); color: var(--accent); }
+  .bot-opt:disabled { opacity: 0.28; }
+  .collab-chip { height: 26px; padding: 0 9px; border-radius: 999px; border: 1px solid var(--border); background: var(--card); color: var(--muted); font-size: 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: background .12s, border-color .12s, color .12s; }
+  .collab-chip:hover { background: var(--hover); color: var(--text); }
+  .collab-chip.on { background: var(--accent-bg); border-color: var(--accent); color: var(--accent); font-weight: 500; }
+
+  /* Center Chat */
+  .center { flex: 1; display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+  .stream { flex: 1; overflow-y: auto; padding: 18px 24px; display: flex; flex-direction: column; gap: 14px; scrollbar-gutter: stable; scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--muted) 35%, transparent) transparent; }
+  .stream::-webkit-scrollbar, .proj-list::-webkit-scrollbar, .file-list::-webkit-scrollbar, .modal-pane::-webkit-scrollbar { width: 6px; }
+  .stream::-webkit-scrollbar-track, .proj-list::-webkit-scrollbar-track, .file-list::-webkit-scrollbar-track, .modal-pane::-webkit-scrollbar-track { background: transparent; }
+  .stream::-webkit-scrollbar-thumb, .proj-list::-webkit-scrollbar-thumb, .file-list::-webkit-scrollbar-thumb, .modal-pane::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--muted) 35%, transparent); border-radius: 99px; }
+  .stream::-webkit-scrollbar-thumb:hover, .proj-list::-webkit-scrollbar-thumb:hover, .file-list::-webkit-scrollbar-thumb:hover, .modal-pane::-webkit-scrollbar-thumb:hover { background: color-mix(in srgb, var(--muted) 65%, transparent); }
+  .turn-wrap { max-width: 820px; width: 100%; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; }
+  .msg-user { align-self: flex-end; background: var(--user-bg); border: 1px solid var(--user-border); color: var(--user-text); padding: 8px 12px; border-radius: 8px; max-width: 74%; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.5; }
+  .msg-assistant { display: flex; flex-direction: column; gap: 8px; }
+  .stream.chat-mode .msg-assistant { align-self: flex-start; max-width: 74%; min-width: 0; background: var(--panel); border: 1px solid var(--border); padding: 10px 14px; border-radius: 8px; }
+  .stream.chat-mode .msg-assistant:empty { display: none; }
+  .stream.chat-mode .ans-body code { background: var(--card); }
+  .stream.chat-mode .think-box summary { margin-left: -4px; }
+  .stream.chat-mode .think-box summary:hover { background: var(--hover); }
+  .think-box { color: var(--dim); font-size: 12px; }
+  .think-box summary { cursor: pointer; user-select: none; list-style: none; display: inline-flex; align-items: center; gap: 7px; padding: 3px 8px; margin-left: -8px; border-radius: 6px; border: 1px solid transparent; background: transparent; color: var(--muted); font-size: 12px; outline: none; transition: background .12s, border-color .12s, color .12s; }
+  .think-box summary::-webkit-details-marker { display: none; }
+  .think-step { color: var(--text); font-weight: 500; }
+  .think-meta { color: var(--muted); }
+  .think-chev { transition: transform .15s; flex-shrink: 0; opacity: 0.6; }
+  .think-box summary:hover { background: var(--card); border-color: var(--border); }
+  .think-box summary:hover .think-step, .think-box summary:hover .think-meta, .think-box summary:hover .think-chev { color: var(--text); opacity: 1; }
+  .think-box[open] .think-chev { transform: rotate(90deg); }
+  .think-body { white-space: pre-wrap; margin: 5px 0 4px 6px; padding-left: 12px; border-left: 1px solid var(--border); color: var(--muted); opacity: 0.85; font-family: var(--mono); font-size: var(--code-size); line-height: 1.48; }
+  .ans-row { display: flex; align-items: flex-start; gap: 9px; line-height: 1.55; }
+  .bullet { width: 7px; height: 7px; border-radius: 50%; background: var(--cyan); font-size: 0; user-select: none; margin-top: 6px; flex-shrink: 0; }
+  .stream.chat-mode .ans-row .bullet { display: none; }
+  .tool-title .bullet { margin-top: 0; }
+  .ans-body { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+  .ans-body h2, .ans-body h3, .ans-body h4 { margin: 14px 0 6px; font-weight: 600; line-height: 1.3; letter-spacing: -0.015em; color: var(--text); text-wrap: balance; }
+  .ans-body > :first-child { margin-top: 0; }
+  .ans-body h2 { font-size: 15px; } .ans-body h3 { font-size: 14px; } .ans-body h4 { font-size: 13px; }
+  .ans-body p { margin: 0 0 10px; }
+  .ans-body p:last-child { margin-bottom: 0; }
+  .ans-body ul, .ans-body ol { margin: 0 0 8px; padding-left: 18px; }
+  .ans-body li { margin: 2px 0; }
+  .ans-body hr { border: none; border-top: 1px solid var(--border); margin: 10px 0; }
+  .ans-body code { font-family: var(--mono); font-size: var(--code-size); background: var(--card); padding: 1px 5px; border-radius: 4px; border: 1px solid var(--code-border); font-variant-ligatures: none; }
+  .code-wrap { position: relative; margin: 8px 0; border: 1px solid var(--code-border); border-radius: 8px; background: var(--code-bg); overflow: hidden; }
+  .code-head { display: flex; justify-content: space-between; align-items: center; padding: 4px 10px; background: var(--code-head); border-bottom: 1px solid var(--code-border); font-size: 11px; color: var(--muted); font-family: var(--mono); }
+  .code-wrap pre { margin: 0; padding: 10px 12px; overflow-x: auto; font-family: var(--mono); font-size: var(--code-size); line-height: 1.45; tab-size: 4; font-variant-ligatures: none; }
+
+  /* Tool Cards & Framed Error Card */
+  .tool-card { border: 1px solid var(--border); background: var(--panel); border-radius: 6px; overflow: hidden; }
+  .tool-head { padding: 6px 10px; display: flex; align-items: center; justify-content: space-between; gap: 8px; font-family: var(--mono); font-size: 12px; font-variant-numeric: tabular-nums; cursor: pointer; }
+  .tool-head:hover { background: var(--hover); }
+  .tool-title { display: flex; align-items: center; gap: 7px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .tool-brief { color: var(--muted); }
+  .tool-summary { color: var(--dim); font-size: 12px; padding: 0 10px 6px 24px; font-family: var(--mono); }
+  .tool-err { color: var(--err-text); }
+  .err-card { max-width: 820px; width: 100%; margin: 0 auto; border: 1px solid rgba(239,68,68,.42); background: var(--del-bg); border-radius: 6px; padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; }
+  .err-msg { color: var(--err-text); font-family: var(--mono); font-size: 12px; white-space: pre-wrap; word-break: break-word; }
+  .err-acts { display: flex; justify-content: flex-end; }
+  .diff-box { border-top: 1px solid var(--border); background: var(--code-bg); font-family: var(--mono); font-size: var(--code-size); overflow-x: auto; padding: 4px 0; tab-size: 4; font-variant-ligatures: none; }
+  .diff-line { padding: 0 10px 0 0; white-space: pre; display: flex; gap: 10px; min-width: max-content; border-left: 2px solid transparent; }
+  .diff-line.add { background: var(--add-bg); border-left-color: var(--add-text); }
+  .diff-line.del { background: var(--del-bg); border-left-color: var(--del-text); }
+  .diff-line.ctx { color: var(--muted); }
+  .diff-num { width: 46px; padding: 1px 6px; text-align: right; color: var(--dim); user-select: none; flex-shrink: 0; }
+  .diff-line.del .diff-num { background: var(--del-bg); color: var(--del-text); }
+  .diff-line.add .diff-num { background: var(--add-bg); color: var(--add-text); }
+  .tool-raw { border-top: 1px solid var(--border); padding: 8px 11px; margin: 0; font-family: var(--mono); font-size: var(--code-size); color: var(--muted); white-space: pre-wrap; max-height: 240px; overflow-y: auto; display: none; font-variant-ligatures: none; }
+  .tool-card.open .tool-raw { display: block; }
+
+  /* Security Gate Card */
+  .gate-card { border: 1px solid var(--warn-border); background: var(--warn-bg); border-radius: 8px; padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; }
+  .gate-title { color: var(--warn-text); font-weight: 600; font-size: 12px; }
+  .gate-cmd { font-family: var(--mono); font-size: 12px; background: var(--bg); padding: 6px 8px; border-radius: 5px; border: 1px solid var(--border); overflow-x: auto; }
+  .gate-actions { display: flex; gap: 8px; }
+
+  /* Composer */
+  .composer-wrap { padding: 10px 24px 16px; background: var(--bg); }
+  .composer { position: relative; max-width: 820px; margin: 0 auto; background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px 9px; display: flex; flex-direction: column; gap: 8px; transition: border-color .15s; }
+  .composer:focus-within { border-color: color-mix(in srgb, var(--accent) 50%, var(--border)); }
+  .img-strip { display: none; gap: 6px; flex-wrap: wrap; }
+  .img-strip.open { display: flex; }
+  .img-thumb { position: relative; width: 44px; height: 44px; border-radius: 6px; border: 1px solid var(--border); overflow: hidden; background: var(--bg); }
+  .img-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .img-rm { position: absolute; top: 2px; right: 2px; width: 14px; height: 14px; border-radius: 50%; border: none; background: rgba(0,0,0,.75); color: #fff; font-size: 9px; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; }
+  .msg-imgs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 6px; }
+  .msg-img { max-width: 180px; max-height: 140px; border-radius: 6px; border: 1px solid var(--border); object-fit: cover; display: block; }
+  .composer textarea { width: 100%; background: transparent; border: none; outline: none; resize: none; min-height: 36px; max-height: 180px; line-height: 1.45; color: var(--text); }
+  .comp-bar { display: flex; align-items: flex-end; justify-content: space-between; gap: 8px; }
+  .comp-left { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; flex: 1; min-width: 0; min-height: 30px; }
+  .comp-right { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+  #skills-bar { display: contents; }
+  #btn-model-pill { max-width: min(340px, 100%); gap: 1.5ch; overflow: hidden; }
+  .mp-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text); font-weight: 500; }
+  .mp-ext { color: var(--muted); flex-shrink: 0; }
+  .micro-pill { height: 26px; background: var(--panel); border: 1px solid var(--border); border-radius: 999px; padding: 0 10px; font: inherit; font-size: 12px; color: var(--text); cursor: pointer; display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; user-select: none; transition: background .12s, border-color .12s, color .12s; }
+  .micro-pill:hover, .micro-pill.open { background: var(--hover); }
+  .micro-pill.muted { color: var(--muted); }
+  .micro-pill.muted:hover, .micro-pill.muted.open { color: var(--text); }
+  .pop-wrap { position: relative; display: inline-flex; }
+  .pop { position: absolute; bottom: calc(100% + 6px); left: 0; min-width: 168px; max-height: min(320px, 55vh); overflow-y: auto; background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 4px; display: none; flex-direction: column; gap: 1px; box-shadow: 0 12px 28px rgba(0,0,0,.32); z-index: 30; }
+  .pop.open { display: flex; }
+  .pop button { background: transparent; border: none; border-radius: 6px; padding: 6px 9px; text-align: left; font: inherit; font-size: 12px; color: var(--muted); cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 12px; white-space: nowrap; }
+  .pop button:hover, .pop button.on { background: var(--hover); color: var(--text); }
+  .pop button.on { color: var(--accent); font-weight: 600; }
+  .chev { width: 11px; height: 11px; opacity: .65; flex-shrink: 0; transition: transform .15s; }
+  .micro-pill.open .chev { transform: rotate(180deg); }
+  .skill-chip { height: 26px; font-size: 12px; padding: 0 9px; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--cyan) 40%, var(--border)); color: var(--cyan); background: color-mix(in srgb, var(--cyan) 12%, transparent); cursor: pointer; display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; user-select: none; transition: .12s; }
+  .skill-chip.off { border-color: var(--border); color: var(--muted); background: var(--panel); opacity: .75; }
+  .skill-chip.off:hover { opacity: 1; color: var(--text); background: var(--hover); }
+  .chip-x { opacity: .65; font-size: 10px; line-height: 1; padding: 0 1px; }
+  .chip-x:hover { opacity: 1; color: var(--err-text); }
+  .ac-pop { position: absolute; bottom: calc(100% + 8px); left: 0; right: 0; max-height: min(220px, 40vh); overflow-y: auto; background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 5px; display: none; flex-direction: column; gap: 2px; box-shadow: 0 14px 32px rgba(0,0,0,.5); z-index: 30; }
+  .ac-pop.open { display: flex; }
+  .ac-item { background: transparent; border: 1px solid transparent; border-radius: 6px; padding: 6px 10px; text-align: left; cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 10px; font-size: 12px; color: var(--muted); }
+  .ac-item.hl, .ac-item:hover { background: var(--hover); color: var(--text); }
+  .ac-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .ac-key { font-family: var(--mono); color: var(--text); font-weight: 600; white-space: nowrap; }
+  .ac-desc { color: var(--dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* Modals */
+  .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.68); display: none; align-items: center; justify-content: center; z-index: 50; }
+  .modal-backdrop.open { display: flex; }
+  .modal { width: 760px; max-width: 94vw; height: 540px; max-height: 88vh; background: var(--panel); border: 1px solid var(--border); border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 24px 60px rgba(0,0,0,.6); }
+  .modal-head { padding: 12px 16px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; font-weight: 600; }
+  .modal-body { flex: 1; display: flex; min-height: 0; }
+  .modal-nav { width: 190px; border-right: 1px solid var(--border); padding: 10px 8px; display: flex; flex-direction: column; gap: 2px; background: var(--nav-bg); }
+  .nav-group { font-size: 10px; color: var(--muted); opacity: 0.58; padding: 6px 10px 4px; font-weight: 600; letter-spacing: .08em; user-select: none; }
+  .nav-btn + .nav-group { margin-top: 8px; padding-top: 12px; border-top: 1px solid color-mix(in srgb, var(--border) 65%, transparent); }
+  .nav-btn { text-align: left; background: transparent; border: 1px solid transparent; padding: 7px 10px; border-radius: 6px; cursor: pointer; color: color-mix(in srgb, var(--text) 78%, var(--muted)); }
+  .nav-btn:hover { background: var(--hover); color: var(--text); }
+  .nav-btn.active { background: var(--accent-bg); border-color: color-mix(in srgb, var(--accent) 45%, transparent); color: var(--accent); font-weight: 500; }
+  .modal-pane { flex: 1; padding: 18px 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; }
+  .setting-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: var(--card); border: 1px solid var(--border); border-radius: 8px; gap: 12px; }
+  .setting-row select, .comp-select { background: var(--card); border: 1px solid var(--border); border-radius: 6px; padding: 4px 8px; font: inherit; font-size: 12px; color: var(--text); outline: none; cursor: pointer; transition: border-color .12s, background .12s; }
+  .setting-row select:hover, .comp-select:hover { background: var(--hover); border-color: color-mix(in srgb, var(--accent) 40%, var(--border)); }
+  .setting-row select:focus, .comp-select:focus { border-color: var(--accent); }
+  .setting-row.active-slot { border-color: color-mix(in srgb, var(--accent) 50%, transparent); background: var(--accent-bg); }
+  .field { display: flex; flex-direction: column; gap: 5px; }
+  .field input, .field select { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 6px 9px; color: var(--text); }
+  .switch { width: 32px; height: 18px; border-radius: 99px; border: 1px solid var(--border); background: var(--bg); position: relative; cursor: pointer; flex-shrink: 0; transition: background .15s; }
+  .switch::after { content: ""; position: absolute; top: 2px; left: 2px; width: 12px; height: 12px; border-radius: 50%; background: var(--muted); transition: transform .15s, background .15s; }
+  .switch.on { background: var(--accent); border-color: var(--accent); }
+  .switch.on::after { transform: translateX(14px); background: var(--accent-fg); }
+  .skills-filter { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 6px 9px; outline: none; font-size: 12px; }
+  .skills-filter:focus { border-color: var(--cyan); }
+  .theme-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .theme-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 9px 10px; cursor: pointer; display: flex; align-items: center; gap: 9px; text-align: left; min-width: 0; }
+  .theme-card:hover { background: var(--hover); }
+  .theme-card.active { border-color: var(--accent); background: var(--accent-bg); }
+  .theme-swatch { width: 20px; height: 20px; border-radius: 50%; border: 1px solid var(--border); flex-shrink: 0; }
+  .theme-meta { min-width: 0; display: flex; flex-direction: column; }
+  .theme-name { font-size: 12px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .theme-tag { font-size: 10px; color: var(--dim); }
+  .theme-card { position: relative; }
+  .theme-meta { flex: 1; }
+  .theme-del { margin-left: auto; background: transparent; border: none; color: var(--dim); cursor: pointer; font-size: 10px; padding: 2px 5px; border-radius: 4px; display: none; flex-shrink: 0; }
+  .theme-card:hover .theme-del, .theme-del.arm, .noc-row:hover .theme-del { display: inline-flex; align-items: center; }
+  .noc-list { display: flex; flex-direction: column; gap: 6px; }
+  .noc-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 10px; background: var(--card); border: 1px solid var(--border); border-radius: 8px; cursor: pointer; text-align: left; }
+  .noc-row:hover { background: var(--hover); }
+  .noc-row.active { border-color: var(--accent); background: var(--accent-bg); }
+  .noc-swatches { display: inline-flex; align-items: center; gap: 4px; flex-shrink: 0; }
+  .noc-dot { width: 14px; height: 14px; border-radius: 50%; border: 1px solid var(--border); }
+  .theme-del:hover, .theme-del.arm { color: var(--err-text); background: var(--del-bg); }
+  .file-view-pre { flex: 1; margin: 0; padding: 12px; background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px; overflow: auto; font-family: var(--mono); font-size: var(--code-size); line-height: 1.45; white-space: pre-wrap; word-break: break-word; }
+  .muted { color: var(--muted); font-size: 12px; }
+  .center.is-empty { overflow-y: auto; }
+  .center.is-empty .stream { flex: 0 0 auto; overflow: visible; margin-top: auto; padding: 24px 24px 20px; scrollbar-gutter: auto; }
+  .center.is-empty .composer-wrap { margin-bottom: auto; padding: 0 24px 38px; }
+  .center.is-empty .composer { max-width: 720px; }
+  .empty-state { margin: 0 auto; text-align: center; color: var(--muted); max-width: 560px; line-height: 1.55; }
+  .empty-title { font-size: 22px; font-weight: 600; letter-spacing: -0.02em; color: var(--text); text-wrap: balance; }
+  .empty-sub { font-size: 12px; color: var(--muted); opacity: 0.68; margin-top: 6px; text-wrap: balance; }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="tb-left">
+      <button class="btn btn-sm btn-icon" id="btn-toggle-proj" aria-label="Toggle sidebar"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2.5" width="12" height="11" rx="2"/><line x1="6" y1="2.5" x2="6" y2="13.5"/></svg></button>
+      <button type="button" class="brand" id="btn-brand-settings"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><defs><linearGradient id="brandGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="var(--text)"/><stop offset="100%" stop-color="var(--accent)"/></linearGradient></defs><path id="brand-path" d="M 7.2 3.5 L 12.7 8 L 7.2 12.5 L 3.7 12.5" stroke="url(#brandGrad)"/></svg></button>
+      <span class="tele" id="tb-profile">—</span>
+      <span class="tele" id="tb-git" style="display:none;"><span class="git-dot" id="tb-git-dot"></span><span id="tb-git-txt"></span></span>
+    </div>
+    <div class="tb-right">
+      <span class="tele" id="tb-stats" style="display:none;"></span>
+      <span class="tele" id="tb-ctx">
+        <span id="tb-usage">CTX 0.0%</span>
+        <span class="ctx-tip" id="tb-ctx-tip"></span>
+      </span>
+      <button class="btn btn-sm btn-icon" id="btn-toggle-task" aria-label="Toggle workspace panel"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2.5" width="12" height="11" rx="2"/><line x1="10" y1="2.5" x2="10" y2="13.5"/></svg></button>
+      <button class="btn btn-sm btn-icon" id="btn-close-app" aria-label="Close RS Rail"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><line x1="4" y1="4" x2="12" y2="12"/><line x1="12" y1="4" x2="4" y2="12"/></svg></button>
+    </div>
+  </header>
+
+  <div class="main">
+    <aside class="sidebar-left" id="sidebar-left">
+      <div class="sec-head">
+        <div class="rs-tabs">
+          <button class="rs-tab active" id="btn-projects-nav">Projects</button>
+          <button class="rs-tab" id="btn-profiles-nav">Profiles</button>
+        </div>
+        <button class="btn btn-sm btn-icon" id="btn-new-proj" aria-label="New Workspace"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="8" y1="3.5" x2="8" y2="12.5"/><line x1="3.5" y1="8" x2="12.5" y2="8"/></svg></button>
+      </div>
+      <div class="proj-list" id="proj-list"></div>
+      <div class="sb-foot">
+        <button class="btn btn-sm btn-icon" id="btn-settings" aria-label="Settings"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg></button>
+      </div>
+    </aside>
+
+    <section class="center">
+      <div class="stream" id="stream">
+        <div class="empty-state" id="empty-state">
+          <div style="font-size:16px;color:var(--text);font-weight:600;margin-bottom:6px;">Ready</div>
+          <div>Loading workspace...</div>
+        </div>
+      </div>
+
+      <div class="composer-wrap">
+        <div class="composer">
+          <div class="ac-pop" id="ac-pop"></div>
+          <input type="file" id="img-file" accept="image/*" multiple hidden />
+          <div class="img-strip" id="img-strip"></div>
+          <textarea id="msg-input" rows="1"></textarea>
+          <div class="comp-bar">
+            <div class="comp-left">
+              <button type="button" class="micro-pill" id="btn-model-pill">—</button>
+              <div class="pop-wrap">
+                <button type="button" class="micro-pill muted" id="btn-reasoning-pill" aria-haspopup="menu" aria-expanded="false"><span id="reasoning-val">Default</span><svg class="chev" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4.5 6.5L8 10l3.5-3.5"/></svg></button>
+                <div class="pop" id="pop-reasoning" role="menu"></div>
+              </div>
+              <button type="button" class="micro-pill muted" id="btn-img" aria-label="Attach image" style="display:none;padding:0 8px;"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2.5" width="12" height="11" rx="2"/><circle cx="5.7" cy="6" r="1"/><path d="M2.5 11.5l3.2-3.2 2.4 2.4 2.1-2.1 3.3 2.9"/></svg></button>
+              <div id="skills-bar"></div>
+            </div>
+            <div class="comp-right">
+              <button type="button" class="btn-send-circle" id="btn-send" aria-label="Send message"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 12.5V3.5"/><path d="M4 7.5L8 3.5l4 4"/></svg></button>
+              <button type="button" class="btn-send-circle stop" id="btn-stop" aria-label="Stop generation" style="display:none;"><svg width="11" height="11" viewBox="0 0 12 12" fill="currentColor"><rect x="1.5" y="1.5" width="9" height="9" rx="2"/></svg></button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <aside class="sidebar-right" id="sidebar-right">
+      <div class="rs-top">
+        <div class="rs-head">
+          <span style="white-space:nowrap;flex-shrink:0;">Files (<span id="files-count">0</span>)</span>
+          <div style="display:flex;gap:3px;align-items:center;">
+            <button class="btn btn-sm btn-icon" id="btn-reset" title="Reset session" aria-label="Reset session" style="display:none;"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 8a5.5 5.5 0 1 0 1.6-3.9L2.5 5.7"/><path d="M2.5 2.5v3.2h3.2"/></svg></button>
+            <button class="btn btn-sm btn-icon" id="btn-export-md" title="Export .md" aria-label="Export .md"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2.5v7.5"/><path d="M5 7l3 3 3-3"/><path d="M3 12.5h10"/></svg></button>
+          </div>
+        </div>
+        <div class="file-list" id="file-list"></div>
+      </div>
+      <div class="rs-bot">
+        <div class="rs-head">
+          <div class="rs-tabs">
+            <button class="rs-tab active" id="rs-tab-acts">Actions</button>
+            <button class="rs-tab" id="rs-tab-mem">Memory</button>
+          </div>
+          <div style="display:flex;align-items:center;gap:4px;flex-shrink:0;">
+            <button class="btn btn-sm btn-primary" id="btn-run-task" style="display:none;">Run</button>
+            <button class="btn btn-sm btn-icon" id="btn-add-action" title="Manage Actions" aria-label="Manage Actions"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="8" y1="3" x2="8" y2="13"/><line x1="3" y1="8" x2="13" y2="8"/></svg></button>
+            <button class="btn btn-sm" id="btn-save-mem" style="display:none;">Save</button>
+          </div>
+        </div>
+        <div class="rs-pane open" id="rs-pane-acts">
+          <div class="act-list" id="act-list"></div>
+        </div>
+        <div class="rs-pane" id="rs-pane-mem">
+          <textarea class="mem-input" id="mem-input" placeholder="Workspace .rs/memory.md rules..."></textarea>
+        </div>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<!-- Settings Modal -->
+<div class="modal-backdrop" id="modal-settings">
+  <div class="modal">
+    <div class="modal-head">
+      <span>Settings</span>
+      <button class="btn btn-sm" id="btn-close-settings">✕</button>
+    </div>
+    <div class="modal-body">
+      <nav class="modal-nav">
+        <div class="nav-group">RS-AGENT</div>
+        <button class="nav-btn active" data-tab="providers">Providers & Models</button>
+        <button class="nav-btn" data-tab="projects">Projects</button>
+        <button class="nav-btn" data-tab="profiles">Profiles</button>
+        <button class="nav-btn" data-tab="skills">Skills</button>
+        <button class="nav-btn" data-tab="mcp">MCP / Plugins</button>
+        <div class="nav-group">INTERFACE</div>
+        <button class="nav-btn" data-tab="commands">Commands</button>
+        <button class="nav-btn" data-tab="appearance">Appearance</button>
+      </nav>
+      <div class="modal-pane" id="modal-pane"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Actions Manager Modal -->
+<div class="modal-backdrop" id="modal-actions">
+  <div class="modal" style="width:460px;height:auto;max-height:82vh;">
+    <div class="modal-head">
+      <span>Manage Actions</span>
+      <button class="btn btn-sm" id="btn-close-actions">✕</button>
+    </div>
+    <div class="modal-pane" style="gap:12px;">
+      <div class="field">
+        <label class="muted">Add Action Shortcut</label>
+        <div style="display:flex;gap:6px;">
+          <input id="act-input-cmd" maxlength="500" placeholder="e.g. Create a handoff or cargo check" style="flex:1.3;min-width:0;font-family:var(--mono);font-size:12px;" />
+          <input id="act-input-desc" maxlength="60" placeholder="Description (optional)" style="flex:1;min-width:0;font-size:12px;" />
+          <button class="btn btn-primary btn-sm" id="btn-save-action">Add</button>
+        </div>
+        <div class="tool-err" id="act-err" style="display:none;font-size:11px;"></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <label class="muted">Actions for <strong id="act-modal-proj" style="color:var(--text);"></strong></label>
+          <button class="btn btn-sm" id="btn-reset-actions" style="display:none;">Reset defaults</button>
+        </div>
+        <div id="act-manage-list" style="display:flex;flex-direction:column;gap:4px;max-height:220px;overflow-y:auto;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- New Project Modal -->
+<div class="modal-backdrop" id="modal-new-proj">
+  <div class="modal" style="width:420px;height:auto;">
+    <div class="modal-head">
+      <span>New Workspace</span>
+      <button class="btn btn-sm" id="btn-close-new-proj">✕</button>
+    </div>
+    <div class="modal-pane">
+      <div class="field">
+        <label class="muted">Project Name (lowercase slug)</label>
+        <input id="np-name" placeholder="e.g. rust-cli" />
+      </div>
+      <div class="field">
+        <label class="muted">Profile</label>
+        <select id="np-prof"></select>
+      </div>
+      <div class="tool-err" id="np-err"></div>
+      <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:6px;">
+        <button class="btn" id="btn-cancel-np">Cancel</button>
+        <button class="btn btn-primary" id="btn-create-np">Create</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Micro-Bot Picker Modal -->
+<div class="modal-backdrop" id="modal-bot">
+  <div class="modal" style="width:460px;height:auto;max-height:84vh;">
+    <div class="modal-head">
+      <span id="mb-title">Micro-Bot</span>
+      <button class="btn btn-sm" id="btn-close-bot">✕</button>
+    </div>
+    <div class="modal-pane" style="gap:12px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span id="mb-cur" style="width:34px;height:34px;border-radius:8px;background:var(--card);border:1px solid var(--border);display:inline-flex;align-items:center;justify-content:center;"></span>
+          <div>
+            <div style="font-weight:600;font-size:12.5px;" id="mb-proj">—</div>
+            <div class="muted" id="mb-sub">Pick a unique micro-bot</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;">
+          <button class="btn btn-sm" id="btn-bot-reset" style="display:none;">Default</button>
+          <button class="btn btn-sm" id="btn-bot-shuffle">Shuffle</button>
+        </div>
+      </div>
+      <div class="bot-grid" id="mb-grid"></div>
+      <div id="mb-collab-sec" style="display:none;flex-direction:column;gap:6px;border-top:1px solid var(--border);padding-top:10px;">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;">
+          <span style="font-weight:600;font-size:12px;">Can auto-call</span>
+          <span class="muted">Sibling bots for call_bot &amp; Actions</span>
+        </div>
+        <div id="mb-collabs" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Peer Call Modal -->
+<div class="modal-backdrop" id="modal-call">
+  <div class="modal" style="width:480px;height:auto;max-height:86vh;">
+    <div class="modal-head">
+      <span>Call Peer Bot</span>
+      <button class="btn btn-sm" id="btn-close-call">✕</button>
+    </div>
+    <div class="modal-pane" style="gap:12px;">
+      <div class="call-route">
+        <div class="call-node" id="call-caller"></div>
+        <span class="call-arrow">→</span>
+        <button type="button" class="call-node call-node-btn" id="call-target-btn"></button>
+      </div>
+      <div class="call-targets" id="call-targets"></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
+        <div>
+          <div style="font-weight:600;font-size:12px;">Context</div>
+          <div class="muted" id="call-mode-hint">Sends caller's last turn + your prompt</div>
+        </div>
+        <div class="rs-tabs" style="flex-shrink:0;">
+          <button type="button" class="rs-tab" id="btn-call-none">Prompt only</button>
+          <button type="button" class="rs-tab active" id="btn-call-last">Last turn</button>
+          <button type="button" class="rs-tab" id="btn-call-full">Full</button>
+        </div>
+      </div>
+      <div class="field">
+        <label class="muted">Question or Task</label>
+        <textarea class="call-prompt" id="call-prompt" rows="3" placeholder="e.g. Double-check edge cases in test_calc.py..."></textarea>
+      </div>
+      <div class="tool-err" id="call-err"></div>
+      <div style="display:flex;justify-content:flex-end;gap:8px;">
+        <button type="button" class="btn" id="btn-cancel-call">Cancel</button>
+        <button type="button" class="btn btn-primary" id="btn-run-call">Ask Bot</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- File Preview Modal -->
+<div class="modal-backdrop" id="modal-file">
+  <div class="modal">
+    <div class="modal-head">
+      <span id="mf-title" style="font-family:var(--mono);font-size:12px;">file</span>
+      <div style="display:flex;gap:6px;align-items:center;">
+        <button class="btn btn-sm" id="btn-copy-file">Copy</button>
+        <button class="btn btn-sm" id="btn-close-file">✕</button>
+      </div>
+    </div>
+    <div class="modal-pane" style="padding:12px;">
+      <pre class="file-view-pre" id="mf-body"></pre>
+    </div>
+  </div>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+let STATE = null;
+let ACTIVE_TAB = "providers";
+let STREAMING = false;
+let skillFilter = "";
+let lastSentPayload = null;
+let noctaliaBrowse = false, noctaliaSource = "core", noctaliaMode = "dark", noctaliaFilter = "", noctaliaCore = null, noctaliaCommunity = null, noctaliaWarn = "", noctaliaBusy = "";
+
+const BUILTIN_THEMES = [
+  { id:"dark-default", name:"Dark Default", mode:"dark", bg:"#09090b", panel:"#0f0f12", card:"#16161a", border:"#232329", text:"#ececef", muted:"#8e8e98", accent:"#1a73e8", cyan:"#669df6", active_bg:"#151923", active_border:"#28344d" }
+];
+
+const DEFAULT_APPEARANCE = {
+  theme: "dark-default",
+  uiFont: "JetBrains Mono",
+  uiSize: 13,
+  codeFont: "JetBrains Mono",
+  codeSize: 12,
+  logoStyle: "d",
+  microBots: true,
+  showDesc: false
+};
+
+function hexLum(hex) {
+  const h = String(hex || "").replace("#", "");
+  if (h.length < 6) return 0;
+  const r = parseInt(h.slice(0,2), 16) || 0, g = parseInt(h.slice(2,4), 16) || 0, b = parseInt(h.slice(4,6), 16) || 0;
+  return (r * 299 + g * 587 + b * 114) / 1000;
+}
+
+function getAppearance() {
+  try {
+    const c = { ...DEFAULT_APPEARANCE, ...JSON.parse(localStorage.getItem("rs_rail_appearance") || "{}") };
+    if (c.theme === "pitch-dark") c.theme = "dark-default";
+    if (c.theme === "pure-light") c.theme = "custom:pure-light";
+    return c;
+  }
+  catch { return { ...DEFAULT_APPEARANCE }; }
+}
+
+function allThemes() {
+  return [...BUILTIN_THEMES, ...(STATE?.themes || [])];
+}
+
+const BRAND_GRAD_DEFS = `<defs><linearGradient id="brandGrad" gradientUnits="userSpaceOnUse" x1="3" y1="3" x2="13" y2="13"><stop offset="0%" stop-color="var(--text)"/><stop offset="100%" stop-color="var(--accent)"/></linearGradient></defs>`;
+
+function isBotMode(cfg) {
+  const b = (cfg || getAppearance()).microBots;
+  return b !== "none" && b !== false && b !== "letters";
+}
+
+function renderBrandLogo(cfg) {
+  const btn = $("btn-brand-settings");
+  if (!btn) return;
+  const c = cfg || getAppearance();
+  const isMono = (c.logoStyle || "d") === "a";
+  const badgeMode = c.microBots === "none" ? "none" : (c.microBots === false || c.microBots === "letters" ? "letters" : "bots");
+  const ap = STATE?.active_project;
+  const canPick = Boolean(ap && badgeMode === "bots");
+  btn.classList.toggle("clickable", canPick);
+  btn.tabIndex = canPick ? 0 : -1;
+  if (canPick) {
+    btn.title = "Bot Setup & Micro-Bot";
+    btn.setAttribute("aria-label", "Bot Setup & Micro-Bot");
+  } else {
+    btn.removeAttribute("title");
+    btn.removeAttribute("aria-label");
+  }
+  if (ap && badgeMode === "bots") {
+    btn.innerHTML = botSvg(ap.name, 17, isMono ? "currentColor" : "url(#brandGrad)", isMono ? "" : BRAND_GRAD_DEFS);
+  } else {
+    const stroke = isMono ? "currentColor" : "url(#brandGrad)";
+    btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${isMono ? "" : BRAND_GRAD_DEFS}<path id="brand-path" d="M 7.2 3.5 L 12.7 8 L 7.2 12.5 L 3.7 12.5" stroke="${stroke}"/></svg>`;
+  }
+}
+
+function applyAppearance(next) {
+  const cfg = next ? { ...getAppearance(), ...next } : getAppearance();
+  localStorage.setItem("rs_rail_appearance", JSON.stringify(cfg));
+  let t = allThemes().find((x) => x.id === cfg.theme);
+  if (t) {
+    localStorage.setItem("rs_rail_theme_cache", JSON.stringify(t));
+  } else {
+    try {
+      const cached = JSON.parse(localStorage.getItem("rs_rail_theme_cache") || "null");
+      if (cached && cached.id === cfg.theme) t = cached;
+    } catch {}
+  }
+  if (!t) t = BUILTIN_THEMES[0];
+
+  const isLight = t.mode === "light";
+  const accentFg = hexLum(t.accent) > 145 ? "#05140a" : "#ffffff";
+
+  const vars = {
+    "--bg": t.bg, "--panel": t.panel, "--card": t.card, "--border": t.border,
+    "--text": t.text, "--muted": t.muted,
+    "--dim": `color-mix(in srgb, ${t.muted} 82%, ${t.bg})`,
+    "--hover": `color-mix(in srgb, ${t.text} 6%, ${t.card})`,
+    "--nav-bg": `color-mix(in srgb, ${t.bg} 55%, ${t.panel})`,
+    "--code-bg": `color-mix(in srgb, ${t.bg} ${isLight ? "35%" : "75%"}, ${t.panel})`,
+    "--code-border": t.border,
+    "--code-head": t.panel,
+    "--accent": t.accent, "--accent-fg": accentFg,
+    "--accent-bg": `color-mix(in srgb, ${t.accent} 14%, transparent)`,
+    "--topbar-bg": t.topbar_bg || t.panel,
+    "--user-bg": t.user_bg || `color-mix(in srgb, ${t.accent} ${isLight ? "20%" : "22%"}, ${t.panel})`,
+    "--user-border": t.user_border || `color-mix(in srgb, ${t.accent} ${isLight ? "34%" : "42%"}, ${t.border})`,
+    "--user-text": t.text,
+    "--active-bg": t.active_bg || `color-mix(in srgb, ${t.accent} 16%, ${t.panel})`,
+    "--active-border": t.active_border || `color-mix(in srgb, ${t.accent} 48%, ${t.border})`,
+    "--cyan": t.cyan || t.accent,
+    "--err-text": isLight ? "#dc2626" : "#fca5a5",
+    "--del-bg": isLight ? "rgba(220,38,38,0.10)" : "rgba(239,68,68,0.14)",
+    "--del-text": isLight ? "#b91c1c" : "#fca5a5",
+    "--add-bg": isLight ? "rgba(22,163,74,0.10)" : "rgba(34,197,94,0.14)",
+    "--add-text": isLight ? "#15803d" : "#86efac",
+    "--warn-bg": isLight ? "rgba(217,119,6,0.10)" : "rgba(245,158,11,0.08)",
+    "--warn-border": isLight ? "rgba(217,119,6,0.45)" : "rgba(245,158,11,0.45)",
+    "--warn-text": isLight ? "#b45309" : "#fcd34d",
+    "--syn-kw": isLight ? "#1d4ed8" : "#8ab4f8",
+    "--syn-str": isLight ? "#15803d" : "#86efac",
+    "--syn-num": isLight ? "#b45309" : "#fcd34d",
+    "--syn-cmt": `color-mix(in srgb, ${t.muted} 70%, ${t.bg})`
+  };
+  const root = document.documentElement.style;
+  root.colorScheme = isLight ? "light" : "dark";
+  for (const [k, v] of Object.entries(vars)) root.setProperty(k, v);
+  const uiMap = {
+    "JetBrains Mono": '"JetBrainsMono Nerd Font", "JetBrainsMono NF", "JetBrains Mono", ui-monospace, monospace',
+    "Geist": '"Geist", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+    "System": '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
+  };
+  const codeMap = {
+    "JetBrains Mono": '"JetBrainsMono Nerd Font", "JetBrainsMono NF", "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace',
+    "Fira Code": '"Fira Code", "JetBrains Mono", ui-monospace, monospace',
+    "System": 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace'
+  };
+  root.setProperty("--sans", uiMap[cfg.uiFont] || uiMap["JetBrains Mono"]);
+  root.setProperty("--mono", codeMap[cfg.codeFont] || codeMap["JetBrains Mono"]);
+  root.setProperty("--ui-size", `${cfg.uiSize || 13}px`);
+  root.setProperty("--code-size", `${cfg.codeSize}px`);
+  document.body.classList.toggle("theme-dark", !isLight);
+  renderBrandLogo(cfg);
+  resizeInput();
+}
+applyAppearance();
+
+const SLASH_CMDS = [
+  { cmd: "/task", desc: "Run autonomous goal loop" },
+  { cmd: "/r", desc: "Reset active session" },
+  { cmd: "/s", desc: "Attach or detach skills (max 3)" },
+  { cmd: "/p", desc: "Select agent profile" },
+  { cmd: "/ms", desc: "Providers & models" },
+  { cmd: "/tk", desc: "Toggle auto-expand steps" },
+  { cmd: "/export", desc: "Export transcript to .rs/transcripts/" },
+  { cmd: "/call", desc: "Ask another project bot" },
+];
+
+function renderProseBlock(raw) {
+  const inline = (s) => esc(s).replace(/`([^`]+)`|\*\*([^*]+)\*\*/g, (_, code, bold) =>
+    code !== undefined ? `<code>${code}</code>` : `<strong>${bold}</strong>`
+  );
+  const lines = raw.split(/\r?\n/);
+  let html = "", listTag = "", para = [];
+  const flushPara = () => { if (para.length) { html += `<p>${para.map(inline).join("<br>")}</p>`; para = []; } };
+  const closeList = () => { if (listTag) { html += `</${listTag}>`; listTag = ""; } };
+  for (const line of lines) {
+    const t = line.trim();
+    if (!t) { flushPara(); closeList(); continue; }
+    if (t === "---" || t === "***") { flushPara(); closeList(); html += "<hr>"; continue; }
+    const hm = line.match(/^(#{1,3})\s+(.+)$/);
+    if (hm) {
+      flushPara(); closeList();
+      const tag = hm[1].length === 1 ? "h2" : (hm[1].length === 2 ? "h3" : "h4");
+      html += `<${tag}>${inline(hm[2])}</${tag}>`;
+      continue;
+    }
+    const ulm = line.match(/^\s*[-*]\s+(.+)$/);
+    const olm = !ulm && line.match(/^\s*\d+\.\s+(.+)$/);
+    if (ulm || olm) {
+      flushPara();
+      const tag = ulm ? "ul" : "ol";
+      if (listTag !== tag) { closeList(); html += `<${tag}>`; listTag = tag; }
+      html += `<li>${inline((ulm || olm)[1])}</li>`;
+      continue;
+    }
+    closeList();
+    para.push(line);
+  }
+  flushPara();
+  closeList();
+  return html;
+}
+
+function highlightCode(raw) {
+  const re = /(\/\/[^\n]*|#[^\n]*|\/\*[\s\S]*?\*\/)|("{3}[\s\S]*?"{3}|'{3}[\s\S]*?'{3}|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\\n])*'|`(?:\\.|[^`\\])*`)|\b(fn|let|mut|pub|struct|enum|impl|trait|match|if|elif|else|for|while|loop|return|use|mod|async|await|const|static|type|where|def|class|import|from|try|except|finally|raise|with|as|pass|in|not|and|or|is|lambda|yield|None|True|False|function|export|default|switch|case|break|continue|new|this|true|false|null|undefined|var|int|void|bool|str|self|Self)\b|\b(\d+(?:\.\d+)?)\b/g;
+  let out = "", last = 0, m;
+  while ((m = re.exec(raw)) !== null) {
+    if (m.index > last) out += esc(raw.slice(last, m.index));
+    const cls = m[1] ? "tok-c" : m[2] ? "tok-s" : m[3] ? "tok-k" : "tok-n";
+    out += `<span class="${cls}">${esc(m[0])}</span>`;
+    last = re.lastIndex;
+  }
+  return out + esc(raw.slice(last));
+}
+
+function renderMarkdown(text) {
+  const src = String(text || "");
+  const re = /```([^\n`]*)\r?\n([\s\S]*?)```/g;
+  const codeBlock = (lang, code) =>
+    `<div class="code-wrap"><div class="code-head"><span>${esc(lang.trim() || "text")}</span><button class="btn btn-sm" onclick="navigator.clipboard.writeText(this.closest('.code-wrap').querySelector('pre').innerText)">Copy</button></div><pre>${highlightCode(code)}</pre></div>`;
+  let html = "", last = 0, m;
+  while ((m = re.exec(src)) !== null) {
+    if (m.index > last) html += renderProseBlock(src.slice(last, m.index));
+    html += codeBlock(m[1], m[2]);
+    last = re.lastIndex;
+  }
+  const tail = src.slice(last);
+  const open = tail.match(/^([\s\S]*?)```([^\n`]*)\r?\n([\s\S]*)$/);
+  if (open) {
+    if (open[1]) html += renderProseBlock(open[1]);
+    html += codeBlock(open[2], open[3]);
+  } else if (tail) {
+    html += renderProseBlock(tail);
+  }
+  return html || "<p></p>";
+}
+
+async function api(path, body) {
+  const res = await fetch(path, body === undefined ? {} : {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) throw new Error(await res.text() || res.statusText);
+  return res.json();
+}
+
+function closeReasoningPop() {
+  $("pop-reasoning")?.classList.remove("open");
+  const b = $("btn-reasoning-pill");
+  if (b) { b.classList.remove("open"); b.setAttribute("aria-expanded", "false"); }
+}
+
+async function loadState(project) {
+  closeAc();
+  closeReasoningPop();
+  const q = project ? `?project=${encodeURIComponent(project)}` : "";
+  STATE = await api(`/api/state${q}`);
+  renderAll();
+}
+
+let projectsAutoLabeled = false;
+async function lazyAutoLabelProjects() {
+  if (projectsAutoLabeled) return;
+  projectsAutoLabeled = true;
+  try {
+    const prev = JSON.stringify(STATE?.ui_prefs?.project_labels || {});
+    const res = await api("/api/settings/ui", { auto_label: true });
+    if (STATE?.ui_prefs && res.project_labels) {
+      STATE.ui_prefs.project_labels = res.project_labels;
+      if (JSON.stringify(res.project_labels) !== prev && $("modal-settings").classList.contains("open") && ACTIVE_TAB === "projects") {
+        renderModalTab();
+      }
+    }
+  } catch {
+    projectsAutoLabeled = false;
+  }
+}
+
+function openSettings(tab) {
+  if (tab) ACTIVE_TAB = tab;
+  noctaliaBrowse = false;
+  $("modal-settings").classList.add("open");
+  renderModalTab();
+  if (ACTIVE_TAB === "projects") lazyAutoLabelProjects();
+}
+
+function loadPinnedMap() {
+  try { return JSON.parse(localStorage.getItem("rs_rail_pinned_skills") || "{}"); }
+  catch { return {}; }
+}
+function savePinnedMap(map) {
+  localStorage.setItem("rs_rail_pinned_skills", JSON.stringify(map));
+}
+function syncPinnedSkills(proj, activeSkills) {
+  const map = loadPinnedMap();
+  const list = Array.isArray(map[proj]) ? [...map[proj]] : [];
+  let changed = false;
+  for (const sk of activeSkills) {
+    if (!list.includes(sk)) { list.push(sk); changed = true; }
+  }
+  const avail = new Set(STATE?.skills || []);
+  const clean = avail.size ? list.filter((s) => avail.has(s)) : list;
+  if (clean.length !== list.length) changed = true;
+  if (changed) { map[proj] = clean; savePinnedMap(map); }
+  return clean;
+}
+function unpinSkill(proj, sk) {
+  const map = loadPinnedMap();
+  if (Array.isArray(map[proj])) {
+    map[proj] = map[proj].filter((x) => x !== sk);
+    savePinnedMap(map);
+  }
+}
+
+function setRsNote(msg) {
+  const el = $("rs-note");
+  if (!el) return;
+  el.textContent = msg;
+  clearTimeout(el._t);
+  el._t = setTimeout(() => { el.textContent = ""; }, 4000);
+}
+
+function hashBotMask(name) {
+  let h = 2166136261;
+  for (let i = 0; i < name.length; i++) h = Math.imul(h ^ name.charCodeAt(i), 16777619);
+  let mask = 0;
+  for (let i = 0; i < 15; i++) {
+    if ((h >> i) & 1 || i === 4) mask |= (1 << i);
+  }
+  return mask;
+}
+function parseBotVal(val) {
+  if (typeof val !== "string" || !val.startsWith("b:")) return null;
+  const n = parseInt(val.slice(2), 16);
+  return Number.isFinite(n) ? ((n & 0x7fff) | (1 << 4)) : null;
+}
+function projectBotMask(name) {
+  return parseBotVal(STATE?.ui_prefs?.project_bots?.[name]) ?? hashBotMask(name);
+}
+function botSvgFromMask(mask, size = 12, fill = "currentColor", defs = "") {
+  const rects = [];
+  for (let y = 0; y < 5; y++) {
+    for (let x = 0; x < 3; x++) {
+      if ((mask >> (y * 3 + x)) & 1 || (y === 1 && x === 1)) {
+        rects.push(`<rect x="${3 + x * 2}" y="${3 + y * 2}" width="2" height="2" rx="0.4"/>`);
+        if (x < 2) rects.push(`<rect x="${11 - x * 2}" y="${3 + y * 2}" width="2" height="2" rx="0.4"/>`);
+      }
+    }
+  }
+  return `<svg width="${size}" height="${size}" viewBox="0 0 16 16" fill="${fill}" aria-hidden="true">${defs}${rects.join("")}</svg>`;
+}
+function botSvg(name, size = 12, fill = "currentColor", defs = "") {
+  return botSvgFromMask(projectBotMask(name), size, fill, defs);
+}
+
+const projDisplay = (name) => (STATE?.ui_prefs?.project_names?.[name] || name);
+
+function renderTopbarProfile(ap) {
+  if (!ap) return;
+  const dispName = projDisplay(ap.name);
+  const hudParts = String(ap.hud_summary || "").split(" · ").filter(Boolean);
+  const cols = (ap.is_agent && isBotMode() && Array.isArray(ap.collaborators)) ? ap.collaborators : [];
+  const peerProv = isBotMode() ? (STATE?.projects?.find((p) => p.name === ap.name)?.peer_provider || "") : "";
+  if (cols.length || peerProv) hudParts.push("mb");
+  $("tb-profile").innerHTML = `<strong>${esc(dispName)}</strong>${hudParts.map(t => `<span>${esc(t)}</span>`).join("")}`;
+  const projTip = dispName !== ap.name ? `${dispName} (${ap.name})` : ap.name;
+  const colTip = cols.length ? `\nAuto-call: ${cols.join(", ")}` : "";
+  const provTip = peerProv ? `\nPeer provider: ${peerProv}` : "";
+  $("tb-profile").title = `Project: ${projTip}\nProfile: ${ap.profile_name || "missing"}${colTip}${provTip}`;
+}
+
+function fitSubWords(str, maxChars) {
+  const s = String(str || "").trim();
+  if (!s || s.length <= maxChars) return s;
+  let cut = s.slice(0, maxChars + 1);
+  const sp = cut.lastIndexOf(" ");
+  cut = sp > 0 ? cut.slice(0, sp) : s.slice(0, maxChars);
+  const openP = cut.lastIndexOf("(");
+  if (openP > 0 && cut.indexOf(")", openP) === -1) cut = cut.slice(0, openP);
+  return cut.replace(/[\s&+\-/:,(]+$/, "").trim();
+}
+
+function renderAll() {
+  if (!STATE) return;
+  const ap = STATE.active_project;
+  const dispName = projDisplay(ap.name);
+  $("msg-input").placeholder = ap.is_agent
+    ? (isBotMode() ? `Ask ${dispName}... (/ commands, /call peer)` : `Ask ${dispName}... (/ commands, Enter to send)`)
+    : `Message ${dispName}... (/ commands, Enter to send)`;
+  renderTopbarProfile(ap);
+  const gitLabel = (ap.git || "").replace(/^git:\s*/i, "").trim();
+  const showGit = !!gitLabel && gitLabel !== "[none]";
+  $("tb-git").style.display = showGit ? "inline-flex" : "none";
+  if (showGit) {
+    const isDirty = gitLabel.includes("modified");
+    const gitParts = gitLabel.split(" · ").filter(Boolean).map((t) => t.replace(/\s+modified$/i, ""));
+    $("tb-git-txt").innerHTML = gitParts.map((t) => `<span>${esc(t)}</span>`).join("");
+    $("tb-git").title = gitLabel.replace(" · ", " — ");
+    $("tb-git-dot").classList.toggle("dirty", isDirty);
+  }
+  const shortEndpoint = (ep) => {
+    const raw = String(ep || "").trim().toLowerCase().replace(/:\d+$/, "");
+    if (!raw || raw.startsWith("local") || raw.startsWith("127.0.0.1")) return "local";
+    if (raw === "googleapis" || raw.includes("googleapis.com")) return "gemini";
+    return (raw.replace(/^(api|inference|llm|chat|v1|www)\./, "").split(".")[0] || raw);
+  };
+  const mp = $("btn-model-pill");
+  mp.innerHTML = `<span class="mp-name">${esc(STATE.provider.model)}</span><span class="mp-ext">${esc(shortEndpoint(STATE.provider.endpoint))}</span>`;
+  mp.title = `${STATE.provider.model} (${STATE.provider.endpoint})`;
+  $("btn-img").style.display = STATE.provider.is_local ? "none" : "inline-flex";
+  disarmReset();
+  $("btn-reset").style.display = (ap.history && ap.history.length) ? "inline-flex" : "none";
+
+  $("sidebar-right").classList.toggle("hidden", STATE.ui_prefs?.show_right_panel === false);
+  const ctxMax = STATE.provider.max_tokens || 8192;
+  const stPill = $("tb-stats");
+  const usageEl = $("tb-usage");
+  const tip = $("tb-ctx-tip");
+  if (ap.last_stats) {
+    const s = ap.last_stats;
+    const used = (s.prompt_tokens || 0) + (s.completion_tokens || 0);
+    const pct = Math.min(100, (used / Math.max(1, ctxMax)) * 100);
+    const cPct = s.cached_tokens > 0 && s.prompt_tokens > 0
+      ? Math.min(100, Math.round((s.cached_tokens / s.prompt_tokens) * 100))
+      : 0;
+    const chSpan = cPct > 0 ? `<span>CH ${cPct}%</span>` : "";
+    const spdSpan = `<span>${(s.tps || 0).toFixed(1)} t/s</span>`;
+    const thinkTok = s.reasoning_tokens || 0;
+    const genTok = (s.completion_tokens || 0) + thinkTok;
+    const freshTok = Math.max(0, (s.prompt_tokens || 0) - (s.cached_tokens || 0));
+    const elStr = `${(s.elapsed_s || 0).toFixed(1)}s`;
+    const chMeta = cPct > 0
+      ? `<span class="ctx-bar"><span class="ctx-fill" style="width:${Math.max(cPct, 3)}%"></span></span><div><strong>${(s.cached_tokens || 0).toLocaleString()}</strong> / ${(s.prompt_tokens || 0).toLocaleString()} cached (${freshTok.toLocaleString()} fresh)</div>`
+      : `<div><strong>${(s.prompt_tokens || 0).toLocaleString()}</strong> prompt tokens (no cache hit)</div>`;
+    const thinkMeta = thinkTok > 0 ? ` <span class="muted">(${thinkTok.toLocaleString()} think)</span>` : "";
+    stPill.innerHTML = `${chSpan}${spdSpan}<span class="ctx-tip">${chMeta}<div><strong>${genTok.toLocaleString()}</strong> generated in <strong>${elStr}</strong>${thinkMeta}</div></span>`;
+    stPill.style.display = "inline-flex";
+    const col = pct > 85 ? "var(--err-text)" : (pct > 70 ? "var(--warn-text)" : "var(--accent)");
+    const barW = used > 0 ? Math.max(pct, 3).toFixed(1) : "0";
+    usageEl.innerHTML = pct > 70 ? `CTX <span style="color:${col}">${pct.toFixed(1)}%</span>` : `CTX ${pct.toFixed(1)}%`;
+    const meta = [`in ${(s.prompt_tokens || 0).toLocaleString()}`, `out ${(s.completion_tokens || 0).toLocaleString()}`];
+    tip.innerHTML = `<span class="ctx-bar"><span class="ctx-fill" style="width:${barW}%;background:${col}"></span></span><div><strong>${used.toLocaleString()}</strong> / ${ctxMax.toLocaleString()} tokens</div><div class="muted" style="display:flex;gap:1.2ch;">${meta.map(m => `<span>${esc(m)}</span>`).join("")}</div>`;
+  } else {
+    stPill.style.display = "none";
+    usageEl.textContent = "CTX 0.0%";
+    tip.innerHTML = `<span class="ctx-bar"><span class="ctx-fill" style="width:0%"></span></span><div><strong>0</strong> / ${ctxMax.toLocaleString()} tokens</div><div class="muted">Context budget ready</div>`;
+  }
+
+  // Projects list (filtered by visibility)
+  const hiddenSet = new Set(STATE.ui_prefs?.hidden_projects || []);
+  const shownProjects = STATE.projects.filter((p) => !hiddenSet.has(p.name));
+
+  const plist = $("proj-list");
+  plist.innerHTML = "";
+  const hc = $("proj-hover");
+  plist.onscroll = () => hc.classList.remove("open");
+  const curAp = getAppearance();
+  const badgeRaw = curAp.microBots;
+  const showDesc = curAp.showDesc === true;
+  const maxDescChars = Math.max(16, Math.round(25 * 13 / (curAp.uiSize || 13)));
+  const badgeMode = badgeRaw === "none" ? "none" : (badgeRaw === false || badgeRaw === "letters" ? "letters" : "bots");
+  if (!shownProjects.length) {
+    plist.innerHTML = `<div class="muted" style="padding:10px 8px;display:flex;flex-direction:column;gap:6px;"><span>No visible projects.</span><button class="btn btn-sm" id="btn-empty-proj-mgr">Manage Projects</button></div>`;
+    $("btn-empty-proj-mgr").onclick = () => openSettings("projects");
+  }
+  shownProjects.forEach((p) => {
+    const el = document.createElement("div");
+    el.className = "proj-item" + (p.name === ap.name ? " active" : "");
+    const dname = projDisplay(p.name);
+    const badgeHtml = badgeMode === "none" ? "" : `<span class="proj-badge${badgeMode === "bots" ? " bot" : ""}">${badgeMode === "bots" ? botSvg(p.name) : esc(dname.replace(/[^a-zA-Z0-9]/g, "").slice(0, 2) || dname.slice(0, 2))}</span>`;
+    const callBtn = isBotMode() && p.name !== ap.name
+      ? `<button type="button" class="proj-call" title="Call ${esc(dname)}"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 3.5h11v7.5h-6l-3 2.5V11H2.5z"/></svg></button>`
+      : "";
+    const delBtn = p.file_count > 0
+      ? `<button class="proj-del" title="Delete ${p.file_count} file(s)"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 4.5h11"/><path d="M6 2.5h4"/><path d="M4.5 4.5l.7 9h5.6l.7-9"/></svg></button>`
+      : "";
+    const customDesc = STATE.ui_prefs?.project_descriptions?.[p.name] || "";
+    const profileDesc = STATE.profile_descriptions?.[p.profile_name] || "";
+    const shownRaw = customDesc || (showDesc ? profileDesc : "");
+    const pDesc = fitSubWords(shownRaw, maxDescChars);
+    const nameHtml = pDesc
+      ? `<span class="proj-meta"><span class="proj-name">${esc(dname)}</span><span class="proj-sub" title="${esc(shownRaw)}">${esc(pDesc)}</span></span>`
+      : `<span class="proj-name">${esc(dname)}</span>`;
+    el.innerHTML = `<div class="proj-left">${badgeHtml}${nameHtml}</div><div class="proj-acts">${callBtn}${delBtn}<span class="proj-dot ${p.dirty ? "dirty" : ""}"></span></div>`;
+    el.onclick = () => { hc.classList.remove("open"); loadState(p.name); };
+    const cb = el.querySelector(".proj-call");
+    if (cb) {
+      cb.onclick = (e) => {
+        e.stopPropagation();
+        hc.classList.remove("open");
+        openCallModal(p.name);
+      };
+    }
+    const db = el.querySelector(".proj-del");
+    if (db) {
+      db.onclick = async (e) => {
+        e.stopPropagation();
+        if (!confirm(`Delete ${p.file_count} file(s) in ${p.name}?`)) return;
+        await api("/api/project/clean", { name: p.name });
+        hc.classList.remove("open");
+        await loadState();
+      };
+    }
+    el.onmouseenter = () => {
+      const r = el.getBoundingClientRect();
+      const filesTxt = p.file_count ? `${p.file_count} file(s)` : "empty";
+      const gitRow = p.has_git ? `<div class="ph-row"><span>Git</span><span>${p.dirty ? "modified" : "clean"}</span></div>` : "";
+      
+      let botRows = "";
+      if (isBotMode()) {
+        const rows = [];
+        if (p.name !== ap.name && (ap.collaborators || []).includes(p.name)) {
+          rows.push(`<div class="ph-row"><span>Collaborator</span><span style="color:var(--accent);">linked</span></div>`);
+        }
+        if (p.collaborators && p.collaborators.length) {
+          rows.push(`<div class="ph-row"><span>Auto-call</span><span>${esc(p.collaborators.join(", "))}</span></div>`);
+        }
+        if (p.call_mode && p.call_mode !== "none") {
+          rows.push(`<div class="ph-row"><span>Call mode</span><span>${esc(p.call_mode.replace("_", " "))}</span></div>`);
+        }
+        if (p.peer_provider) {
+          rows.push(`<div class="ph-row"><span>Provider</span><span>${esc(p.peer_provider)}</span></div>`);
+        }
+        botRows = rows.join("");
+      }
+
+      hc.innerHTML = `<div class="ph-top"><span>${esc(dname)}</span></div><div class="ph-row"><span>Profile</span><span>${esc(p.profile_name)}</span></div><div class="ph-row"><span>Workspace</span><span>${filesTxt}</span></div>${botRows}${gitRow}`;
+      hc.style.left = `${r.right + 8}px`;
+      hc.style.top = `${Math.min(r.top, window.innerHeight - 160)}px`;
+      hc.classList.add("open");
+    };
+    el.onmouseleave = () => hc.classList.remove("open");
+    plist.appendChild(el);
+  });
+
+  const fmtR = (v) => /^\d+$/.test(v) ? (v === "0" ? "Off" : v) : v;
+  const standardReasons = [
+    ["", "Model default"],
+    ["0", "Off (0)"],
+    ["250", "250"],
+    ["350", "350"],
+    ["500", "500"],
+    ["1000", "1000"],
+    ["low", "low"],
+    ["medium", "medium"],
+    ["high", "high"],
+    ["xhigh", "xhigh"]
+  ];
+  const curR = ap.reasoning || "";
+  const profR = ap.profile_reasoning || "";
+  const rList = standardReasons.map(([v, l]) => [v, profR && v === profR ? `${l} (profile)` : l]);
+  if (profR && !rList.some(([v]) => v === profR)) {
+    rList.splice(2, 0, [profR, `${fmtR(profR)} (profile)`]);
+  }
+  if (curR && !rList.some(([v]) => v === curR)) {
+    rList.splice(2, 0, [curR, fmtR(curR)]);
+  }
+  const activePair = rList.find(([v]) => v === curR);
+  $("reasoning-val").textContent = activePair ? (activePair[0] === "" ? "Default" : fmtR(activePair[0])) : (curR ? fmtR(curR) : "Default");
+
+  const popR = $("pop-reasoning");
+  popR.innerHTML = "";
+  for (const [val, lbl] of rList) {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.setAttribute("role", "menuitem");
+    b.className = val === curR ? "on" : "";
+    b.innerHTML = `<span>${esc(lbl)}</span><span>${val === curR ? "✓" : ""}</span>`;
+    b.onclick = async (e) => {
+      e.stopPropagation();
+      closeReasoningPop();
+      await api("/api/settings/profile", { reasoning: val });
+      await loadState();
+    };
+    popR.appendChild(b);
+  }
+
+
+
+  const pinned = syncPinnedSkills(ap.name, ap.active_skills || []);
+  const sbar = $("skills-bar");
+  sbar.innerHTML = "";
+  for (const sk of pinned) {
+    const on = (ap.active_skills || []).includes(sk);
+    const chip = document.createElement("button");
+    chip.className = "skill-chip" + (on ? "" : " off");
+    chip.innerHTML = `<span>${esc(sk)}</span><span class="chip-x">✕</span>`;
+    chip.onclick = async () => {
+      if (!on && (ap.active_skills || []).length >= 3) return;
+      await api("/api/settings/profile", { skill_toggle: sk });
+      await loadState();
+    };
+    chip.querySelector(".chip-x").onclick = async (e) => {
+      e.stopPropagation();
+      unpinSkill(ap.name, sk);
+      if (on) { await api("/api/settings/profile", { skill_toggle: sk }); await loadState(); }
+      else renderAll();
+    };
+    sbar.appendChild(chip);
+  }
+
+  // Right sidebar: Top Files + Bottom [Actions | Memory]
+  const files = ap.files || [];
+  $("files-count").textContent = files.length;
+  const flist = $("file-list");
+  flist.innerHTML = "";
+  if (!files.length) {
+    flist.innerHTML = `<div class="muted" style="padding:4px 8px;">Empty workspace</div>`;
+  } else {
+    for (const f of files) {
+      const row = document.createElement("div");
+      row.className = "file-row";
+      row.innerHTML = `<span class="file-name" title="${esc(f)}">${esc(f)}</span><button class="file-del" title="Delete file">✕</button>`;
+      row.onclick = async () => {
+        try {
+          const res = await api(`/api/file?path=${encodeURIComponent(f)}`);
+          $("mf-title").textContent = res.path;
+          $("mf-body").innerHTML = highlightCode(res.content);
+          $("modal-file").classList.add("open");
+        } catch (err) { alert(err.message); }
+      };
+      const del = row.querySelector(".file-del");
+      del.onclick = async (e) => {
+        e.stopPropagation();
+        if (!del.classList.contains("arm")) {
+          del.classList.add("arm");
+          del.textContent = "del?";
+          setTimeout(() => { del.classList.remove("arm"); del.textContent = "✕"; }, 2200);
+          return;
+        }
+        await api("/api/file/delete", { path: f });
+        await loadState();
+      };
+      flist.appendChild(row);
+    }
+  }
+
+  const activeTab = $("rs-tab-mem")?.classList.contains("active") ? "mem" : "acts";
+  switchRsTab(activeTab);
+  renderActionsPane();
+
+  const memEl = $("mem-input");
+  if (memEl && document.activeElement !== memEl) memEl.value = ap.memory || "";
+
+  applyAppearance();
+  updateSendReady();
+  $("stream").classList.toggle("chat-mode", !ap.is_agent);
+  renderHistory();
+  if ($("modal-settings").classList.contains("open")) renderModalTab();
+  if ($("modal-call").classList.contains("open")) renderCallModal();
+  if ($("modal-actions").classList.contains("open")) renderManageActions();
+}
+
+function renderHistory() {
+  const stream = $("stream");
+  const msgs = STATE.active_project.history || [];
+  document.querySelector(".center").classList.toggle("is-empty", !msgs.length);
+  if (!msgs.length) {
+    stream.innerHTML = "";
+    stream.appendChild(createEmpty());
+    return;
+  }
+  stream.innerHTML = "";
+  const wrap = document.createElement("div");
+  wrap.className = "turn-wrap";
+  let step = 0, inRound = false;
+  for (const m of msgs) {
+    if (m.role === "user") {
+      step = 0; inRound = false;
+      wrap.appendChild(buildUserEl(m.content || "", m.images || []));
+    } else if (m.role === "assistant") {
+      step += 1; inRound = true;
+      wrap.appendChild(buildAssistantEl(m.reasoning || "", m.content || "", m.elapsed_s, step));
+    } else if (m.role === "tool_card") {
+      if (!inRound) { step += 1; inRound = true; }
+      wrap.appendChild(buildToolCard(m));
+    } else if (m.role === "peer_call") {
+      if (!inRound) { step += 1; inRound = true; }
+      wrap.appendChild(buildPeerCard(m));
+    }
+  }
+  stream.appendChild(wrap);
+  stream.scrollTop = stream.scrollHeight;
+}
+
+function buildUserEl(text, images) {
+  const u = document.createElement("div");
+  u.className = "msg-user";
+  if (images && images.length) {
+    const row = document.createElement("div");
+    row.className = "msg-imgs";
+    for (const src of images) {
+      const im = document.createElement("img");
+      im.className = "msg-img";
+      im.src = src;
+      row.appendChild(im);
+    }
+    u.appendChild(row);
+  }
+  if (text) {
+    const t = document.createElement("div");
+    t.textContent = text;
+    u.appendChild(t);
+  }
+  return u;
+}
+
+function createEmpty() {
+  const d = document.createElement("div");
+  d.id = "empty-state";
+  d.className = "empty-state";
+  const ap = STATE?.active_project;
+  if (!ap) {
+    d.innerHTML = `<div class="empty-title">Ready</div><div class="empty-sub">Loading workspace...</div>`;
+    return d;
+  }
+  const verb = ap.is_agent ? "build" : "explore";
+  const tagTxt = STATE?.ui_prefs?.project_descriptions?.[ap.name] || ap.tagline;
+  const sub = tagTxt ? `<div class="empty-sub">${esc(tagTxt)}</div>` : "";
+  d.innerHTML = `<div class="empty-title">What should we ${verb} in ${esc(projDisplay(ap.name))}?</div>${sub}`;
+  return d;
+}
+
+const THINK_CHEV = `<svg class="think-chev" width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5L10.5 8 6 12.5"/></svg>`;
+function thinkMeta(len, elapsed) {
+  if (typeof elapsed === "number") return elapsed >= 10 ? `${Math.round(elapsed)}s` : `${elapsed.toFixed(1)}s`;
+  return `${Math.max(1, Math.round(len / 4))}t`;
+}
+
+function stepTitle(n) {
+  return STATE?.active_project?.is_agent ? `${n} Step` : "Thought";
+}
+
+function buildAssistantEl(reasoning, content, elapsed, step) {
+  const box = document.createElement("div");
+  box.className = "msg-assistant";
+  if (reasoning) {
+    const det = document.createElement("details");
+    det.className = "think-box";
+    if (STATE?.ui_prefs?.show_thinking !== false) det.open = true;
+    det.innerHTML = `<summary><span class="think-step">${esc(stepTitle(step || 1))}</span><span class="think-meta">${thinkMeta(reasoning.length, elapsed)}</span>${THINK_CHEV}</summary><div class="think-body">${esc(reasoning)}</div>`;
+    box.appendChild(det);
+  }
+  if (content) {
+    const row = document.createElement("div");
+    row.className = "ans-row";
+    row.innerHTML = `<span class="bullet">●</span><div class="ans-body">${renderMarkdown(content)}</div>`;
+    box.appendChild(row);
+  }
+  return box;
+}
+
+function buildToolCard(t) {
+  const card = document.createElement("div");
+  card.className = "tool-card";
+  const label = ({ read_file:"Read", edit_file:"Edit", write_file:"Write", list_dir:"List", search_code:"Search", run_command:"Bash" }[t.name] || t.name);
+  card.innerHTML = `
+    <div class="tool-head">
+      <div class="tool-title"><span class="bullet">●</span><strong>${esc(label)}</strong><span class="tool-brief">(${esc(t.brief || "")})</span></div>
+      <span class="muted">${t.elapsed_s !== undefined ? t.elapsed_s.toFixed(1)+"s" : ""}</span>
+    </div>
+    <div class="tool-summary ${t.ok ? "" : "tool-err"}">⎿ ${esc(t.summary || "")}</div>
+  `;
+  if (t.diff && t.diff.lines && t.diff.lines.length) {
+    const db = document.createElement("div");
+    db.className = "diff-box";
+    for (const ln of t.diff.lines) {
+      const sign = ln.kind === "add" ? "+" : ln.kind === "del" ? "-" : " ";
+      const r = document.createElement("div");
+      r.className = `diff-line ${ln.kind}`;
+      r.innerHTML = `<span class="diff-num">${ln.num || ""} ${sign}</span><span>${highlightCode(ln.text)}</span>`;
+      db.appendChild(r);
+    }
+    card.appendChild(db);
+  } else if (t.raw) {
+    const pre = document.createElement("pre");
+    pre.className = "tool-raw";
+    pre.textContent = t.raw;
+    card.appendChild(pre);
+    card.querySelector(".tool-head").onclick = () => card.classList.toggle("open");
+  }
+  return card;
+}
+
+function buildPeerCard(m) {
+  const card = document.createElement("div");
+  card.className = "peer-card";
+  const tName = m.name || "peer";
+  const tagParts = String(m.summary || "").split(" · ").filter(Boolean);
+  const tag = tagParts.length ? `<span class="peer-tag">${tagParts.map(t => `<span>${esc(t)}</span>`).join("")}</span>` : "";
+  const brief = m.brief ? `<span class="peer-brief" title="${esc(m.brief)}">${esc(m.brief)}</span>` : "";
+  const elStr = m.elapsed_s !== undefined ? `${m.elapsed_s.toFixed(1)}s` : "";
+  const bodyHtml = m.ok === false
+    ? `<div class="tool-err">${esc(m.content || "Peer call failed")}</div>`
+    : `<div class="ans-body">${renderMarkdown(m.content || "")}</div>`;
+  card.innerHTML = `
+    <div class="peer-head"${m.raw ? "" : ' style="cursor:default;"'}>
+      <div class="peer-title">${botSvg(tName, 14)}<strong>${esc(projDisplay(tName))}</strong>${tag}${brief}</div>
+      <span class="muted">${elStr}</span>
+    </div>
+    <div class="peer-body">${bodyHtml}</div>
+  `;
+  if (m.raw) {
+    const pre = document.createElement("pre");
+    pre.className = "tool-raw";
+    pre.textContent = m.raw;
+    card.appendChild(pre);
+    card.querySelector(".peer-head").onclick = () => card.classList.toggle("open");
+  }
+  return card;
+}
+
+async function runLocalSlash(text) {
+  const low = text.toLowerCase();
+  if (low === "/r" || low === "/reset") { await api("/api/reset", {}); await loadState(); return true; }
+  if (low === "/p" || low === "/profile") { openSettings("profiles"); return true; }
+  if (low === "/ms" || low === "/model") { openSettings("providers"); return true; }
+  if (low === "/tk" || low === "/think") { await api("/api/settings/ui", { show_thinking: STATE?.ui_prefs?.show_thinking === false }); await loadState(); return true; }
+  if (low === "/s" || low === "/skill") { openSettings("skills"); return true; }
+  if (low === "/call" || low.startsWith("/call ") || low.startsWith("/call:")) {
+    if (!isBotMode()) return true;
+    const raw = text.slice(5).trim();
+    if (!raw) { openCallModal(); return true; }
+    const m = raw.match(/^@?([a-zA-Z0-9_-]+)(?::\s*|\s+)([\s\S]*)$/);
+    const targetToken = m ? m[1].toLowerCase() : raw.replace(/^@/, "").replace(/:$/, "").trim().toLowerCase();
+    const promptText = m ? m[2].trim() : "";
+    const ap = STATE?.active_project;
+    const siblings = (STATE?.projects || []).filter((p) => p.name !== ap?.name);
+    const matched = siblings.find((p) => p.name.toLowerCase() === targetToken)
+      || siblings.find((p) => p.name.toLowerCase().startsWith(targetToken));
+    if (matched && promptText) {
+      await executePeerCall(matched.name, "none", promptText);
+    } else {
+      openCallModal(matched ? matched.name : targetToken, promptText);
+    }
+    return true;
+  }
+  if (low === "/export") {
+    const res = await api("/api/export", {});
+    $("sidebar-right").classList.remove("hidden");
+    setRsNote(`Saved ${res.path}`);
+    return true;
+  }
+  if (low.startsWith("/s ") || low.startsWith("/skill ")) {
+    const arg = text.split(/\s+/)[1]?.toLowerCase() || "";
+    const active = STATE?.active_project?.active_skills || [];
+    if (arg === "clear" || arg === "none" || arg === "reset") {
+      const m = loadPinnedMap(); delete m[STATE.active_project.name]; savePinnedMap(m);
+      for (const s of [...active]) await api("/api/settings/profile", { skill_toggle: s });
+      await loadState();
+    } else {
+      const matchSk = (STATE?.skills || []).find((s) => s.toLowerCase() === arg);
+      if (matchSk) { await api("/api/settings/profile", { skill_toggle: matchSk }); await loadState(); }
+    }
+    return true;
+  }
+  return false;
+}
+
+let pendingImages = [];
+
+function updateSendReady() {
+  const ready = ($("msg-input")?.value.trim().length > 0) || pendingImages.length > 0;
+  $("btn-send")?.classList.toggle("ready", ready);
+}
+
+function renderImgStrip() {
+  const strip = $("img-strip");
+  strip.innerHTML = "";
+  strip.classList.toggle("open", pendingImages.length > 0);
+  pendingImages.forEach((src, i) => {
+    const box = document.createElement("div");
+    box.className = "img-thumb";
+    box.innerHTML = `<img src="${src}" /><button class="img-rm" title="Remove">✕</button>`;
+    box.querySelector("button").onclick = () => { pendingImages.splice(i, 1); renderImgStrip(); };
+    strip.appendChild(box);
+  });
+  updateSendReady();
+}
+
+function addImageFiles(files) {
+  for (const f of Array.from(files || [])) {
+    if (!f.type.startsWith("image/") || pendingImages.length >= 4) continue;
+    const rd = new FileReader();
+    rd.onload = () => {
+      if (typeof rd.result === "string" && pendingImages.length < 4) {
+        pendingImages.push(rd.result);
+        renderImgStrip();
+      }
+    };
+    rd.readAsDataURL(f);
+  }
+}
+
+async function sendMessage(overrideText, overrideImgs) {
+  if (STREAMING) return;
+  const text = overrideText !== undefined ? overrideText : $("msg-input").value.trim();
+  const imgs = overrideText !== undefined ? (overrideImgs || []) : [...pendingImages];
+  if (!text && !imgs.length) return;
+  if (overrideText === undefined) {
+    $("msg-input").value = "";
+    resizeInput();
+    pendingImages = [];
+    renderImgStrip();
+  }
+  closeAc();
+  closeReasoningPop();
+  if (!imgs.length && text.startsWith("/") && await runLocalSlash(text)) return;
+
+  lastSentPayload = { text, imgs };
+  STREAMING = true;
+  $("btn-send").style.display = "none";
+  $("btn-stop").style.display = "inline-flex";
+
+  const stream = $("stream");
+  if ($("empty-state")) stream.innerHTML = "";
+  document.querySelector(".center").classList.remove("is-empty");
+  let wrap = stream.querySelector(".turn-wrap");
+  if (!wrap) { wrap = document.createElement("div"); wrap.className = "turn-wrap"; stream.appendChild(wrap); }
+
+  wrap.appendChild(buildUserEl(text, imgs));
+
+  let curThink = "", curAns = "";
+  let liveAsst = document.createElement("div");
+  liveAsst.className = "msg-assistant";
+  wrap.appendChild(liveAsst);
+  stream.scrollTop = stream.scrollHeight;
+
+  let liveStep = 1, needNextStep = false, rafId = 0, dirtyThink = false, dirtyAns = false;
+  let thinkDet = null, thinkCount = null, thinkBody = null, thinkT0 = 0;
+  let ansRow = null, ansBody = null;
+  const resetLiveNodes = () => {
+    curThink = ""; curAns = ""; thinkT0 = 0; needNextStep = true; dirtyThink = false; dirtyAns = false;
+    thinkDet = thinkCount = thinkBody = ansRow = ansBody = null;
+    liveAsst = document.createElement("div");
+    liveAsst.className = "msg-assistant";
+    wrap.appendChild(liveAsst);
+  };
+  const scrollNearBottom = () => {
+    if (stream.scrollHeight - stream.scrollTop - stream.clientHeight < 96) {
+      stream.scrollTop = stream.scrollHeight;
+    }
+  };
+  const updateLive = (isThink) => {
+    if (needNextStep) { liveStep += 1; needNextStep = false; }
+    if (isThink) {
+      if (!thinkT0) thinkT0 = performance.now();
+      if (!thinkDet) {
+        thinkDet = document.createElement("details");
+        thinkDet.className = "think-box";
+        if (STATE?.ui_prefs?.show_thinking !== false) thinkDet.open = true;
+        thinkDet.innerHTML = `<summary><span class="think-step">${esc(stepTitle(liveStep))}</span><span class="think-meta"></span>${THINK_CHEV}</summary><div class="think-body"></div>`;
+        thinkCount = thinkDet.querySelector(".think-meta");
+        thinkBody = thinkDet.querySelector(".think-body");
+        liveAsst.prepend(thinkDet);
+      }
+      thinkCount.textContent = thinkMeta(curThink.length, (performance.now() - thinkT0) / 1000);
+      thinkBody.textContent = curThink;
+    } else {
+      if (!ansRow) {
+        ansRow = document.createElement("div");
+        ansRow.className = "ans-row";
+        ansRow.innerHTML = `<span class="bullet">●</span><div class="ans-body"></div>`;
+        ansBody = ansRow.querySelector(".ans-body");
+        liveAsst.appendChild(ansRow);
+      }
+      ansBody.innerHTML = renderMarkdown(curAns);
+    }
+    scrollNearBottom();
+  };
+  const flushLive = () => {
+    if (rafId) { cancelAnimationFrame(rafId); rafId = 0; }
+    if (dirtyThink) { dirtyThink = false; updateLive(true); }
+    if (dirtyAns) { dirtyAns = false; updateLive(false); }
+  };
+  const schedLive = () => { if (!rafId) rafId = requestAnimationFrame(flushLive); };
+
+  let chatErr = null, errRolledBack = false;
+  try {
+    const resp = await fetch("/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: text, images: imgs }),
+    });
+    if (!resp.ok) throw new Error(await resp.text() || resp.statusText);
+    const reader = resp.body.getReader();
+    const dec = new TextDecoder();
+    let buf = "";
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buf += dec.decode(value, { stream: true });
+      let idx;
+      while ((idx = buf.indexOf("\n\n")) !== -1) {
+        const rawEv = buf.slice(0, idx);
+        buf = buf.slice(idx + 2);
+        let evName = "message", evData = "";
+        for (const line of rawEv.split("\n")) {
+          if (line.startsWith("event:")) evName = line.slice(6).trim();
+          else if (line.startsWith("data:")) evData += line.slice(5).trim();
+        }
+        if (!evData) continue;
+        const d = JSON.parse(evData);
+        if (evName === "thinking" && d.text) { if (!thinkT0) thinkT0 = performance.now(); curThink += d.text; dirtyThink = true; schedLive(); }
+        else if (evName === "chunk" && d.text) { curAns += d.text; dirtyAns = true; schedLive(); }
+        else if (evName === "tool_result") {
+          flushLive();
+          wrap.appendChild(buildToolCard(d));
+          resetLiveNodes();
+          scrollNearBottom();
+        } else if (evName === "peer_call") {
+          flushLive();
+          wrap.appendChild(buildPeerCard(d));
+          resetLiveNodes();
+          scrollNearBottom();
+        } else if (evName === "permission") {
+          flushLive();
+          const gc = document.createElement("div");
+          gc.className = "gate-card";
+          gc.innerHTML = `<div class="gate-title">⚠ Security Gate: ${esc(d.title)}</div><div class="gate-cmd">${esc(d.detail)}</div><div class="gate-actions"><button class="btn btn-sm btn-primary">Allow once</button><button class="btn btn-sm btn-danger">Deny</button></div>`;
+          const [allowBtn, denyBtn] = gc.querySelectorAll("button");
+          const resolvePerm = async (allow) => {
+            allowBtn.disabled = denyBtn.disabled = true;
+            await api("/api/authorize", { req_id: d.req_id, allow });
+            gc.innerHTML = `<div class="muted">${allow ? "✓ Authorized once" : "✗ Denied"}: ${esc(d.title)}</div>`;
+          };
+          allowBtn.onclick = () => resolvePerm(true);
+          denyBtn.onclick = () => resolvePerm(false);
+          wrap.appendChild(gc);
+          stream.scrollTop = stream.scrollHeight;
+        } else if (evName === "error") {
+          chatErr = d.message;
+          errRolledBack = !!d.rolled_back;
+        }
+      }
+    }
+  } catch (err) {
+    chatErr = err.message;
+      flushLive();
+  } finally {
+    STREAMING = false;
+    $("btn-send").style.display = "inline-flex";
+    $("btn-stop").style.display = "none";
+    await loadState();
+    if (chatErr) {
+      if (errRolledBack) {
+        if ($("empty-state")) stream.innerHTML = "";
+        let w = stream.querySelector(".turn-wrap");
+        if (!w) { w = document.createElement("div"); w.className = "turn-wrap"; stream.appendChild(w); }
+        w.appendChild(buildUserEl(text, imgs));
+      }
+      const ec = document.createElement("div");
+      ec.className = "err-card";
+      ec.innerHTML = `<div class="err-msg">⚠ ${esc(chatErr)}</div><div class="err-acts"><button class="btn btn-sm">Try again</button></div>`;
+      ec.querySelector("button").onclick = () => {
+        if (lastSentPayload) sendMessage(lastSentPayload.text, lastSentPayload.imgs);
+      };
+      stream.appendChild(ec);
+      stream.scrollTop = stream.scrollHeight;
+    }
+  }
+}
+
+function renderModalTab() {
+  document.querySelectorAll(".nav-btn").forEach(x => x.classList.toggle("active", x.dataset.tab === ACTIVE_TAB));
+  const pane = $("modal-pane");
+  pane.innerHTML = "";
+  if (ACTIVE_TAB === "providers") {
+    pane.innerHTML = `<div style="font-weight:600">Providers & Runtime Governors</div><div class="muted">Click a configured .env slot to activate, or disable all to use Local :8080. API keys stay strictly server-side.</div>`;
+    for (const s of STATE.providers) {
+      const row = document.createElement("div");
+      row.className = "setting-row" + (s.is_active ? " active-slot" : "");
+      row.innerHTML = `<div><strong>${esc(s.name)}</strong><div class="muted">${esc(s.model)}</div></div><button class="btn btn-sm ${s.is_active ? "btn-primary" : ""}">${s.is_active ? "Active (Disable)" : "Activate"}</button>`;
+      row.querySelector("button").onclick = async () => { await api("/api/settings/provider", { toggle_slot: s.id }); await loadState(); };
+      pane.appendChild(row);
+    }
+    const tokOpts = Array.from(new Set([4096,8192,16384,32768,65536,131072,1048576,STATE.provider.env_max_tokens])).filter(Boolean).sort((a,b)=>a-b);
+    const rndOpts = Array.from(new Set([5,10,15,20,25,30,50,0,STATE.provider.max_rounds]))
+      .filter(v => v !== null && v !== undefined)
+      .sort((a,b) => a === 0 ? 1 : b === 0 ? -1 : a - b);
+    const gov = document.createElement("div");
+    gov.className = "setting-row";
+    gov.innerHTML = `
+      <div class="field" style="flex:1"><label class="muted">Context Budget (AI_MAX_TOKENS)</label>
+        <select id="gov-tok">${tokOpts.map(v => `<option value="${v}" ${STATE.provider.env_max_tokens===v?"selected":""}>${v}</option>`).join("")}</select>
+      </div>
+      <div class="field" style="flex:1"><label class="muted">Max Steps (AI_MAX_AGENT_ROUNDS)</label>
+        <select id="gov-rnd">${rndOpts.map(v => `<option value="${v}" ${STATE.provider.max_rounds===v?"selected":""}>${v === 0 ? "Unlimited" : `${v} steps`}</option>`).join("")}</select>
+      </div>`;
+    pane.appendChild(gov);
+    $("gov-tok").onchange = async (e) => { await api("/api/settings/provider", { max_tokens: +e.target.value }); await loadState(); };
+    $("gov-rnd").onchange = async (e) => { await api("/api/settings/provider", { max_rounds: +e.target.value }); await loadState(); };
+  } else if (ACTIVE_TAB === "projects") {
+    const hiddenSet = new Set(STATE.ui_prefs?.hidden_projects || []);
+    const labelsMap = STATE.ui_prefs?.project_labels || {};
+    const allLabels = Array.from(new Set(Object.values(labelsMap).flat())).sort();
+    const shownCount = STATE.projects.filter((p) => !hiddenSet.has(p.name)).length;
+
+    const namesMap = STATE.ui_prefs?.project_names || {};
+    const descsMap = STATE.ui_prefs?.project_descriptions || {};
+    const saveProjPrefs = async (nextHidden, nextLabels, nextNames = namesMap, nextDescs = descsMap) => {
+      const hiddenArr = Array.from(nextHidden);
+      const res = await api("/api/settings/ui", {
+        hidden_projects: hiddenArr,
+        project_labels: nextLabels,
+        project_names: nextNames,
+        project_descriptions: nextDescs,
+      });
+      STATE.ui_prefs.hidden_projects = res.hidden_projects || hiddenArr;
+      STATE.ui_prefs.project_labels = res.project_labels || nextLabels;
+      STATE.ui_prefs.project_names = res.project_names || nextNames;
+      STATE.ui_prefs.project_descriptions = res.project_descriptions || nextDescs;
+      const curHidden = new Set(STATE.ui_prefs.hidden_projects);
+      if (curHidden.has(STATE.active_project.name)) {
+        const next = STATE.projects.find((p) => p.name === "chat" && !curHidden.has("chat"))
+          || STATE.projects.find((p) => !curHidden.has(p.name));
+        if (next) { await loadState(next.name); return; }
+      }
+      renderAll();
+    };
+
+    const head = document.createElement("div");
+    head.style.cssText = "display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;";
+    head.innerHTML = `<div><div style="font-weight:600">Projects (${shownCount}/${STATE.projects.length} shown)</div><div class="muted">Filter sidebar by group or toggle workspace visibility.</div></div>
+      <div style="display:flex;gap:6px;">
+        <button class="btn btn-sm" id="btn-proj-show-all">Show All</button>
+        <button class="btn btn-sm" id="btn-proj-hide-all" title="Hide all except chat">Hide All</button>
+      </div>`;
+    pane.appendChild(head);
+
+    $("btn-proj-show-all").onclick = () => saveProjPrefs(new Set(), labelsMap);
+    $("btn-proj-hide-all").onclick = () => saveProjPrefs(new Set(STATE.projects.map((p) => p.name).filter((n) => n !== "chat")), labelsMap);
+
+    const dl = document.createElement("datalist");
+    dl.id = "proj-labels-dl";
+    dl.innerHTML = allLabels.map((l) => `<option value="${esc(l)}"></option>`).join("");
+    pane.appendChild(dl);
+
+    if (allLabels.length) {
+      const lbar = document.createElement("div");
+      lbar.className = "lbl-bar";
+      for (const lbl of allLabels) {
+        const chip = document.createElement("span");
+        chip.className = "lbl-chip";
+        chip.innerHTML = `<span class="lbl-name" title="Show only '${esc(lbl)}' in sidebar">${esc(lbl)}</span><button class="lbl-ren" title="Rename group">✎</button><button class="lbl-del" title="Remove group from all projects">×</button>`;
+        chip.querySelector(".lbl-name").onclick = async () => {
+          const onlyOther = STATE.projects.filter((p) => (p.name === "chat" ? hiddenSet.has("chat") : !(labelsMap[p.name] || []).includes(lbl))).map((p) => p.name);
+          await saveProjPrefs(new Set(onlyOther), labelsMap);
+        };
+        chip.querySelector(".lbl-ren").onclick = () => {
+          const inp = document.createElement("input");
+          inp.className = "tag-inp";
+          inp.value = lbl;
+          chip.replaceWith(inp);
+          inp.focus();
+          inp.select();
+          let done = false;
+          const commit = async () => {
+            if (done) return;
+            done = true;
+            const nextName = inp.value.trim();
+            if (!nextName || nextName === lbl) { renderModalTab(); return; }
+            const nextMap = structuredClone(labelsMap);
+            for (const k of Object.keys(nextMap)) {
+              nextMap[k] = Array.from(new Set((nextMap[k] || []).map((x) => x === lbl ? nextName : x)));
+            }
+            await saveProjPrefs(hiddenSet, nextMap);
+          };
+          inp.onkeydown = (e) => { if (e.key === "Enter") { e.preventDefault(); commit(); } else if (e.key === "Escape") { done = true; renderModalTab(); } };
+          inp.onblur = commit;
+        };
+        const ldel = chip.querySelector(".lbl-del");
+        ldel.onclick = async () => {
+          if (!ldel.classList.contains("arm")) {
+            ldel.classList.add("arm");
+            ldel.textContent = "del?";
+            setTimeout(() => { ldel.classList.remove("arm"); ldel.textContent = "×"; }, 2200);
+            return;
+          }
+          const nextMap = structuredClone(labelsMap);
+          for (const k of Object.keys(nextMap)) {
+            nextMap[k] = (nextMap[k] || []).filter((x) => x !== lbl);
+            if (!nextMap[k].length) delete nextMap[k];
+          }
+          await saveProjPrefs(hiddenSet, nextMap);
+        };
+        lbar.appendChild(chip);
+      }
+      pane.appendChild(lbar);
+    }
+
+    const provOpts = [
+      ["", "Active (Default)"],
+      ["LOCAL", "Local (:8080)"],
+      ...(STATE.providers || []).map((s) => [s.id, s.name]),
+    ];
+    for (const p of STATE.projects) {
+      const curProv = p.peer_provider || "";
+      const opts = provOpts.some(([id]) => id === curProv) ? provOpts : [...provOpts, [curProv, curProv]];
+      const isVis = !hiddenSet.has(p.name);
+      const pLabels = labelsMap[p.name] || [];
+      const dname = projDisplay(p.name);
+      const pDesc = descsMap[p.name] || "";
+      const subMeta = `${p.file_count} file(s)`;
+      const row = document.createElement("div");
+      row.className = "setting-row" + (STATE.active_project.name === p.name ? " active-slot" : "");
+      const descLineHtml = pDesc
+        ? `<div class="muted proj-desc-row" style="margin-top:2px;display:flex;align-items:center;gap:4px;"><span class="proj-desc-txt">${esc(pDesc)}</span><button type="button" class="proj-ren proj-desc-edit" title="Edit description">✎</button></div>`
+        : "";
+      row.innerHTML = `<div style="min-width:0;flex:1;">
+        <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;"><strong class="proj-disp">${esc(dname)}</strong><button type="button" class="proj-ren">✎</button> <span class="muted">${esc(subMeta)}</span></div>
+        ${descLineHtml}
+        <div class="proj-tags"></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+        ${isBotMode() ? `<select class="comp-select proj-prov" title="Peer provider used when calling this bot" style="max-width:148px;font-size:11px;">
+          ${opts.map(([id, lbl]) => `<option value="${esc(id)}" ${curProv === id ? "selected" : ""}>${esc(lbl)}</option>`).join("")}
+        </select>` : ""}
+        <button class="switch ${isVis ? "on" : ""}"></button>
+      </div>`;
+
+      const editDesc = (anchorEl) => {
+        const inp = document.createElement("input");
+        inp.className = "tag-inp";
+        inp.style.width = "240px";
+        inp.maxLength = 100;
+        inp.placeholder = "Short description (empty clears)...";
+        inp.value = pDesc;
+        anchorEl.replaceWith(inp);
+        inp.focus();
+        inp.select();
+        let done = false;
+        const commit = async () => {
+          if (done) return;
+          done = true;
+          const v = inp.value.replace(/[\r\n\t]+/g, " ").trim().slice(0, 100);
+          if (v === pDesc) { renderModalTab(); return; }
+          const nextDescs = structuredClone(descsMap);
+          if (!v) delete nextDescs[p.name];
+          else nextDescs[p.name] = v;
+          await saveProjPrefs(hiddenSet, labelsMap, namesMap, nextDescs);
+        };
+        inp.onkeydown = (e) => { if (e.key === "Enter") { e.preventDefault(); commit(); } else if (e.key === "Escape") { done = true; renderModalTab(); } };
+        inp.onblur = commit;
+      };
+
+      const descRowEl = row.querySelector(".proj-desc-row");
+      const descEditBtn = row.querySelector(".proj-desc-edit");
+      if (descRowEl && descEditBtn) descEditBtn.onclick = () => editDesc(descRowEl);
+
+      const renBtn = row.querySelector(".proj-ren");
+      const dispEl = row.querySelector(".proj-disp");
+      renBtn.onclick = () => {
+        const inp = document.createElement("input");
+        inp.className = "tag-inp";
+        inp.style.width = "140px";
+        inp.value = dname;
+        renBtn.style.display = "none";
+        dispEl.replaceWith(inp);
+        inp.focus();
+        inp.select();
+        let done = false;
+        const commit = async () => {
+          if (done) return;
+          done = true;
+          const v = inp.value.trim();
+          const nextNames = structuredClone(namesMap);
+          if (!v || v === p.name) delete nextNames[p.name];
+          else nextNames[p.name] = v;
+          await saveProjPrefs(hiddenSet, labelsMap, nextNames);
+        };
+        inp.onkeydown = (e) => { if (e.key === "Enter") { e.preventDefault(); commit(); } else if (e.key === "Escape") { done = true; renderModalTab(); } };
+        inp.onblur = commit;
+      };
+
+      const tagsBox = row.querySelector(".proj-tags");
+      for (const l of pLabels) {
+        const tag = document.createElement("span");
+        tag.className = "proj-tag";
+        tag.innerHTML = `<span>${esc(l)}</span><button title="Remove group">×</button>`;
+        tag.querySelector("button").onclick = async () => {
+          const nextMap = structuredClone(labelsMap);
+          nextMap[p.name] = pLabels.filter((x) => x !== l);
+          if (!nextMap[p.name].length) delete nextMap[p.name];
+          await saveProjPrefs(hiddenSet, nextMap);
+        };
+        tagsBox.appendChild(tag);
+      }
+
+      const addBtn = document.createElement("button");
+      addBtn.className = "btn btn-sm";
+      addBtn.style.cssText = "padding:1px 7px;border-radius:999px;font-size:10.5px;";
+      addBtn.textContent = "+ group";
+      addBtn.onclick = () => {
+        const inp = document.createElement("input");
+        inp.className = "tag-inp";
+        inp.placeholder = "group...";
+        inp.setAttribute("list", "proj-labels-dl");
+        addBtn.replaceWith(inp);
+        inp.focus();
+        let done = false;
+        const commit = async () => {
+          if (done) return;
+          done = true;
+          const v = inp.value.trim();
+          if (!v || pLabels.includes(v)) { renderModalTab(); return; }
+          const nextMap = structuredClone(labelsMap);
+          nextMap[p.name] = [...pLabels, v].slice(0, 8);
+          await saveProjPrefs(hiddenSet, nextMap);
+        };
+        inp.onkeydown = (e) => { if (e.key === "Enter") { e.preventDefault(); commit(); } else if (e.key === "Escape") { done = true; renderModalTab(); } };
+        inp.onblur = commit;
+      };
+      tagsBox.appendChild(addBtn);
+
+      if (p.has_git) {
+        const gChip = document.createElement("span");
+        gChip.className = "proj-tag";
+        gChip.title = p.dirty ? "Git initialized (modified)" : "Git initialized (clean)";
+        gChip.innerHTML = `<span style="color:${p.dirty ? "var(--accent)" : "var(--text)"};">git</span><button title="Remove .git repository">×</button>`;
+        const gDel = gChip.querySelector("button");
+        gDel.onclick = async () => {
+          if (!gDel.classList.contains("arm")) {
+            gDel.classList.add("arm");
+            gDel.textContent = "del?";
+            setTimeout(() => { gDel.classList.remove("arm"); gDel.textContent = "×"; }, 2200);
+            return;
+          }
+          gDel.disabled = true;
+          try {
+            await api("/api/project/git", { name: p.name, enable: false });
+            await loadState();
+          } catch (err) {
+            gDel.disabled = false;
+            alert(err.message);
+          }
+        };
+        tagsBox.appendChild(gChip);
+      } else {
+        const gBtn = document.createElement("button");
+        gBtn.className = "btn btn-sm";
+        gBtn.style.cssText = "padding:1px 7px;border-radius:999px;font-size:10.5px;";
+        gBtn.textContent = "+ git";
+        gBtn.title = "Initialize git repository";
+        gBtn.onclick = async () => {
+          gBtn.disabled = true;
+          try {
+            await api("/api/project/git", { name: p.name, enable: true });
+            await loadState();
+          } catch (err) {
+            gBtn.disabled = false;
+            alert(err.message);
+          }
+        };
+        tagsBox.appendChild(gBtn);
+      }
+
+      if (!pDesc) {
+        const dBtn = document.createElement("button");
+        dBtn.className = "btn btn-sm";
+        dBtn.style.cssText = "padding:1px 7px;border-radius:999px;font-size:10.5px;";
+        dBtn.textContent = "+ desc";
+        dBtn.title = "Add project description";
+        dBtn.onclick = () => editDesc(dBtn);
+        tagsBox.appendChild(dBtn);
+      }
+
+      const provSel = row.querySelector(".proj-prov");
+      if (provSel) provSel.onchange = async (e) => {
+        const nextProvs = structuredClone(STATE.ui_prefs?.project_providers || {});
+        const v = e.target.value;
+        nextProvs[p.name] = v || "DEFAULT";
+        const res = await api("/api/settings/ui", { project_providers: nextProvs });
+        STATE.ui_prefs.project_providers = res.project_providers || {};
+        await loadState();
+      };
+      row.querySelector(".switch").onclick = async () => {
+        const nextHidden = new Set(hiddenSet);
+        if (isVis) nextHidden.add(p.name); else nextHidden.delete(p.name);
+        await saveProjPrefs(nextHidden, labelsMap);
+      };
+      pane.appendChild(row);
+    }
+  } else if (ACTIVE_TAB === "profiles") {
+    const locked = !STATE.active_project.is_agent;
+    pane.innerHTML = `<div style="font-weight:600">Workspace Profile</div><div class="muted">${locked ? "Chat mode is locked to the <code>chat</code> profile. Switch to an agent project to change profiles." : "Select which profile in <code>profiles/*.md</code> drives the active project."}</div>`;
+    for (const prof of STATE.profiles) {
+      const cur = STATE.active_project.profile_name === prof;
+      const row = document.createElement("div");
+      row.className = "setting-row" + (cur ? " active-slot" : "");
+      const profDesc = STATE.profile_descriptions?.[prof] || "";
+      const descHtml = profDesc ? `<div class="muted" style="margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${esc(profDesc)}">${esc(profDesc)}</div>` : "";
+      row.innerHTML = `<div style="min-width:0;flex:1;"><strong>${esc(prof)}</strong>${descHtml}</div><button class="btn btn-sm ${cur ? "btn-primary" : ""}" ${locked ? "disabled" : ""}>${cur ? "Active" : "Select"}</button>`;
+      row.querySelector("button").onclick = async () => { projectsAutoLabeled = false; await api("/api/settings/profile", { profile_name: prof }); await loadState(); };
+      pane.appendChild(row);
+    }
+  } else if (ACTIVE_TAB === "skills") {
+    const active = STATE.active_project.active_skills || [];
+    pane.innerHTML = `<div><div style="font-weight:600">Skills (${active.length}/3 active)</div><div class="muted">Attached skills are injected into the system prompt for the next turn.</div></div><input class="skills-filter" id="modal-skills-filter" placeholder="Filter skills..." value="${esc(skillFilter)}" /><div id="modal-skills-list" style="display:flex;flex-direction:column;gap:8px;"></div>`;
+    const drawSkillsList = () => {
+      const list = $("modal-skills-list");
+      const q = skillFilter.trim().toLowerCase();
+      const filtered = (STATE.skills || []).filter((s) => !q || s.toLowerCase().includes(q));
+      list.innerHTML = "";
+      if (!filtered.length) { list.innerHTML = `<div class="muted">No matching skills in ~/.config/rs-agent/skills/</div>`; return; }
+      for (const sk of filtered) {
+        const on = active.includes(sk);
+        const full = !on && active.length >= 3;
+        const row = document.createElement("div");
+        row.className = "setting-row" + (on ? " active-slot" : "");
+        row.innerHTML = `<div><strong>${esc(sk)}</strong><div class="muted">~/.config/rs-agent/skills/${esc(sk)}.md</div></div><button class="switch ${on ? "on" : ""}" ${full ? "disabled" : ""}></button>`;
+        row.querySelector("button").onclick = async () => { await api("/api/settings/profile", { skill_toggle: sk }); await loadState(); };
+        list.appendChild(row);
+      }
+    };
+    drawSkillsList();
+    $("modal-skills-filter").oninput = (e) => { skillFilter = e.target.value; drawSkillsList(); };
+  } else if (ACTIVE_TAB === "commands") {
+    pane.innerHTML = `<div style="font-weight:600">Slash Commands</div><div class="muted">Type <code>/</code> in the composer or run an action below.</div>`;
+    for (const c of SLASH_CMDS.filter((x) => isBotMode() || x.cmd !== "/call")) {
+      const row = document.createElement("div");
+      row.className = "setting-row";
+      row.innerHTML = `<div><strong style="font-family:var(--mono)">${esc(c.cmd)}</strong><div class="muted">${esc(c.desc)}</div></div><button class="btn btn-sm">Run</button>`;
+      row.querySelector("button").onclick = async () => {
+        $("modal-settings").classList.remove("open");
+        if (c.cmd === "/task") $("btn-run-task").click();
+        else await runLocalSlash(c.cmd);
+      };
+      pane.appendChild(row);
+    }
+  } else if (ACTIVE_TAB === "mcp") {
+    pane.innerHTML = `<div style="font-weight:600">MCP Servers (plugins/mcp/servers.json)</div><div class="muted">Servers spawned over stdio by <code>src/mcp.rs</code> when attached to a profile.</div>`;
+    for (const m of STATE.mcp_servers) {
+      const row = document.createElement("div");
+      row.className = "setting-row";
+      row.innerHTML = `<div style="min-width:0"><strong>${esc(m.name)}</strong><div class="muted" style="font-family:var(--mono);overflow:hidden;text-overflow:ellipsis">${esc(m.command)} ${esc((m.args||[]).join(" "))}</div></div><button class="btn btn-sm">Inspect Tools</button>`;
+      row.querySelector("button").onclick = async (e) => {
+        e.target.textContent = "Probing...";
+        try {
+          const res = await api("/api/settings/mcp", { inspect: m.name });
+          $("mf-title").textContent = `MCP: ${m.name} (${res.tools.length} tools)`;
+          $("mf-body").textContent = res.tools.map(t => `• ${t.function.name} — ${t.function.description || ""}`).join("\n");
+          $("modal-file").classList.add("open");
+        } catch (err) { $("mf-title").textContent = "MCP Error"; $("mf-body").textContent = err.message; $("modal-file").classList.add("open"); }
+        e.target.textContent = "Inspect Tools";
+      };
+      pane.appendChild(row);
+    }
+    const addBox = document.createElement("div");
+    addBox.className = "setting-row";
+    addBox.style.flexDirection = "column";
+    addBox.style.alignItems = "stretch";
+    addBox.innerHTML = `
+      <strong>+ Add MCP Server</strong>
+      <div style="display:flex;gap:8px;"><input id="mcp-name" placeholder="name (e.g. context7)" style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:6px;" /><input id="mcp-cmd" placeholder="command (e.g. npx)" style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:6px;" /></div>
+      <div style="display:flex;gap:8px;"><input id="mcp-args" placeholder="args (space-separated)" style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:6px;" /><button class="btn btn-primary btn-sm" id="btn-add-mcp">Add</button></div>`;
+    pane.appendChild(addBox);
+    $("btn-add-mcp").onclick = async () => {
+      const name = $("mcp-name").value.trim(), command = $("mcp-cmd").value.trim(), args = $("mcp-args").value.trim().split(/\s+/).filter(Boolean);
+      if (!name || !command) return;
+      await api("/api/settings/mcp", { add: { name, command, args } });
+      await loadState();
+    };
+  } else if (ACTIVE_TAB === "appearance") {
+    const ap = getAppearance();
+    if (noctaliaBrowse) {
+      const activeList = noctaliaSource === "core" ? noctaliaCore : noctaliaCommunity;
+      pane.innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <button class="btn btn-sm" id="btn-noc-back">← Back</button>
+            <div class="rs-tabs">
+              <button class="rs-tab ${noctaliaSource==="core"?"active":""}" id="btn-noc-core">Built-in</button>
+              <button class="rs-tab ${noctaliaSource==="community"?"active":""}" id="btn-noc-comm">Community</button>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div class="rs-tabs">
+              <button class="rs-tab ${noctaliaMode==="dark"?"active":""}" id="btn-noc-dark">Dark</button>
+              <button class="rs-tab ${noctaliaMode==="light"?"active":""}" id="btn-noc-light">Light</button>
+            </div>
+            ${noctaliaSource==="community" ? `<button class="btn btn-sm" id="btn-noc-refresh" title="Refresh community catalog">↻</button>` : ""}
+          </div>
+        </div>
+        <input class="skills-filter" id="noc-search" placeholder="${noctaliaSource==="core"?"Filter built-in palettes...":"Search community palettes..."}" value="${esc(noctaliaFilter)}" />
+        ${noctaliaSource==="community" && noctaliaWarn ? `<div class="muted">${esc(noctaliaWarn)}</div>` : ""}
+        <div class="noc-list" id="noc-list"></div>`;
+
+      $("btn-noc-back").onclick = () => { noctaliaBrowse = false; renderModalTab(); };
+      $("btn-noc-core").onclick = () => { noctaliaSource = "core"; noctaliaWarn = ""; renderModalTab(); };
+      $("btn-noc-comm").onclick = () => { noctaliaSource = "community"; renderModalTab(); };
+      $("btn-noc-dark").onclick = () => { noctaliaMode = "dark"; renderModalTab(); };
+      $("btn-noc-light").onclick = () => { noctaliaMode = "light"; renderModalTab(); };
+      const fetchCatalog = async (scope, force) => {
+        if (force) { if (scope === "community") noctaliaCommunity = null; noctaliaWarn = ""; renderModalTab(); }
+        try {
+          const res = await api(`/api/noctalia/catalog?scope=${scope}${force ? "&refresh=1" : ""}`);
+          if (scope === "core") noctaliaCore = res.palettes || [];
+          else { noctaliaCommunity = res.palettes || []; noctaliaWarn = res.warning || ""; }
+        } catch (err) {
+          if (scope === "core") noctaliaCore = [];
+          else { noctaliaCommunity = []; noctaliaWarn = err.message; }
+        }
+        if ($("modal-settings").classList.contains("open") && ACTIVE_TAB === "appearance" && noctaliaBrowse) renderModalTab();
+      };
+      if ($("btn-noc-refresh")) $("btn-noc-refresh").onclick = () => fetchCatalog("community", true);
+
+      const drawNocList = () => {
+        const list = $("noc-list");
+        if (!activeList) { list.innerHTML = `<div class="muted">Loading ${noctaliaSource === "core" ? "built-in" : "community"} palettes...</div>`; return; }
+        const q = noctaliaFilter.trim().toLowerCase();
+        const items = activeList.filter((p) => !q || p.name.toLowerCase().includes(q) || (p.base || "").toLowerCase().includes(q));
+        list.innerHTML = "";
+        if (!items.length) { list.innerHTML = `<div class="muted">No matching palettes.</div>`; return; }
+        const installedIds = new Set((STATE?.themes || []).filter((x) => x.source === "custom").map((x) => x.id));
+        const curTheme = getAppearance().theme;
+        for (const p of items) {
+          const slug = noctaliaMode === "light" ? p.slug_light : p.slug_dark;
+          const customId = `custom:${slug}`;
+          const installed = installedIds.has(customId);
+          const sw = (noctaliaMode === "light" ? p.light : p.dark) || {};
+          const row = document.createElement("div");
+          row.className = "noc-row" + (curTheme === customId ? " active" : "");
+          const status = noctaliaBusy === customId ? "Adding..." : (curTheme === customId ? "Active" : (installed ? "✓ Added" : "Add"));
+          const delHtml = installed ? `<button class="theme-del" title="Delete theme">✕</button>` : "";
+          row.innerHTML = `
+            <div style="display:flex;align-items:center;gap:10px;min-width:0;">
+              <span class="noc-swatches">
+                <span class="noc-dot" style="background:${esc(sw.bg || "#18181b")}"></span>
+                <span class="noc-dot" style="background:${esc(sw.accent || "#38bdf8")}"></span>
+                <span class="noc-dot" style="background:${esc(sw.cyan || sw.accent || "#38bdf8")}"></span>
+              </span>
+              <span style="min-width:0;display:flex;flex-direction:column;">
+                <span class="theme-name">${esc(p.name)}</span>
+                <span class="theme-tag">${esc(p.base || (p.core ? "Core" : "Community"))}</span>
+              </span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+              <span class="muted">${status}</span>${delHtml}
+            </div>`;
+          row.onclick = async () => {
+            if (noctaliaBusy) return;
+            if (installed) { applyAppearance({ theme: customId }); renderModalTab(); return; }
+            noctaliaBusy = customId;
+            drawNocList();
+            try {
+              const res = await api("/api/noctalia/install", { name: p.name, mode: noctaliaMode });
+              const tr = await api("/api/themes");
+              STATE.themes = tr.themes || [];
+              applyAppearance({ theme: res.id });
+            } catch (err) {
+              noctaliaWarn = err.message;
+            } finally {
+              noctaliaBusy = "";
+              renderModalTab();
+            }
+          };
+          const db = row.querySelector(".theme-del");
+          if (db) {
+            db.onclick = async (e) => {
+              e.stopPropagation();
+              if (!db.classList.contains("arm")) {
+                db.classList.add("arm"); db.textContent = "del?";
+                setTimeout(() => { db.classList.remove("arm"); db.textContent = "✕"; }, 2200);
+                return;
+              }
+              await api("/api/themes/delete", { id: customId });
+              if (getAppearance().theme === customId) applyAppearance({ theme: "dark-default" });
+              await loadState();
+            };
+          }
+          list.appendChild(row);
+        }
+      };
+
+      drawNocList();
+      const sInp = $("noc-search");
+      sInp.oninput = (e) => { noctaliaFilter = e.target.value; drawNocList(); };
+      sInp.focus();
+      if (!activeList) fetchCatalog(noctaliaSource, false);
+      return;
+    }
+
+    const liveThemes = (STATE?.themes || []).filter((t) => t.source === "live");
+    const customThemes = (STATE?.themes || []).filter((t) => t.source === "custom");
+
+    const buildCard = (t) => {
+      const card = document.createElement("div");
+      card.className = "theme-card" + (ap.theme === t.id ? " active" : "");
+      card.setAttribute("role", "button");
+      card.tabIndex = 0;
+      const tag = t.source === "live" ? `live ${t.mode}` : (t.source === "custom" ? `custom ${t.mode}` : "fallback");
+      const delHtml = t.source === "custom" ? `<button class="theme-del" title="Delete theme">✕</button>` : "";
+      card.innerHTML = `<span class="theme-swatch" style="background:linear-gradient(135deg, ${esc(t.bg)} 50%, ${esc(t.accent)} 50%)"></span><span class="theme-meta"><span class="theme-name">${esc(t.name)}</span><span class="theme-tag">${esc(tag)}</span></span>${delHtml}`;
+      card.onclick = () => { applyAppearance({ theme: t.id }); renderModalTab(); };
+      card.onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); card.click(); } };
+      const db = card.querySelector(".theme-del");
+      if (db) {
+        db.onclick = async (e) => {
+          e.stopPropagation();
+          if (!db.classList.contains("arm")) {
+            db.classList.add("arm"); db.textContent = "del?";
+            setTimeout(() => { db.classList.remove("arm"); db.textContent = "✕"; }, 2200);
+            return;
+          }
+          await api("/api/themes/delete", { id: t.id });
+          if (getAppearance().theme === t.id) applyAppearance({ theme: "dark-default" });
+          await loadState();
+        };
+      }
+      return card;
+    };
+
+    pane.innerHTML = "";
+    if (liveThemes.length) {
+      const syncHead = document.createElement("div");
+      syncHead.innerHTML = `<div style="font-weight:600">Desktop Sync</div><div class="muted">Auto-syncs on focus with your active bar / desktop theme</div>`;
+      const syncGrid = document.createElement("div");
+      syncGrid.className = "theme-grid";
+      for (const t of liveThemes) syncGrid.appendChild(buildCard(t));
+      pane.appendChild(syncHead);
+      pane.appendChild(syncGrid);
+    }
+
+    const thHead = document.createElement("div");
+    thHead.style.cssText = "display:flex;justify-content:space-between;align-items:center;gap:8px;";
+    thHead.innerHTML = `<div><div style="font-weight:600">Themes</div><div class="muted">Fallback + custom <code>plugins/rs-rail/themes/*.json</code></div></div><div style="display:flex;gap:6px;"><button class="btn btn-sm" id="btn-browse-noctalia">+ Noctalia</button><button class="btn btn-sm" id="btn-reload-themes">Reload</button></div>`;
+    pane.appendChild(thHead);
+    $("btn-browse-noctalia").onclick = () => { noctaliaBrowse = true; noctaliaSource = "core"; noctaliaWarn = ""; renderModalTab(); };
+    $("btn-reload-themes").onclick = () => loadState();
+
+    const grid = document.createElement("div");
+    grid.className = "theme-grid";
+    for (const t of [...BUILTIN_THEMES, ...customThemes]) grid.appendChild(buildCard(t));
+    pane.appendChild(grid);
+
+    const uiRow = document.createElement("div");
+    uiRow.className = "setting-row";
+    const uiSz = ap.uiSize || 13;
+    uiRow.innerHTML = `<div><strong>Interface Font &amp; Size</strong><div class="muted">Labels, headings, and chat prose</div></div>
+      <div style="display:flex;gap:6px;align-items:center;">
+        <select id="ap-ui-font" class="comp-select">
+          <option value="JetBrains Mono" ${ap.uiFont==="JetBrains Mono"?"selected":""}>JetBrains Mono</option>
+          <option value="Geist" ${ap.uiFont==="Geist"?"selected":""}>Geist</option>
+          <option value="System" ${ap.uiFont==="System"?"selected":""}>System Sans</option>
+        </select>
+        <select id="ap-ui-size" class="comp-select">
+          ${[11,12,13,14,15].map(n => `<option value="${n}" ${uiSz===n?"selected":""}>${n}px</option>`).join("")}
+        </select>
+      </div>`;
+    pane.appendChild(uiRow);
+    $("ap-ui-font").onchange = (e) => applyAppearance({ uiFont: e.target.value });
+    $("ap-ui-size").onchange = (e) => applyAppearance({ uiSize: +e.target.value });
+
+    const codeRow = document.createElement("div");
+    codeRow.className = "setting-row";
+    codeRow.innerHTML = `<div><strong>Code Font &amp; Size</strong><div class="muted">Code blocks, diffs, thinking, and tools (12px = 9pt)</div></div>
+      <div style="display:flex;gap:6px;align-items:center;">
+        <select id="ap-code-font" class="comp-select">
+          <option value="JetBrains Mono" ${ap.codeFont==="JetBrains Mono"?"selected":""}>JetBrains Mono</option>
+          <option value="Fira Code" ${ap.codeFont==="Fira Code"?"selected":""}>Fira Code</option>
+          <option value="System" ${ap.codeFont==="System"?"selected":""}>System Mono</option>
+        </select>
+        <select id="ap-code-size" class="comp-select">
+          ${[11,12,13,14,15,16].map(n => `<option value="${n}" ${ap.codeSize===n?"selected":""}>${n}px</option>`).join("")}
+        </select>
+      </div>`;
+    pane.appendChild(codeRow);
+    $("ap-code-font").onchange = (e) => applyAppearance({ codeFont: e.target.value });
+    $("ap-code-size").onchange = (e) => applyAppearance({ codeSize: +e.target.value });
+
+    const logoRow = document.createElement("div");
+    logoRow.className = "setting-row";
+    const curLogo = ap.logoStyle || "d";
+    logoRow.innerHTML = `<div><strong>Brand Logo</strong><div class="muted">Dynamic theme gradient or canonical monochrome</div></div>
+      <div style="display:flex;gap:4px;" class="rs-tabs">
+        <button class="rs-tab ${curLogo === "d" ? "active" : ""}" id="btn-logo-d">Gradient</button>
+        <button class="rs-tab ${curLogo === "a" ? "active" : ""}" id="btn-logo-a">Monochrome</button>
+      </div>`;
+    pane.appendChild(logoRow);
+    $("btn-logo-d").onclick = () => { applyAppearance({ logoStyle: "d" }); renderModalTab(); };
+    $("btn-logo-a").onclick = () => { applyAppearance({ logoStyle: "a" }); renderModalTab(); };
+
+    const botRow = document.createElement("div");
+    botRow.className = "setting-row";
+    const badgeMode = ap.microBots === "none" ? "none" : (ap.microBots === false || ap.microBots === "letters" ? "letters" : "bots");
+    botRow.innerHTML = `<div><strong>Micro-Bot Mode</strong><div class="muted">Enable peer bots (/call, auto-call) or use letters / none</div></div>
+      <div style="display:flex;gap:4px;" class="rs-tabs">
+        <button class="rs-tab ${badgeMode === "bots" ? "active" : ""}" id="btn-bots-on">Micro-Bots</button>
+        <button class="rs-tab ${badgeMode === "letters" ? "active" : ""}" id="btn-bots-off">Letters</button>
+        <button class="rs-tab ${badgeMode === "none" ? "active" : ""}" id="btn-bots-none">None</button>
+      </div>`;
+    pane.appendChild(botRow);
+    const setBotMode = async (microBots, bot_mode) => {
+      applyAppearance({ microBots });
+      try {
+        const res = await api("/api/settings/ui", { bot_mode });
+        if (STATE?.ui_prefs) STATE.ui_prefs.bot_mode = res.bot_mode;
+      } catch {}
+      await loadState();
+    };
+    $("btn-bots-on").onclick = () => setBotMode(true, true);
+    $("btn-bots-off").onclick = () => setBotMode(false, false);
+    $("btn-bots-none").onclick = () => setBotMode("none", false);
+
+    const descRow = document.createElement("div");
+    descRow.className = "setting-row";
+    descRow.innerHTML = `<div><strong>Sidebar Descriptions</strong><div class="muted">Show profile frontmatter descriptions in sidebar (custom notes always show)</div></div><button class="btn btn-sm">${ap.showDesc === true ? "Shown" : "Hidden"}</button>`;
+    descRow.querySelector("button").onclick = () => { applyAppearance({ showDesc: ap.showDesc !== true }); renderAll(); };
+    pane.appendChild(descRow);
+
+    const r = document.createElement("div");
+    r.className = "setting-row";
+    r.innerHTML = `<div><strong>Auto-Expand Steps</strong><div class="muted">Expand reasoning steps by default (synced with CLI <code>/tk</code>)</div></div><button class="btn btn-sm">${STATE.ui_prefs.show_thinking !== false ? "Expanded" : "Collapsed"}</button>`;
+    r.querySelector("button").onclick = async () => { await api("/api/settings/ui", { show_thinking: STATE.ui_prefs.show_thinking === false }); await loadState(); };
+    pane.appendChild(r);
+  }
+}
+
+let acItems = [];
+let acHl = 0;
+
+function closeAc() {
+  $("ac-pop").classList.remove("open");
+  acItems = [];
+}
+
+function updateAutocomplete() {
+  const val = $("msg-input").value;
+  if (!val.startsWith("/") || /\s/.test(val)) { closeAc(); return; }
+  const q = val.slice(1).toLowerCase();
+  acItems = SLASH_CMDS.filter((c) => (isBotMode() || c.cmd !== "/call") && c.cmd.slice(1).startsWith(q));
+  if (!acItems.length) { closeAc(); return; }
+  closeReasoningPop();
+  if (acHl >= acItems.length) acHl = 0;
+
+  const pop = $("ac-pop");
+  pop.innerHTML = "";
+  acItems.forEach((it, idx) => {
+    const btn = document.createElement("button");
+    btn.className = "ac-item" + (idx === acHl ? " hl" : "");
+    btn.innerHTML = `<div class="ac-left"><span class="ac-key">${esc(it.cmd)}</span><span class="ac-desc">${esc(it.desc)}</span></div>`;
+    btn.onmousedown = (e) => { e.preventDefault(); pickAcItem(idx); };
+    pop.appendChild(btn);
+  });
+  pop.classList.add("open");
+}
+
+async function pickAcItem(idx) {
+  const it = acItems[idx];
+  if (!it) return;
+  const inp = $("msg-input");
+  closeAc();
+  if (it.cmd === "/task") {
+    if (STATE?.active_project?.task_md) { inp.value = ""; await sendMessage("/task"); }
+    else { inp.value = "/task "; inp.focus(); }
+    return;
+  }
+  inp.value = "";
+  await runLocalSlash(it.cmd);
+}
+
+$("btn-toggle-proj").onclick = () => {
+  const hidden = $("sidebar-left").classList.toggle("hidden");
+  localStorage.setItem("rs_rail_left_hidden", hidden ? "1" : "0");
+};
+if (localStorage.getItem("rs_rail_left_hidden") === "1") $("sidebar-left").classList.add("hidden");
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") {
+    closeReasoningPop();
+    closeAc();
+    $("modal-settings").classList.remove("open");
+    $("modal-new-proj").classList.remove("open");
+    $("modal-file").classList.remove("open");
+    $("modal-bot").classList.remove("open");
+    $("modal-call").classList.remove("open");
+    $("modal-actions").classList.remove("open");
+  }
+});
+
+$("btn-img").onclick = () => $("img-file").click();
+$("img-file").onchange = (e) => { addImageFiles(e.target.files); e.target.value = ""; };
+$("msg-input").addEventListener("paste", (e) => {
+  if (STATE?.provider?.is_local) return;
+  const imgs = Array.from(e.clipboardData?.items || []).filter(i => i.type.startsWith("image/")).map(i => i.getAsFile()).filter(Boolean);
+  if (imgs.length) { e.preventDefault(); addImageFiles(imgs); }
+});
+$("btn-send").onclick = () => sendMessage();
+$("btn-stop").onclick = () => api("/api/stop", {});
+const RESET_SVG = `<svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 8a5.5 5.5 0 1 0 1.6-3.9L2.5 5.7"/><path d="M2.5 2.5v3.2h3.2"/></svg>`;
+function disarmReset() {
+  const b = $("btn-reset");
+  if (!b) return;
+  clearTimeout(b._t);
+  delete b.dataset.arm;
+  b.classList.remove("btn-danger");
+  b.innerHTML = RESET_SVG;
+}
+$("btn-reset").onclick = async () => {
+  const b = $("btn-reset");
+  if (!b.dataset.arm) {
+    b.dataset.arm = "1";
+    b.classList.add("btn-danger");
+    b.textContent = "sure?";
+    b._t = setTimeout(disarmReset, 2200);
+    return;
+  }
+  disarmReset();
+  if (STREAMING) await api("/api/stop", {});
+  await api("/api/reset", {});
+  await loadState();
+};
+$("btn-toggle-task").onclick = async () => {
+  const hidden = $("sidebar-right").classList.toggle("hidden");
+  await api("/api/settings/ui", { show_right_panel: !hidden });
+};
+
+function switchRsTab(tab) {
+  const isActs = tab === "acts";
+  const btnActs = $("rs-tab-acts");
+  const btnMem = $("rs-tab-mem");
+  const paneActs = $("rs-pane-acts");
+  const paneMem = $("rs-pane-mem");
+  if (btnActs) btnActs.classList.toggle("active", isActs);
+  if (btnMem) btnMem.classList.toggle("active", !isActs);
+  if (paneActs) paneActs.classList.toggle("open", isActs);
+  if (paneMem) paneMem.classList.toggle("open", !isActs);
+
+  const ap = STATE?.active_project;
+  const hasTask = Boolean(ap?.is_agent && ap?.task_md);
+  const btnRun = $("btn-run-task");
+  const btnSave = $("btn-save-mem");
+  const btnAdd = $("btn-add-action");
+  if (btnRun) btnRun.style.display = isActs && hasTask ? "inline-flex" : "none";
+  if (btnSave) btnSave.style.display = !isActs ? "inline-flex" : "none";
+  if (btnAdd) btnAdd.style.display = isActs ? "inline-flex" : "none";
+}
+
+if ($("rs-tab-acts")) $("rs-tab-acts").onclick = () => switchRsTab("acts");
+if ($("rs-tab-mem")) $("rs-tab-mem").onclick = () => switchRsTab("mem");
+
+let actionsBusy = false;
+
+function setActErr(msg) {
+  const el = $("act-err");
+  if (!el) return;
+  el.textContent = msg || "";
+  el.style.display = msg ? "block" : "none";
+}
+
+function defaultActionsFor(ap) {
+  if (!ap) return [];
+  const defs = [];
+  if (ap.is_agent) {
+    defs.push({ cmd: "/task", desc: ap.task_md ? "Run TASK.md" : "Start autonomous goal" });
+  }
+  if (isBotMode()) {
+    defs.push({ cmd: "/call", desc: "Open peer bot picker" });
+    for (const c of ap.collaborators || []) {
+      const cmd = `/call ${c}`;
+      if (!defs.some((a) => a.cmd === cmd)) defs.push({ cmd, desc: "Ask peer" });
+    }
+  }
+  return defs;
+}
+
+function getEffectiveActions(ap) {
+  if (!ap) return [];
+  const saved = STATE?.ui_prefs?.project_actions?.[ap.name];
+  const list = Array.isArray(saved) ? saved : defaultActionsFor(ap);
+  return list.filter((item) => isBotMode() || (item.cmd !== "/call" && !item.cmd.startsWith("/call ")));
+}
+
+async function saveProjectActions(nextMap) {
+  if (actionsBusy) return false;
+  actionsBusy = true;
+  setActErr("");
+  const addBtn = $("btn-save-action");
+  const resetBtn = $("btn-reset-actions");
+  if (addBtn) addBtn.disabled = true;
+  if (resetBtn) resetBtn.disabled = true;
+  try {
+    const res = await api("/api/settings/ui", { project_actions: nextMap });
+    if (STATE?.ui_prefs) STATE.ui_prefs.project_actions = res.project_actions || {};
+    renderManageActions();
+    renderActionsPane();
+    return true;
+  } catch (err) {
+    setActErr(err.message || "Failed to save actions");
+    return false;
+  } finally {
+    actionsBusy = false;
+    renderManageActions();
+  }
+}
+
+function renderManageActions() {
+  const ap = STATE?.active_project;
+  const list = $("act-manage-list");
+  if (!list || !ap) return;
+  $("act-modal-proj").textContent = projDisplay(ap.name);
+  const resetBtn = $("btn-reset-actions");
+  resetBtn.style.display = Array.isArray(STATE?.ui_prefs?.project_actions?.[ap.name]) ? "inline-flex" : "none";
+  resetBtn.disabled = actionsBusy;
+  list.innerHTML = "";
+  const actions = getEffectiveActions(ap);
+  const addBtn = $("btn-save-action");
+  if (addBtn) {
+    addBtn.disabled = actionsBusy || actions.length >= 16;
+    addBtn.title = actions.length >= 16 ? "Maximum 16 actions per workspace" : "";
+  }
+  if (!actions.length) {
+    list.innerHTML = `<div class="muted" style="padding:6px 2px;">No actions configured for this workspace.</div>`;
+    return;
+  }
+  actions.forEach((item) => {
+    const row = document.createElement("div");
+    row.className = "act-row";
+    row.style.cursor = "default";
+    row.title = item.desc ? `${item.cmd} — ${item.desc}` : item.cmd;
+    const descHtml = item.desc ? `<span class="act-desc" style="max-width:100%;">${esc(item.desc)}</span>` : "";
+    row.innerHTML = `<span class="act-cmd"><span>${esc(item.cmd)}</span></span><div style="display:flex;align-items:center;gap:8px;min-width:0;max-width:50%;flex-shrink:0;">${descHtml}<button class="btn btn-sm btn-danger" style="padding:1px 5px;font-size:10px;flex-shrink:0;" title="Remove">✕</button></div>`;
+    row.querySelector("button").onclick = async (e) => {
+      e.stopPropagation();
+      const nextMap = structuredClone(STATE?.ui_prefs?.project_actions || {});
+      const base = Array.isArray(nextMap[ap.name]) ? [...nextMap[ap.name]] : [...defaultActionsFor(ap)];
+      nextMap[ap.name] = base.filter((a) => a.cmd !== item.cmd);
+      await saveProjectActions(nextMap);
+    };
+    list.appendChild(row);
+  });
+}
+
+function openManageActions() {
+  if (!STATE?.active_project) return;
+  $("act-input-cmd").value = "";
+  $("act-input-desc").value = "";
+  setActErr("");
+  renderManageActions();
+  $("modal-actions").classList.add("open");
+  $("act-input-cmd").focus();
+}
+
+$("btn-close-actions").onclick = () => $("modal-actions").classList.remove("open");
+$("btn-add-action").onclick = () => openManageActions();
+
+$("btn-save-action").onclick = async () => {
+  const ap = STATE?.active_project;
+  if (!ap || actionsBusy) return;
+  const cmd = $("act-input-cmd").value.trim().slice(0, 500);
+  const desc = $("act-input-desc").value.trim().slice(0, 60);
+  if (!cmd) { setActErr("Enter a command or prompt."); $("act-input-cmd").focus(); return; }
+  const nextMap = structuredClone(STATE?.ui_prefs?.project_actions || {});
+  const cur = Array.isArray(nextMap[ap.name]) ? [...nextMap[ap.name]] : [...defaultActionsFor(ap)];
+  if (cur.length >= 16) { setActErr("Maximum 16 actions per workspace."); return; }
+  if (cur.some((x) => x.cmd === cmd)) { setActErr("That action already exists."); return; }
+  cur.push({ cmd, desc });
+  nextMap[ap.name] = cur;
+  if (await saveProjectActions(nextMap)) {
+    $("act-input-cmd").value = "";
+    $("act-input-desc").value = "";
+    $("act-input-cmd").focus();
+  }
+};
+$("btn-reset-actions").onclick = async () => {
+  const ap = STATE?.active_project;
+  if (!ap || actionsBusy) return;
+  const nextMap = structuredClone(STATE?.ui_prefs?.project_actions || {});
+  delete nextMap[ap.name];
+  await saveProjectActions(nextMap);
+};
+$("act-input-cmd").onkeydown = (e) => { if (e.key === "Enter") { e.preventDefault(); $("btn-save-action").click(); } };
+$("act-input-desc").onkeydown = (e) => { if (e.key === "Enter") { e.preventDefault(); $("btn-save-action").click(); } };
+
+function renderActionsPane() {
+  const ap = STATE?.active_project;
+  const list = $("act-list");
+  if (!list) return;
+  list.innerHTML = "";
+  if (!ap) return;
+
+  if (ap.is_agent && ap.task_md) {
+    const box = document.createElement("div");
+    box.className = "task-box";
+    box.innerHTML = `
+      <div class="task-box-head">
+        <span class="task-box-title">TASK.md loaded</span>
+        <button class="btn btn-sm btn-primary">Run</button>
+      </div>
+      <div class="task-box-body">${esc(ap.task_md)}</div>`;
+    box.querySelector("button").onclick = () => sendMessage("/task");
+    list.appendChild(box);
+  }
+
+  const actions = getEffectiveActions(ap);
+  if (!actions.length && !(ap.is_agent && ap.task_md)) {
+    list.innerHTML = `<div class="muted" style="padding:4px 2px;">No actions. Click + to add.</div>`;
+    return;
+  }
+
+  for (const item of actions) {
+    const row = document.createElement("div");
+    row.className = "act-row";
+    row.title = item.desc ? `${item.cmd} — ${item.desc}` : item.cmd;
+    let botName = "";
+    if (item.cmd.startsWith("/call ")) {
+      const peer = item.cmd.slice(6).replace(/:.*$/, "").trim();
+      if ((STATE?.projects || []).some((p) => p.name === peer)) botName = peer;
+    }
+    const ico = botName ? botSvg(botName, 12) : "";
+    const descHtml = item.desc ? `<span class="act-desc">${esc(item.desc)}</span>` : "";
+    row.innerHTML = `<span class="act-cmd">${ico}<span>${esc(item.cmd)}</span></span>${descHtml}`;
+    row.onclick = (e) => {
+      if (item.cmd === "/call") {
+        openCallModal();
+        return;
+      }
+      if (item.cmd === "/task" && !ap.task_md) {
+        const inp = $("msg-input");
+        if (!inp.value.startsWith("/task")) inp.value = "/task " + inp.value;
+        resizeInput(); updateSendReady(); inp.focus();
+        inp.setSelectionRange(inp.value.length, inp.value.length);
+        return;
+      }
+      if (item.cmd.startsWith("/call ") && !/^\/call\s+\S+:\s*\S/.test(item.cmd)) {
+        const inp = $("msg-input");
+        const prefix = item.cmd.includes(":") ? `${item.cmd} ` : `${item.cmd}: `;
+        const curVal = inp.value.trimStart();
+        inp.value = curVal && !curVal.startsWith("/") ? `${prefix}${curVal}` : prefix;
+        resizeInput(); updateSendReady(); inp.focus();
+        inp.setSelectionRange(inp.value.length, inp.value.length);
+        return;
+      }
+      if (e.shiftKey || item.cmd.endsWith(":")) {
+        const inp = $("msg-input");
+        inp.value = item.cmd.endsWith(" ") ? item.cmd : `${item.cmd} `;
+        resizeInput(); updateSendReady(); inp.focus();
+        inp.setSelectionRange(inp.value.length, inp.value.length);
+        return;
+      }
+      sendMessage(item.cmd);
+    };
+    list.appendChild(row);
+  }
+}
+
+function resizeInput() {
+  const el = document.getElementById("msg-input");
+  if (!el) return;
+  const minH = 36;
+  el.style.height = "auto";
+  el.style.height = el.value ? `${Math.min(Math.max(el.scrollHeight, minH), 180)}px` : "";
+}
+
+if ($("btn-run-task")) $("btn-run-task").onclick = () => sendMessage("/task");
+$("btn-save-mem").onclick = async () => {
+  try {
+    await api("/api/memory", { content: $("mem-input").value });
+    const b = $("btn-save-mem");
+    b.textContent = "Saved ✓";
+    setTimeout(() => { b.textContent = "Save"; }, 1500);
+    await loadState();
+  } catch (err) { alert(err.message); }
+};
+$("btn-export-md").onclick = async () => {
+  try {
+    const res = await api("/api/export", {});
+    $("mf-title").textContent = res.path;
+    $("mf-body").textContent = res.content || "";
+    $("modal-file").classList.add("open");
+  } catch (err) { alert(err.message); }
+};
+$("btn-settings").onclick = () => openSettings();
+let botPage = 0;
+function buildBotCandidates(curMask, defMask, taken, page) {
+  const out = [curMask];
+  const seen = new Set([curMask]);
+  if (defMask !== curMask && !taken.has(defMask)) {
+    out.push(defMask);
+    seen.add(defMask);
+  }
+  let s = (0x9e3779b9 ^ Math.imul(page + 1, 0x85ebca6b)) >>> 0;
+  for (let guard = 0; out.length < 24 && guard < 4000; guard++) {
+    s = (Math.imul(s ^ (s >>> 15), 0x85ebca6b) + 0x27d4eb2d) >>> 0;
+    const m = (s & 0x7fff) | (1 << 4);
+    if (seen.has(m) || taken.has(m)) continue;
+    let bits = 0, top = 0, bot = 0;
+    for (let i = 0; i < 15; i++) {
+      if ((m >> i) & 1) { bits++; if (i < 6) top++; if (i >= 9) bot++; }
+    }
+    if (bits >= 6 && bits <= 11 && top >= 1 && bot >= 1) {
+      out.push(m);
+      seen.add(m);
+    }
+  }
+  return out;
+}
+function renderBotPicker() {
+  const ap = STATE?.active_project;
+  if (!ap) return;
+  const badgeRaw = getAppearance().microBots;
+  const showIcons = badgeRaw !== "none" && badgeRaw !== false && badgeRaw !== "letters";
+  const taken = new Map();
+  for (const p of STATE.projects || []) {
+    if (p.name !== ap.name) taken.set(projectBotMask(p.name), p.name);
+  }
+  const curMask = projectBotMask(ap.name);
+  const defMask = hashBotMask(ap.name);
+  const isMono = (getAppearance().logoStyle || "d") === "a";
+  const fill = isMono ? "currentColor" : "url(#brandGrad)";
+  const defs = isMono ? "" : BRAND_GRAD_DEFS;
+  $("mb-proj").textContent = projDisplay(ap.name);
+  $("mb-sub").textContent = showIcons ? "Pick a unique micro-bot" : "Bot configuration";
+  $("mb-cur").innerHTML = botSvgFromMask(curMask, 22, fill, defs);
+
+  const rb = $("btn-bot-reset");
+  const sb = $("btn-bot-shuffle");
+  const grid = $("mb-grid");
+  grid.style.display = showIcons ? "grid" : "none";
+  sb.style.display = showIcons ? "inline-flex" : "none";
+  rb.style.display = showIcons && curMask !== defMask ? "inline-flex" : "none";
+  rb.disabled = taken.has(defMask);
+  rb.title = taken.has(defMask) ? `Default used by ${taken.get(defMask)}` : "Restore default micro-bot";
+
+  grid.innerHTML = "";
+  if (showIcons) {
+    for (const m of buildBotCandidates(curMask, defMask, taken, botPage)) {
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "bot-opt" + (m === curMask ? " active" : "");
+      b.innerHTML = botSvgFromMask(m, 22, m === curMask ? fill : "currentColor", m === curMask ? defs : "");
+      const owner = taken.get(m);
+      if (owner) {
+        b.disabled = true;
+        b.title = `Used by ${owner}`;
+      } else {
+        b.onclick = async () => {
+          const nextBots = { ...(STATE.ui_prefs?.project_bots || {}) };
+          if (m === defMask) delete nextBots[ap.name];
+          else nextBots[ap.name] = `b:${m.toString(16).padStart(4, "0")}`;
+          const res = await api("/api/settings/ui", { project_bots: nextBots });
+          STATE.ui_prefs.project_bots = res.project_bots || nextBots;
+          renderAll();
+          renderBotPicker();
+        };
+      }
+      grid.appendChild(b);
+    }
+  }
+
+  const siblings = (STATE.projects || []).filter((p) => p.name !== ap.name);
+  const csec = $("mb-collab-sec");
+  const cbox = $("mb-collabs");
+  csec.style.display = ap.is_agent && siblings.length ? "flex" : "none";
+  cbox.innerHTML = "";
+  if (ap.is_agent && siblings.length) {
+    const activeCollabs = new Set(ap.collaborators || []);
+    for (const p of siblings) {
+      const on = activeCollabs.has(p.name);
+      const chip = document.createElement("button");
+      chip.type = "button";
+      chip.className = "collab-chip" + (on ? " on" : "");
+      chip.innerHTML = `${botSvg(p.name, 12)}<span>${esc(projDisplay(p.name))}</span>`;
+      chip.onclick = async () => {
+        if (chip.disabled) return;
+        chip.disabled = true;
+        try {
+        const nextSet = new Set(activeCollabs);
+        if (on) nextSet.delete(p.name); else nextSet.add(p.name);
+        const nextMap = structuredClone(STATE.ui_prefs?.project_collabs || {});
+        nextMap[ap.name] = Array.from(nextSet);
+        const payload = { project_collabs: nextMap };
+        const savedActs = STATE.ui_prefs?.project_actions?.[ap.name];
+        if (Array.isArray(savedActs)) {
+          const cmd = `/call ${p.name}`;
+          const nextActsMap = structuredClone(STATE.ui_prefs?.project_actions || {});
+          if (on) {
+            nextActsMap[ap.name] = savedActs.filter((a) => a.cmd !== cmd);
+          } else if (!savedActs.some((a) => a.cmd === cmd || a.cmd.startsWith(`${cmd}:`))) {
+            nextActsMap[ap.name] = [...savedActs, { cmd, desc: "Ask peer" }].slice(0, 16);
+          }
+          payload.project_actions = nextActsMap;
+        }
+          const res = await api("/api/settings/ui", payload);
+          STATE.ui_prefs.project_collabs = res.project_collabs || {};
+          if (res.project_actions) STATE.ui_prefs.project_actions = res.project_actions;
+          ap.collaborators = res.project_collabs?.[ap.name] ?? nextMap[ap.name];
+          renderBotPicker();
+          renderActionsPane();
+          renderTopbarProfile(ap);
+          if ($("modal-actions").classList.contains("open")) renderManageActions();
+        } finally {
+          chip.disabled = false;
+        }
+      };
+      cbox.appendChild(chip);
+    }
+  }
+}
+function openBotPicker() {
+  botPage = 0;
+  renderBotPicker();
+  $("modal-bot").classList.add("open");
+}
+$("btn-close-bot").onclick = () => $("modal-bot").classList.remove("open");
+$("btn-bot-shuffle").onclick = () => { botPage += 1; renderBotPicker(); };
+$("btn-bot-reset").onclick = async () => {
+  const ap = STATE?.active_project;
+  if (!ap) return;
+  const nextBots = { ...(STATE.ui_prefs?.project_bots || {}) };
+  delete nextBots[ap.name];
+  const res = await api("/api/settings/ui", { project_bots: nextBots });
+  STATE.ui_prefs.project_bots = res.project_bots || nextBots;
+  renderAll();
+  renderBotPicker();
+};
+$("btn-brand-settings").onclick = () => {
+  if (STATE?.active_project && isBotMode()) openBotPicker();
+};
+$("btn-projects-nav").onclick = () => openSettings("projects");
+$("btn-profiles-nav").onclick = () => openSettings("profiles");
+$("btn-close-app").onclick = async () => {
+  try { await api("/api/shutdown", {}); } catch {}
+  window.close();
+  document.body.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;height:100vh;color:var(--muted);">RS Rail closed.</div>`;
+};
+$("btn-model-pill").onclick = () => openSettings("providers");
+$("btn-close-settings").onclick = () => $("modal-settings").classList.remove("open");
+$("btn-close-file").onclick = () => $("modal-file").classList.remove("open");
+$("btn-copy-file").onclick = async () => {
+  const text = $("mf-body").textContent || "";
+  await navigator.clipboard.writeText(text);
+  const b = $("btn-copy-file");
+  b.textContent = "Copied!";
+  setTimeout(() => { b.textContent = "Copy"; }, 1500);
+};
+document.querySelectorAll(".modal-backdrop").forEach((m) => {
+  let downOnBg = false;
+  m.addEventListener("mousedown", (e) => { downOnBg = e.target === m; });
+  m.addEventListener("click", (e) => { if (downOnBg && e.target === m) m.classList.remove("open"); downOnBg = false; });
+});
+document.querySelectorAll(".nav-btn").forEach(b => b.onclick = () => {
+  ACTIVE_TAB = b.dataset.tab; noctaliaBrowse = false; renderModalTab();
+  if (ACTIVE_TAB === "projects") lazyAutoLabelProjects();
+});
+
+$("btn-reasoning-pill").onclick = (e) => {
+  e.stopPropagation();
+  closeAc();
+  const isOpen = $("pop-reasoning").classList.toggle("open");
+  $("btn-reasoning-pill").classList.toggle("open", isOpen);
+  $("btn-reasoning-pill").setAttribute("aria-expanded", String(isOpen));
+};
+$("msg-input").addEventListener("input", () => { acHl = 0; resizeInput(); updateSendReady(); updateAutocomplete(); });
+$("msg-input").addEventListener("click", () => updateAutocomplete());
+document.addEventListener("click", (e) => {
+  if (!e.target.closest(".composer")) closeAc();
+  if (!e.target.closest(".pop-wrap")) closeReasoningPop();
+});
+$("msg-input").addEventListener("keydown", (e) => {
+  if ($("ac-pop").classList.contains("open") && acItems.length) {
+    if (e.key === "ArrowDown") { e.preventDefault(); acHl = (acHl + 1) % acItems.length; updateAutocomplete(); return; }
+    if (e.key === "ArrowUp") { e.preventDefault(); acHl = (acHl + acItems.length - 1) % acItems.length; updateAutocomplete(); return; }
+    if (e.key === "Tab" || (e.key === "Enter" && !e.shiftKey)) { e.preventDefault(); pickAcItem(acHl); return; }
+    if (e.key === "Escape") { e.preventDefault(); closeAc(); return; }
+  }
+  if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+});
+
+$("btn-new-proj").onclick = () => {
+  $("np-err").textContent = "";
+  const sel = $("np-prof");
+  sel.innerHTML = (STATE?.profiles || ["chat"]).map(p => `<option value="${esc(p)}">${esc(p)}</option>`).join("");
+  $("modal-new-proj").classList.add("open");
+  $("np-name").focus();
+};
+$("np-name").onkeydown = (e) => { if (e.key === "Enter") { e.preventDefault(); $("btn-create-np").click(); } };
+$("btn-close-new-proj").onclick = $("btn-cancel-np").onclick = () => $("modal-new-proj").classList.remove("open");
+$("btn-create-np").onclick = async () => {
+  const name = $("np-name").value.trim(), profile = $("np-prof").value;
+  if (!name) return;
+  try {
+    const created = await api("/api/project/create", { name, profile });
+    projectsAutoLabeled = false;
+    $("np-name").value = "";
+    $("modal-new-proj").classList.remove("open");
+    await loadState(created.name);
+  } catch (err) {
+    $("np-err").textContent = err.message;
+  }
+};
+
+let callTarget = "", callMode = "none", callPickerOpen = false;
+function renderCallModal() {
+  const ap = STATE?.active_project;
+  if (!ap) return;
+  const siblings = (STATE?.projects || []).filter((p) => p.name !== ap.name);
+  const tgt = siblings.find((p) => p.name === callTarget) || siblings[0] || null;
+  callTarget = tgt ? tgt.name : "";
+
+  const subRow = (...parts) => {
+    const items = parts.filter(Boolean);
+    return items.length ? `<span class="call-sub">${items.map((t) => `<span>${esc(t)}</span>`).join("")}</span>` : "";
+  };
+  const callerProv = STATE?.projects?.find((p) => p.name === ap.name)?.peer_provider || "";
+  const callerHasMb = (ap.is_agent && (ap.collaborators || []).length > 0) || Boolean(callerProv);
+  $("call-caller").innerHTML = `${botSvg(ap.name, 18)}<span class="call-meta"><span class="call-name">${esc(projDisplay(ap.name))}</span>${subRow(callerHasMb ? "mb" : "", callerProv)}</span>`;
+  const tgtSub = (p) => subRow(
+    p.name === "chat" ? "no tools" : "",
+    (ap.collaborators || []).includes(p.name) ? "linked" : "",
+    p.peer_provider
+  );
+  const tbtn = $("call-target-btn");
+  if (tgt) {
+    tbtn.disabled = false;
+    tbtn.innerHTML = `${botSvg(tgt.name, 18)}<span class="call-meta"><span class="call-name">${esc(projDisplay(tgt.name))}</span>${tgtSub(tgt)}</span><svg class="chev" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4.5 6.5L8 10l3.5-3.5"/></svg>`;
+  } else {
+    tbtn.disabled = true;
+    tbtn.innerHTML = `<span class="call-meta"><span class="call-name">No sibling bots</span><span class="call-sub">Create another project first</span></span>`;
+  }
+
+  const tlist = $("call-targets");
+  tlist.innerHTML = "";
+  tlist.classList.toggle("open", callPickerOpen && siblings.length > 0);
+  tbtn.classList.toggle("open", callPickerOpen && siblings.length > 0);
+  for (const p of siblings) {
+    const opt = document.createElement("button");
+    opt.type = "button";
+    opt.className = "call-target-opt" + (tgt && tgt.name === p.name ? " active" : "");
+    opt.innerHTML = `<span style="display:flex;align-items:center;gap:8px;min-width:0;">${botSvg(p.name, 15)}<span class="call-meta"><span class="call-name">${esc(projDisplay(p.name))}</span>${tgtSub(p)}</span></span><span class="muted">${tgt && tgt.name === p.name ? "✓" : ""}</span>`;
+    opt.onclick = () => {
+      callTarget = p.name;
+      callPickerOpen = false;
+      renderCallModal();
+      $("call-prompt").focus();
+    };
+    tlist.appendChild(opt);
+  }
+
+  $("btn-call-none").classList.toggle("active", callMode === "none");
+  $("btn-call-last").classList.toggle("active", callMode === "last_turn");
+  $("btn-call-full").classList.toggle("active", callMode === "full");
+  $("call-mode-hint").textContent = callMode === "none"
+    ? "Sends only your prompt (no chat history)"
+    : (callMode === "full"
+      ? "Sends conversation transcript + your prompt"
+      : "Sends caller's last turn + your prompt");
+  $("btn-run-call").disabled = !tgt || STREAMING;
+  if (!tgt) $("call-err").textContent = "Create another project workspace first to consult a peer bot.";
+}
+
+function openCallModal(prefTarget, prefPrompt) {
+  if (STREAMING || !STATE?.active_project) return;
+  const ap = STATE.active_project;
+  const siblings = (STATE.projects || []).filter((p) => p.name !== ap.name);
+  const q = String(prefTarget || "").trim().toLowerCase();
+  const matched = q
+    ? siblings.find((p) => p.name.toLowerCase() === q) || siblings.find((p) => p.name.toLowerCase().startsWith(q))
+    : null;
+  const linked = (ap.collaborators || []).find((c) => siblings.some((p) => p.name === c));
+  callTarget = matched
+    ? matched.name
+    : (linked || siblings.find((p) => p.peer_provider)?.name || siblings.find((p) => p.name !== "chat")?.name || siblings[0]?.name || "");
+  callMode = "none";
+  callPickerOpen = !matched && siblings.length > 1;
+  $("call-err").textContent = "";
+  if (typeof prefPrompt === "string") $("call-prompt").value = prefPrompt;
+  renderCallModal();
+  $("modal-call").classList.add("open");
+  $("call-prompt").focus();
+}
+
+async function executePeerCall(target, mode, prompt) {
+  if (STREAMING) return;
+  STREAMING = true;
+  $("btn-send").style.display = "none";
+  $("btn-stop").style.display = "inline-flex";
+  const stream = $("stream");
+  if ($("empty-state")) stream.innerHTML = "";
+  document.querySelector(".center").classList.remove("is-empty");
+  let wrap = stream.querySelector(".turn-wrap");
+  if (!wrap) { wrap = document.createElement("div"); wrap.className = "turn-wrap"; stream.appendChild(wrap); }
+  const pending = document.createElement("div");
+  pending.className = "peer-card";
+  pending.innerHTML = `<div class="peer-head" style="cursor:default;"><div class="peer-title">${botSvg(target, 14)}<strong>${esc(projDisplay(target))}</strong><span class="peer-tag">${esc(mode.replace("_", " "))}</span><span class="peer-brief">${esc(prompt)}</span></div><span class="muted">calling...</span></div>`;
+  wrap.appendChild(pending);
+  stream.scrollTop = stream.scrollHeight;
+
+  let callErr = null;
+  try {
+    const res = await api("/api/bot/call", { target, mode, prompt });
+    if (res?.cancelled) callErr = null;
+  } catch (err) {
+    callErr = err.message;
+  } finally {
+    STREAMING = false;
+    $("btn-send").style.display = "inline-flex";
+    $("btn-stop").style.display = "none";
+    await loadState();
+    if (callErr) {
+      const ec = document.createElement("div");
+      ec.className = "err-card";
+      ec.innerHTML = `<div class="err-msg">⚠ ${esc(callErr)}</div><div class="err-acts"><button class="btn btn-sm">Try again</button></div>`;
+      ec.querySelector("button").onclick = () => executePeerCall(target, mode, prompt);
+      stream.appendChild(ec);
+      stream.scrollTop = stream.scrollHeight;
+    }
+  }
+}
+
+$("btn-close-call").onclick = $("btn-cancel-call").onclick = () => $("modal-call").classList.remove("open");
+$("call-target-btn").onclick = () => { callPickerOpen = !callPickerOpen; renderCallModal(); };
+$("btn-call-none").onclick = () => { callMode = "none"; renderCallModal(); };
+$("btn-call-last").onclick = () => { callMode = "last_turn"; renderCallModal(); };
+$("btn-call-full").onclick = () => { callMode = "full"; renderCallModal(); };
+$("btn-run-call").onclick = async () => {
+  const prompt = $("call-prompt").value.trim();
+  if (!callTarget) { $("call-err").textContent = "Select a target bot."; return; }
+  if (!prompt) { $("call-err").textContent = "Enter a question or task for the target bot."; $("call-prompt").focus(); return; }
+  $("call-err").textContent = "";
+  $("call-prompt").value = "";
+  $("modal-call").classList.remove("open");
+  await executePeerCall(callTarget, callMode, prompt);
+};
+$("call-prompt").addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); $("btn-run-call").click(); }
+});
+
+const params = new URLSearchParams(location.search);
+const liveEs = new EventSource("/api/live");
+window.addEventListener("pagehide", () => liveEs.close());
+loadState(params.get("project") || "").then(() => {
+  if (STATE?.ui_prefs && STATE.ui_prefs.bot_mode !== isBotMode()) {
+    api("/api/settings/ui", { bot_mode: isBotMode() })
+      .then((r) => { if (STATE?.ui_prefs) STATE.ui_prefs.bot_mode = r.bot_mode; })
+      .catch(() => {});
+  }
+});
+
+let lastThemeSig = "", lastThemeSync = 0;
+async function syncThemes(force) {
+  if (document.hidden || !STATE) return;
+  const id = getAppearance().theme;
+  if (!force && id !== "omarchy" && id !== "noctalia" && !id.startsWith("custom:")) return;
+  const now = Date.now();
+  if (!force && now - lastThemeSync < 1500) return;
+  lastThemeSync = now;
+  try {
+    const res = await api("/api/themes");
+    const sig = JSON.stringify(res.themes || []);
+    if (sig !== lastThemeSig) {
+      lastThemeSig = sig;
+      STATE.themes = res.themes || [];
+      applyAppearance();
+      if ($("modal-settings").classList.contains("open") && ACTIVE_TAB === "appearance") renderModalTab();
+    }
+  } catch {}
+}
+window.addEventListener("focus", () => syncThemes(false));
+document.addEventListener("visibilitychange", () => { if (!document.hidden) syncThemes(false); });
+</script>
+<div class="proj-hover" id="proj-hover"></div>
+</body>
+</html>

@@ -1,17 +1,35 @@
-# railbot
+<h1>
+  <img alt="RailBot Logo" src="assets/logo.svg" width="38" height="38" align="absmiddle" />
+  RailBot
+</h1>
 
-<img width="3840" height="2160" alt="2026-11-24_19-06-57" src="https://github.com/user-attachments/assets/b4716edb-3fc4-45f8-9ba5-a7863e9acad5" />
+<p>
+  <a href="https://github.com/j5onrf/rs-agent"><img src="https://shieldcn.dev/badge/Rust.svg?variant=branded&brand=rust" alt="Rust"></a>
+  <a href="https://github.com/j5onrf/rs-agent/blob/main/LICENSE"><img src="https://shieldcn.dev/badge/license-MIT.svg?variant=secondary" alt="License"></a>
+  <a href="https://j5onrf.github.io/railbot/"><img src="https://shieldcn.dev/badge/status-beta.svg?variant=secondary" alt="Status"></a>
+</p>
+
+<p>
+  <strong>Sub-millisecond native Rust AI desktop &amp; web harness for local GGUF models and cloud endpoints.</strong><br />
+  Parallel micro-bots &nbsp;•&nbsp; Local-first speed &nbsp;•&nbsp; Zero-trust sandbox &nbsp;•&nbsp; Built on <code>rs-agent</code>
+</p>
+
+<p align="center">
+  <img src="assets/banner.jpg" alt="RailBot — Parallel Micro-Bots on High-Speed Rails" width="100%" />
+</p>
 
 ---
 
-### settings menu
+## Overview
 
-| Actions | Projects |
-| :---: | :---: |
-| <img alt="screenshot-2026-11-24_19-13-57-1-profile-2" src="https://github.com/user-attachments/assets/839371ae-c6f0-45f8-bca0-0e9fd4633345" /> | <img alt="screenshot-2026-11-24_19-15-01-1-profile-2" src="https://github.com/user-attachments/assets/f7b9eac3-622b-4641-99fe-f12edfb91baf" /> |
+**RailBot** (`rs-rail`) brings `rs-agent` into a single frameless native desktop and web surface running on `http://127.0.0.1:24243`, letting autonomous micro-bots collaborate in parallel across local `llama-server` and cloud models.
 
-| Appearance | Call Bot |
-| :---: | :---: |
-| <img alt="screenshot-2026-11-24_19-15-58-1-profile-2" src="https://github.com/user-attachments/assets/ab50cfdc-adda-4b61-a100-ebfee1e483f5" /> | <img width="992" height="1016" alt="screenshot-2026-11-24_19-29-57-1-profile-2" src="https://github.com/user-attachments/assets/480d14a3-1993-46e7-96fa-10c83fcceabe" /> |
+- **Frameless Native App:** Launch with `rail` or `rr`
+- **Live Collaborators:** Consult peer micro-bots read-only via `/call`
+- **Custom Themes:** `Dark Default`, `Omarchy`, `Noctalia`, and custom JSON palettes
 
+---
 
+<div align="center">
+  <a href="LICENSE">MIT License</a>
+</div>

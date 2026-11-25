@@ -1,0 +1,82 @@
+{
+  "show_right_panel": true,
+  "bot_mode": true,
+  "last_project": "chat",
+  "hidden_projects": [
+    "flint",
+    "groot",
+    "lfm3",
+    "ling-tiny",
+    "nemo",
+    "qwen38",
+    "sage",
+    "tokenlab"
+  ],
+  "project_labels": {
+    "ling-tiny": [
+      "local"
+    ],
+    "lfm3": [
+      "local"
+    ],
+    "tokenlab": [
+      "cloud"
+    ],
+    "surogate37": [
+      "local",
+      "microbot"
+    ],
+    "gem35": [
+      "cloud",
+      "microbot"
+    ],
+    "flint": [
+      "local"
+    ],
+    "qwen38": [
+      "local"
+    ],
+    "nemo": [
+      "cloud"
+    ],
+    "inkling2": [
+      "local",
+      "microbot"
+    ],
+    "sage": [
+      "local"
+    ],
+    "groot": [
+      "local"
+    ]
+  },
+  "project_names": {
+    "chat": "chatbot"
+  },
+  "project_bots": {
+    "surogate37": "b:1395"
+  },
+  "project_collabs": {
+    "gem35": [
+      "surogate37"
+    ],
+    "inkling2": [
+      "surogate37"
+    ],
+    "surogate37": [
+      "gem35"
+    ]
+  },
+  "project_actions": {
+    "gem35": [
+      {
+        "cmd": "/task",
+        "desc": "Start autonomous goal"
+      },
+      {
+        "cmd": "/call",
+        "desc": "Open peer bot picker"
+      }
+    ]
+  }
+}
