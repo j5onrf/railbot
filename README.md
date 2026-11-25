@@ -15,7 +15,7 @@
 </p>
 
 <p align="center">
-  <img src="assets/banner.jpg" alt="RailBot — Parallel Micro-Bots on High-Speed Rails" width="100%" />
+  <img src="assets/banner.png" alt="RailBot — Parallel Micro-Bots on High-Speed Rails" width="100%" />
 </p>
 
 ---
