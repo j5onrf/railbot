@@ -1,36 +1,59 @@
 <div align="center">
-#%@# building..
-</div>
 
 <h1>
-  <img alt="RailBot Logo" src="assets/logo.svg" width="38" height="38" align="absmiddle" />
+  <img alt="RailBot Logo" src="assets/railbot.svg" width="38" height="38" align="absmiddle" />
   RailBot
 </h1>
 
 <p>
-  <a href="https://github.com/j5onrf/rs-agent"><img src="https://shieldcn.dev/badge/Rust.svg?variant=branded&brand=rust" alt="Rust"></a>
-  <a href="https://github.com/j5onrf/rs-agent/blob/main/LICENSE"><img src="https://shieldcn.dev/badge/license-MIT.svg?variant=secondary" alt="License"></a>
-  <a href="https://j5onrf.github.io/railbot/"><img src="https://shieldcn.dev/badge/status-beta.svg?variant=secondary" alt="Status"></a>
+  <a href="https://github.com/j5onrf/railbot/releases"><img src="https://shieldcn.dev/badge/version-v0.5.0.svg?variant=secondary" alt="Version"></a>
+  <a href="https://github.com/j5onrf/railbot"><img src="https://shieldcn.dev/badge/Rust.svg?variant=branded&brand=rust" alt="Rust"></a>
+  <a href="https://github.com/j5onrf/railbot/blob/main/LICENSE"><img src="https://shieldcn.dev/badge/license-MIT.svg?variant=secondary" alt="License"></a>
+  <a href="https://j5onrf.github.io/railbot/"><img src="https://shieldcn.dev/badge/demo-live-22c55e.svg?variant=secondary" alt="Live Demo"></a>
 </p>
 
 <p>
-  <strong>Sub-millisecond native Rust AI desktop &amp; web harness for local GGUF models and cloud endpoints.</strong><br />
-  Parallel micro-bots &nbsp;•&nbsp; Local-first speed &nbsp;•&nbsp; Zero-trust sandbox
+  <strong>Sub-millisecond native Rust AI desktop &amp; web harness for local GGUF models and frontier cloud endpoints.</strong><br />
+  Parallel micro-bots &nbsp;•&nbsp; Local-first speed &nbsp;•&nbsp; Zero-trust sandbox &nbsp;•&nbsp; Single binary with embedded UI
 </p>
 
-<p align="center">
-  <img src="assets/banner.png" alt="RailBot — Parallel Micro-Bots on High-Speed Rails" width="100%" />
+<p>
+  <a href="https://j5onrf.github.io/railbot/">
+    <img src="assets/banner.png" alt="RailBot — Parallel Micro-Bots on High-Speed Rails" width="100%" />
+  </a>
 </p>
+
+<h3>
+  <a href="https://j5onrf.github.io/railbot/">⚡ Try the Live Interactive Web Demo →</a>
+</h3>
+
+</div>
 
 ---
 
-## Overview
+## Highlights
 
-**RailBot** runs as a single frameless native desktop and web surface on `http://127.0.0.1:24243`, letting autonomous micro-bots collaborate in parallel across local `llama-server` and cloud models.
+- **Single Native Binary:** Zero runtime dependencies; web/desktop interface compiled right in (`ui.html`).
+- **Frameless Desktop App:** Launch instantly with `rail` or `rr` via Chrome/Brave/Chromium `--app=` mode or Omarchy.
+- **Parallel Micro-Bots (`/call`):** Consult sibling bots read-only for verification, reviews, and second opinions across workspaces.
+- **Zero-Trust Sandbox:** Security boundary traps directory traversals, blocks `.env` reads/writes, and gates mutating commands.
+- **Themes & Desktop Sync:** Fallback themes (`Dark Default`, `Pure Light`), custom JSON palettes, live Omarchy/Noctalia desktop sync, and a built-in palette catalog browser.
 
-- **Frameless Native App:** Launch with `rail` or `rr`
-- **Live Collaborators:** Consult peer micro-bots read-only via `/call`
-- **Custom Themes:** `Dark Default`, `Omarchy`, `Noctalia`, and custom JSON palettes
+---
+
+## Quickstart
+
+```bash
+git clone https://github.com/j5onrf/railbot.git ~/.config/railbot
+cd ~/.config/railbot
+cargo build --release
+./launch.sh
+```
+
+Launch options:
+- `./launch.sh` — opens standalone frameless app window
+- `./launch.sh web` — opens in your default browser
+- `./launch.sh [path]` — opens workspace folder directly
 
 ---
 
