@@ -1,18 +1,18 @@
 # Model Context Protocol (MCP) Integration: `plugins/mcp/`
 
-Native, zero-overhead stdio Model Context Protocol (MCP) client for `rs-agent`. Connect external desktop apps, databases, and web services dynamically without modifying core engine code.
+Native, zero-overhead stdio Model Context Protocol (MCP) client for `railbot`. Connect external desktop apps, databases, and web services dynamically without modifying core engine code.
 
 ---
 
 ## 1. Registering an MCP Server
 
-Add server definitions to `~/.config/rs-agent/plugins/mcp/servers.json`. Supports environment variable expansion (`${VAR}`) and home expansion (`${HOME}` or `~`):
+Add server definitions to `~/.config/railbot/plugins/mcp/servers.json`. Supports environment variable expansion (`${VAR}`) and home expansion (`${HOME}` or `~`):
 
 ```json
 {
   "servers": {
     "photocraft": {
-      "command": "${HOME}/.config/rs-agent/plugins/mcp/photocraft/mcp-bridge.sh",
+      "command": "${HOME}/.config/railbot/plugins/mcp/photocraft/mcp-bridge.sh",
       "args": [],
       "env": {
         "PHOTOCRAFT_AUTOSTART": "1"
@@ -25,7 +25,7 @@ Add server definitions to `~/.config/rs-agent/plugins/mcp/servers.json`. Support
     },
     "sqlite": {
       "command": "uvx",
-      "args": ["mcp-server-sqlite", "--db-path", "${HOME}/.config/rs-agent/plugins/mcp/mcp.db"],
+      "args": ["mcp-server-sqlite", "--db-path", "${HOME}/.config/railbot/plugins/mcp/mcp.db"],
       "env": {}
     }
   }

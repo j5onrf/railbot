@@ -86,7 +86,9 @@ impl WorkspaceConfig {
         fs::create_dir_all(&dir)?;
         let content = serde_json::to_string_pretty(self)?;
         let final_path = dir.join("config.json");
-        let tmp_path = dir.join(format!("config.json.tmp.{}", std::process::id()));
+        static TMP_SEQ: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+        let seq = TMP_SEQ.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+        let tmp_path = dir.join(format!("config.json.tmp.{}.{}", std::process::id(), seq));
         fs::write(&tmp_path, content)?;
         fs::rename(&tmp_path, &final_path)?;
         Ok(())
@@ -103,7 +105,7 @@ pub struct ContextCeilings {
 }
 
 pub fn get_env_path() -> PathBuf {
-    dirs::home_dir().map(|h| h.join(".config/rs-agent/.env")).unwrap_or_else(|| PathBuf::from(".env"))
+    dirs::home_dir().map(|h| h.join(".config/railbot/.env")).unwrap_or_else(|| PathBuf::from(".env"))
 }
 
 static PROFILE_MAX_TOKENS: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
@@ -166,7 +168,10 @@ pub struct ProviderConfig {
 }
 
 async fn probe_local_model() -> String {
-    let client = reqwest::Client::builder().timeout(std::time::Duration::from_millis(500)).build().unwrap_or_default();
+    static LOCAL_HTTP: std::sync::OnceLock<reqwest::Client> = std::sync::OnceLock::new();
+    let client = LOCAL_HTTP.get_or_init(|| {
+        reqwest::Client::builder().timeout(std::time::Duration::from_millis(500)).build().unwrap_or_default()
+    });
 
     if let Ok(resp) = client.get("http://127.0.0.1:8080/v1/models").send().await {
         if let Ok(json) = resp.json::<serde_json::Value>().await {
@@ -195,9 +200,13 @@ fn normalize_chat_url(url: &str) -> String {
 
 impl ProviderConfig {
     pub async fn load() -> Self {
+        Self::load_with_max_tokens(None).await
+    }
+
+    pub async fn load_with_max_tokens(ctx_override: Option<usize>) -> Self {
         let env_path = get_env_path();
         let env_content = fs::read_to_string(&env_path).unwrap_or_default();
-        let max_tokens = get_max_tokens();
+        let max_tokens = ctx_override.unwrap_or_else(get_max_tokens);
 
         // 1. Direct Providers (Top Priority)
         const DIRECT_PROVIDERS: &[(&str, &str, &str)] = &[
@@ -274,8 +283,8 @@ impl ProviderConfig {
 
 pub fn load_global_instructions() -> Option<String> {
     let candidates = [
-        dirs::home_dir().map(|h| h.join(".config/rs-agent/system_instructions.md")),
-        dirs::home_dir().map(|h| h.join(".config/rs-agent/skills/system_instructions.md")),
+        dirs::home_dir().map(|h| h.join(".config/railbot/system_instructions.md")),
+        dirs::home_dir().map(|h| h.join(".config/railbot/skills/system_instructions.md")),
     ];
 
     for path in candidates.into_iter().flatten() {

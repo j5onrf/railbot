@@ -1,2 +1,0 @@
-#!/usr/bin/env bash
-exec "$HOME/.config/rs-agent/bin/ai" --bridge "$@"

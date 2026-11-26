@@ -11,17 +11,17 @@ use std::time::Duration;
 
 use crate::config::ProviderConfig;
 use crate::profile::ReasoningSetting;
-use crate::spinner::InlineSpinner;
-use crate::stream::{StreamRenderer, UsageStats};
 
 const STREAM_IDLE_TIMEOUT_SECS: u64 = 120;
 const FALLBACK_HEADER_TIMEOUT_SECS: u64 = 15;
 const CONNECT_TIMEOUT_SECS: u64 = 15;
 
-pub enum StreamEvent<'a> {
-    Chunk(&'a str, bool),
-    ToolStart,
-    Fallback(&'a str),
+#[derive(Debug, Default, Clone)]
+pub struct UsageStats {
+    pub prompt_tokens: usize,
+    pub completion_tokens: usize,
+    pub reasoning_tokens: usize,
+    pub cached_tokens: usize,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -110,6 +110,19 @@ pub fn is_local_endpoint(url: &str) -> bool {
         || u.contains(":11434")
         || u.contains(":20128")
         || u.contains(".local")
+}
+
+pub fn format_endpoint(base_url: &str) -> String {
+    if is_local_endpoint(base_url) {
+        return "local".to_string();
+    }
+    let after_scheme = base_url.split("://").nth(1).unwrap_or(base_url);
+    let authority = after_scheme.split('/').next().unwrap_or("");
+    let host = authority.split(':').next().unwrap_or(authority);
+    host.split('.')
+        .find(|seg| !seg.is_empty() && !matches!(*seg, "api" | "www" | "generativelanguage" | "notebooks"))
+        .unwrap_or(host)
+        .to_string()
 }
 
 /// Redacts query parameters that could leak credentials in error telemetry.
@@ -525,8 +538,8 @@ impl LlmClient {
         }
 
         if self.config.base_url.contains("openrouter.ai") {
-            req = req.header("HTTP-Referer", "https://github.com/j5onrf/rs-agent");
-            req = req.header("X-Title", "rs-agent");
+            req = req.header("HTTP-Referer", "https://github.com/j5onrf/railbot");
+            req = req.header("X-Title", "railbot");
         }
 
         req
@@ -556,10 +569,10 @@ impl LlmClient {
         tools: Option<Value>,
         cancel_flag: Option<Arc<AtomicBool>>,
         reasoning_override: Option<Option<ReasoningSetting>>,
-        on_event: &mut F,
+        on_chunk: &mut F,
     ) -> std::result::Result<(String, Option<String>, Option<Vec<Value>>, UsageStats), (anyhow::Error, bool, bool, Option<u64>)>
     where
-        F: FnMut(StreamEvent<'_>) + Send,
+        F: FnMut(&str, bool) + Send,
     {
         let body = self.build_request_body_with_reasoning(model, messages, tools, reasoning_override);
         let req = self.prepare_request(&body);
@@ -678,7 +691,7 @@ impl LlmClient {
                         if let Some(reasoning) = extract_delta_reasoning(delta) {
                             if !reasoning.is_empty() {
                                 has_emitted = true;
-                                on_event(StreamEvent::Chunk(reasoning, true));
+                                on_chunk(reasoning, true);
                                 full_reasoning.push_str(reasoning);
                             }
                         }
@@ -688,7 +701,7 @@ impl LlmClient {
                                 think_parser.feed(content, |slice, is_thinking| {
                                     if !slice.is_empty() {
                                         has_emitted = true;
-                                        on_event(StreamEvent::Chunk(slice, is_thinking));
+                                        on_chunk(slice, is_thinking);
                                         if is_thinking {
                                             full_reasoning.push_str(slice);
                                         } else {
@@ -701,8 +714,7 @@ impl LlmClient {
 
                         if delta.get("tool_calls").and_then(|v| v.as_array()).is_some_and(|a| !a.is_empty()) {
                             has_emitted = true;
-                            on_event(StreamEvent::ToolStart);
-                            accumulate_tool_calls(delta, &mut tool_calls_map);
+                                                        accumulate_tool_calls(delta, &mut tool_calls_map);
                         }
                     }
                 }
@@ -712,7 +724,7 @@ impl LlmClient {
         think_parser.flush(|slice, is_thinking| {
             if !slice.is_empty() {
                 has_emitted = true;
-                on_event(StreamEvent::Chunk(slice, is_thinking));
+                on_chunk(slice, is_thinking);
                 if is_thinking {
                     full_reasoning.push_str(slice);
                 } else {
@@ -771,17 +783,16 @@ impl LlmClient {
         Ok((full_response, opt_reasoning, tool_calls, stats))
     }
 
-    /// Single unified streaming engine for both interactive chat and ACP bridge.
-    async fn execute_stream<F>(
+    pub async fn stream_chat_raw_with_reasoning<F>(
         &self,
         messages: &[ChatMessage],
         tools: Option<Value>,
         cancel_flag: Option<Arc<AtomicBool>>,
         reasoning_override: Option<Option<ReasoningSetting>>,
-        mut on_event: F,
+        mut on_chunk: F,
     ) -> Result<(String, Option<String>, Option<Vec<Value>>, UsageStats)>
     where
-        F: FnMut(StreamEvent<'_>) + Send,
+        F: FnMut(&str, bool) + Send,
     {
         let candidates: Vec<&str> = std::iter::once(self.config.model.as_str())
             .chain(self.config.fallback_models.iter().map(String::as_str))
@@ -789,9 +800,6 @@ impl LlmClient {
 
         let mut last_err = anyhow::anyhow!("No model configured");
         for (idx, model) in candidates.iter().enumerate() {
-            if idx > 0 {
-                on_event(StreamEvent::Fallback(model));
-            }
             let has_fallback = idx + 1 < candidates.len();
             let max_attempts = if has_fallback { 1 } else { 3 };
 
@@ -807,7 +815,7 @@ impl LlmClient {
                         tools.clone(),
                         cancel_flag.clone(),
                         reasoning_override.clone(),
-                        &mut on_event,
+                        &mut on_chunk,
                     )
                     .await
                 {
@@ -835,25 +843,6 @@ impl LlmClient {
         Err(last_err)
     }
 
-    pub async fn stream_chat_raw_with_reasoning<F>(
-        &self,
-        messages: &[ChatMessage],
-        tools: Option<Value>,
-        cancel_flag: Option<Arc<AtomicBool>>,
-        reasoning_override: Option<Option<ReasoningSetting>>,
-        mut on_chunk: F,
-    ) -> Result<(String, Option<String>, Option<Vec<Value>>, UsageStats)>
-    where
-        F: FnMut(&str, bool) + Send,
-    {
-        self.execute_stream(messages, tools, cancel_flag, reasoning_override, |ev| {
-            if let StreamEvent::Chunk(chunk, is_thinking) = ev {
-                on_chunk(chunk, is_thinking);
-            }
-        })
-        .await
-    }
-
     pub async fn stream_chat_raw<F>(
         &self,
         messages: &[ChatMessage],
@@ -865,37 +854,6 @@ impl LlmClient {
         F: FnMut(&str, bool) + Send,
     {
         self.stream_chat_raw_with_reasoning(messages, tools, cancel_flag, None, on_chunk).await
-    }
-
-    pub async fn stream_chat(
-        &self,
-        messages: &[ChatMessage],
-        tools: Option<Value>,
-        renderer: &mut StreamRenderer,
-        spinner: &mut InlineSpinner,
-    ) -> Result<(String, Option<String>, Option<Vec<Value>>, UsageStats)> {
-        let mut tool_signaled = false;
-        let on_event = |ev: StreamEvent<'_>| match ev {
-            StreamEvent::Chunk(chunk, is_thinking) => {
-                spinner.stop();
-                renderer.on_chunk(chunk, is_thinking);
-            }
-            StreamEvent::ToolStart => {
-                if !tool_signaled {
-                    renderer.close_thinking();
-                    spinner.start("Drafting tool action...");
-                    tool_signaled = true;
-                }
-            }
-            StreamEvent::Fallback(model) => {
-                spinner.update(&format!("Fallback: {}...", model));
-            }
-        };
-
-        let res = self.execute_stream(messages, tools, None, None, on_event).await;
-        renderer.close_thinking();
-        spinner.stop();
-        res
     }
 }
 

@@ -1,7 +1,7 @@
 {
   "servers": {
     "photocraft": {
-      "command": "${HOME}/.config/rs-agent/plugins/mcp/photocraft/mcp-bridge.sh",
+      "command": "${HOME}/.config/railbot/plugins/mcp/photocraft/mcp-bridge.sh",
       "args": [],
       "env": {
         "PHOTOCRAFT_AUTOSTART": "1"
@@ -19,7 +19,7 @@
       "args": [
         "mcp-server-sqlite",
         "--db-path",
-        "${HOME}/.config/rs-agent/plugins/mcp/mcp.db"
+        "${HOME}/.config/railbot/plugins/mcp/mcp.db"
       ],
       "env": {}
     },

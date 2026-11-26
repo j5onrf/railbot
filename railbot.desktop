@@ -1,0 +1,12 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=RailBot
+GenericName=AI Agent Surface
+Comment=Local-first desktop and web AI agent harness
+Exec=railbot
+Icon=railbot
+Terminal=false
+StartupNotify=true
+Categories=Development;IDE;Utility;
+Keywords=ai;agent;llm;rust;railbot;

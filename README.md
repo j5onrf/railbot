@@ -15,7 +15,7 @@
 
 <p>
   <strong>Sub-millisecond native Rust AI desktop &amp; web harness for local GGUF models and cloud endpoints.</strong><br />
-  Parallel micro-bots &nbsp;•&nbsp; Local-first speed &nbsp;•&nbsp; Zero-trust sandbox &nbsp;•&nbsp; Built on <code>rs-agent</code>
+  Parallel micro-bots &nbsp;•&nbsp; Local-first speed &nbsp;•&nbsp; Zero-trust sandbox
 </p>
 
 <p align="center">
@@ -26,7 +26,7 @@
 
 ## Overview
 
-**RailBot** (`rs-rail`) brings `rs-agent` into a single frameless native desktop and web surface running on `http://127.0.0.1:24243`, letting autonomous micro-bots collaborate in parallel across local `llama-server` and cloud models.
+**RailBot** runs as a single frameless native desktop and web surface on `http://127.0.0.1:24243`, letting autonomous micro-bots collaborate in parallel across local `llama-server` and cloud models.
 
 - **Frameless Native App:** Launch with `rail` or `rr`
 - **Live Collaborators:** Consult peer micro-bots read-only via `/call`

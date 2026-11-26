@@ -1,6 +1,6 @@
 # PhotoCraft MCP Integration
 
-Headless and live-bridge image editing engine for `rs-agent` via the Model Context Protocol (MCP).
+Headless and live-bridge image editing engine for `railbot` via the Model Context Protocol (MCP).
 
 ---
 

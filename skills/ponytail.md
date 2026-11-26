@@ -11,7 +11,7 @@ The best code is code never written. Solve the whole problem with the least new 
 
 2. SMALLEST COMPLETE CHANGE (take the first option that fully works):
    - Skip unasked flags, abstractions, wrappers, traits, type conversions, and "for later" hooks.
-   - Reuse existing `rs-agent` modules (`src/config.rs`, `src/security.rs`, `src/adapter.rs`, `src/tools.rs`, `src/ui.rs`, `src/state.rs`).
+   - Reuse existing `railbot` modules (`src/config.rs`, `src/security.rs`, `src/adapter.rs`, `src/tools.rs`, `src/client.rs`, `src/state.rs`).
    - Prefer `std` or crates already in `Cargo.toml` (`tokio`, `serde_json`, `crossterm`, `regex`, `reqwest`). Never add a crate for a few lines, and keep `tools/*` binary startup sub-millisecond (< 1ms).
    - Keep values in the form the platform already gives you. Deletion beats addition.
    - Shortest clear diff wins (no clever unreadable one-liners). Comment only the *why* code cannot show, in one line.

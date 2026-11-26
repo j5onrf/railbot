@@ -1,34 +1,45 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-PLUGIN_DIR="$HOME/.config/rs-agent/plugins/rs-rail"
+APP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+DATA_DIR="${RAILBOT_HOME:-$HOME/.config/railbot}"
+ICON_SRC="$APP_DIR/assets/railbot.svg"
+[ -f "$ICON_SRC" ] || ICON_SRC="$DATA_DIR/assets/railbot.svg"
 
-# Auto-register XDG desktop entry & icon for current user on launch
-DESKTOP_DIR="$HOME/.local/share/applications"
-ICON_DIR="$HOME/.local/share/icons/hicolor/scalable/apps"
-mkdir -p "$DESKTOP_DIR" "$ICON_DIR"
+if [ "$(uname -s)" != "Darwin" ]; then
+    DESKTOP_DIR="$HOME/.local/share/applications"
+    ICON_DIR="$HOME/.local/share/icons/hicolor/scalable/apps"
+    mkdir -p "$DESKTOP_DIR" "$ICON_DIR"
+    rm -f "$DESKTOP_DIR/rs-rail.desktop"
+    [ -f "$ICON_SRC" ] && ln -sf "$ICON_SRC" "$ICON_DIR/railbot.svg"
 
-if [ ! -f "$DESKTOP_DIR/rs-rail.desktop" ] || ! grep -q "$PLUGIN_DIR" "$DESKTOP_DIR/rs-rail.desktop" 2>/dev/null; then
-    cat <<DESKTOP > "$DESKTOP_DIR/rs-rail.desktop"
+    if [ ! -f "$DESKTOP_DIR/railbot.desktop" ] || ! grep -q "$APP_DIR/launch.sh" "$DESKTOP_DIR/railbot.desktop" 2>/dev/null; then
+        cat <<DESKTOP > "$DESKTOP_DIR/railbot.desktop"
 [Desktop Entry]
 Version=1.0
 Type=Application
-Name=rs-rail
+Name=RailBot
 GenericName=AI Agent Surface
-Comment=Native Rust web and desktop surface for rs-agent
-Exec=$PLUGIN_DIR/launch.sh
-Icon=$PLUGIN_DIR/../../assets/rs-rail.svg
+Comment=Local-first desktop and web AI agent harness
+Exec=$APP_DIR/launch.sh
+Icon=railbot
 Terminal=false
 StartupNotify=true
 Categories=Development;IDE;Utility;
-Keywords=ai;agent;llm;rust;rs-agent;rail;
+Keywords=ai;agent;llm;rust;railbot;
 DESKTOP
-    ln -sf "$PLUGIN_DIR/../../assets/rs-rail.svg" "$ICON_DIR/rs-rail.svg"
-    update-desktop-database "$DESKTOP_DIR" >/dev/null 2>&1 || true
+        update-desktop-database "$DESKTOP_DIR" >/dev/null 2>&1 || true
+    fi
 fi
 
-BIN="$PLUGIN_DIR/target/release/rs-rail"
-PORT="${RS_RAIL_PORT:-24243}"
+BIN="${RAILBOT_BIN:-$APP_DIR/target/release/railbot}"
+if [ ! -x "$BIN" ] && command -v railbot >/dev/null 2>&1; then
+    BIN="$(command -v railbot)"
+elif [ ! -x "$BIN" ] && [ -f "$APP_DIR/Cargo.toml" ]; then
+    cargo build --release --manifest-path "$APP_DIR/Cargo.toml"
+fi
+
+PORT="${RAILBOT_PORT:-${RS_RAIL_PORT:-24243}}"
 MODE="app"
 TARGET_PATH="$PWD"
 
@@ -39,12 +50,8 @@ for arg in "$@"; do
     esac
 done
 
-if [ ! -f "$BIN" ]; then
-    cargo build --release --manifest-path "$PLUGIN_DIR/Cargo.toml"
-fi
-
 if ! curl -sf "http://127.0.0.1:$PORT/api/health" >/dev/null 2>&1; then
-    nohup "$BIN" >"${XDG_RUNTIME_DIR:-/tmp}/rs-rail-$(id -u).log" 2>&1 &
+    nohup "$BIN" >"${XDG_RUNTIME_DIR:-/tmp}/railbot-$(id -u).log" 2>&1 &
     for _ in $(seq 1 20); do
         curl -sf "http://127.0.0.1:$PORT/api/health" >/dev/null 2>&1 && break
         sleep 0.1
@@ -53,8 +60,8 @@ fi
 
 PROJ=""
 case "$TARGET_PATH" in
-    "$HOME/.config/rs-agent/projects/"*)
-        PROJ="${TARGET_PATH#$HOME/.config/rs-agent/projects/}"
+    "$DATA_DIR/projects/"*)
+        PROJ="${TARGET_PATH#$DATA_DIR/projects/}"
         PROJ="${PROJ%%/*}"
         ;;
 esac
@@ -62,6 +69,18 @@ esac
 URL="http://127.0.0.1:$PORT/${PROJ:+?project=$PROJ}"
 
 if [ "$MODE" = "app" ]; then
+    if [ "$(uname -s)" = "Darwin" ]; then
+        for mac_browser in \
+            "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
+            "/Applications/Brave Browser.app/Contents/MacOS/Brave Browser" \
+            "/Applications/Chromium.app/Contents/MacOS/Chromium" \
+            "/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge"; do
+            if [ -x "$mac_browser" ]; then
+                nohup "$mac_browser" --app="$URL" --new-window >/dev/null 2>&1 </dev/null &
+                exit 0
+            fi
+        done
+    fi
     if command -v omarchy-launch-webapp >/dev/null 2>&1; then
         nohup setsid omarchy-launch-webapp "$URL" >/dev/null 2>&1 </dev/null &
         exit 0

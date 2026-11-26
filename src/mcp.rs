@@ -27,7 +27,7 @@ struct ServersFile {
 
 fn get_mcp_config_path() -> PathBuf {
     dirs::home_dir()
-        .map(|h| h.join(".config/rs-agent/plugins/mcp/servers.json"))
+        .map(|h| h.join(".config/railbot/plugins/mcp/servers.json"))
         .unwrap_or_else(|| PathBuf::from("plugins/mcp/servers.json"))
 }
 
@@ -43,7 +43,7 @@ pub fn load_servers_config() -> HashMap<String, McpServerConfig> {
         .unwrap_or_default()
 }
 
-pub fn expand_env_str(val: &str) -> String {
+fn expand_env_str(val: &str) -> String {
     let mut out = val.to_string();
     if out == "~" {
         return dirs::home_dir().map(|h| h.to_string_lossy().to_string()).unwrap_or(out);
@@ -66,7 +66,7 @@ pub fn expand_env_str(val: &str) -> String {
     out
 }
 
-pub struct McpSession {
+struct McpSession {
     child: Child,
     reader: BufReader<tokio::process::ChildStdout>,
     stderr_buf: Arc<Mutex<String>>,
@@ -196,7 +196,7 @@ impl McpSession {
         let init_params = json!({
             "protocolVersion": "2024-11-05",
             "capabilities": {},
-            "clientInfo": { "name": "rs-agent-mcp", "version": "0.4.6" }
+            "clientInfo": { "name": "railbot-mcp", "version": "0.4.6" }
         });
         self.send_rpc("initialize", init_params).await?;
         self.send_notification("notifications/initialized", json!({})).await?;

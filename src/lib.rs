@@ -1,14 +1,9 @@
 pub mod adapter;
-pub mod bridge;
 pub mod client;
 pub mod config;
-pub mod matcher;
 pub mod mcp;
 pub mod profile;
 pub mod security;
 pub mod skill;
-pub mod spinner;
 pub mod state;
-pub mod stream;
 pub mod tools;
-pub mod ui;

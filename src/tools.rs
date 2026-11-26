@@ -35,6 +35,36 @@ const SIGKILL: i32 = 9;
 
 static SUBAGENT_DEPTH: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
 
+fn is_env_path(p: &Path) -> bool {
+    p.file_name()
+        .and_then(|n| n.to_str())
+        .is_some_and(|n| n == ".env" || n.starts_with(".env."))
+}
+
+pub fn is_env_tool_blocked(fn_name: &str, args: &Value, boundary: &SecurityBoundary) -> bool {
+    let env_file = crate::config::get_env_path();
+    if fn_name == "run_command" {
+        let low = args.get("command").and_then(|v| v.as_str()).unwrap_or("").to_ascii_lowercase();
+        if low.contains(".env") {
+            return true;
+        }
+        let env_str = env_file.to_string_lossy().to_ascii_lowercase();
+        return !env_str.is_empty() && low.contains(&env_str);
+    }
+    if let Some(p_str) = args.get("path").and_then(|v| v.as_str()) {
+        let resolved = boundary.resolve_path(p_str);
+        if is_env_path(&resolved) || resolved.components().any(|c| c.as_os_str() == ".env") {
+            return true;
+        }
+        if let (Ok(ce), Ok(cr)) = (env_file.canonicalize(), resolved.canonicalize()) {
+            if ce == cr {
+                return true;
+            }
+        }
+    }
+    false
+}
+
 #[inline]
 pub fn is_read_only_tool(name: &str) -> bool {
     matches!(name, "read_file" | "list_dir" | "search_code")
@@ -456,15 +486,6 @@ pub fn resilient_replace(original: &str, old_str: &str, new_str: &str) -> Result
     Err("Target 'old_str' not found in file (even with whitespace tolerance and fuzzy matching). Use read_file to inspect exact lines.".into())
 }
 
-pub async fn execute_tool(
-    name: &str,
-    raw_args: &str,
-    workspace: &Path,
-    boundary: &SecurityBoundary,
-) -> Result<String, String> {
-    execute_tool_with_auth(name, raw_args, workspace, boundary, false).await
-}
-
 pub async fn execute_tool_with_auth(
     name: &str,
     raw_args: &str,
@@ -473,6 +494,9 @@ pub async fn execute_tool_with_auth(
     preauthorized_cmd: bool,
 ) -> Result<String, String> {
     let args = heal_json_args(raw_args);
+    if is_env_tool_blocked(name, &args, boundary) {
+        return Err("[denied] .env is always zero-trust.".into());
+    }
     let ceilings = get_context_ceilings();
 
     if let Some(rest) = name.strip_prefix("mcp_") {
@@ -918,5 +942,24 @@ mod tests {
         compact_mcp_schema(&mut schema);
         assert_eq!(schema["function"]["description"], "[photocraft] Create a new document");
         assert!(schema["function"]["parameters"].get("$schema").is_none());
+    }
+
+    #[tokio::test]
+    async fn test_execute_tool_with_auth_always_blocks_env() {
+        let tmp = std::env::temp_dir().join(format!("railbot_tools_env_{}", std::process::id()));
+        let _ = fs::remove_dir_all(&tmp);
+        fs::create_dir_all(&tmp).unwrap();
+        let bnd = SecurityBoundary::new_headless(&tmp);
+
+        let err = execute_tool_with_auth("read_file", r#"{"path":".env"}"#, &tmp, &bnd, true)
+            .await
+            .unwrap_err();
+        assert!(err.contains("zero-trust"));
+
+        let cmd_err = execute_tool_with_auth("run_command", r#"{"command":"cat .env"}"#, &tmp, &bnd, true)
+            .await
+            .unwrap_err();
+        assert!(cmd_err.contains("zero-trust"));
+        let _ = fs::remove_dir_all(&tmp);
     }
 }

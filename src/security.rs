@@ -1,5 +1,4 @@
 use std::fs;
-use std::io::{self, BufRead, IsTerminal, Write};
 use std::path::{Path, PathBuf};
 use std::sync::OnceLock;
 
@@ -333,24 +332,7 @@ impl SecurityBoundary {
         None
     }
 
-    pub fn authorize(&self, violation: &str) -> bool {
-        if self.headless || !io::stdout().is_terminal() {
-            return false;
-        }
-        if io::stdin().is_terminal() {
-            return crate::ui::authorize_prompt(violation);
-        }
-        print!("\n\x1b[1;31m[SECURITY-ALERT] Authorize: {}? [y/N]: \x1b[0m", violation);
-        let _ = io::stdout().flush();
-
-        if let Ok(tty) = fs::File::open("/dev/tty") {
-            let mut reader = io::BufReader::new(tty);
-            let mut line = String::new();
-            if reader.read_line(&mut line).is_ok() {
-                let ans = line.trim().to_lowercase();
-                return ans == "y" || ans == "yes";
-            }
-        }
+    pub fn authorize(&self, _violation: &str) -> bool {
         false
     }
 }
