@@ -29,14 +29,33 @@
       radial-gradient(65% 40% at 50% 0%, color-mix(in srgb, var(--cyan) 10%, transparent), transparent 72%);
   }
   button, input, select, textarea { font: inherit; color: inherit; outline: none; }
-  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+  .wrap { max-width: 1280px; margin: 0 auto; padding: 0 24px; }
 
   /* Screen 1: Full-Viewport Overview */
   .overview-sec {
     min-height: 100vh; display: flex; flex-direction: column; justify-content: center;
     padding: 28px 0 44px;
   }
-  nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; gap: 12px; }
+  .overview-sec > nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; gap: 12px; }
+    .ver-badge {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--muted);
+    background: color-mix(in srgb, var(--card) 90%, transparent);
+    border: 1px solid var(--border);
+    padding: 2px 7px;
+    border-radius: 999px;
+    text-decoration: none;
+    letter-spacing: .02em;
+    transition: border-color .15s, color .15s, background .15s;
+  }
+  .ver-badge:hover {
+    color: var(--accent);
+    border-color: color-mix(in srgb, var(--accent) 50%, var(--border));
+    background: color-mix(in srgb, var(--accent) 10%, var(--card));
+  }
+
   .brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; font-size: 15px; letter-spacing: -.01em; text-decoration: none; }
   .pill-link {
     border: 1px solid var(--border); background: var(--panel); color: var(--muted);
@@ -51,7 +70,7 @@
     background-color: #1b1d2e;
     background-image: linear-gradient(90deg, #1b1d2e 32%, rgba(27,29,46,0.35) 62%, transparent 100%), url("assets/banner-eldritch.png");
     background-size: cover; background-position: right center;
-    padding: 42px 46px; margin-bottom: 16px; overflow: hidden;
+    padding: 48px 52px; margin-bottom: 16px; overflow: hidden;
     box-shadow: 0 24px 60px rgba(0, 0, 0, .45);
   }
   .hero-inner { position: relative; z-index: 2; max-width: 500px; display: flex; flex-direction: column; gap: 14px; }
@@ -117,7 +136,7 @@
   .stream, .proj-list, .file-list, .act-list, .modal-pane, .fm-body { scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--muted) 35%, transparent) transparent; }
 
   /* Embedded RailBot Frame (720px) */
-  .frame { position: relative; border: 1px solid var(--border); border-radius: 14px; background: var(--bg); box-shadow: 0 28px 80px rgba(0,0,0,.5); overflow: hidden; font-family: var(--mono); font-size: 12px; height: 720px; display: flex; flex-direction: column; }
+  .frame { position: relative; border: 1px solid var(--border); border-radius: 14px; background: var(--bg); color: var(--text); box-shadow: 0 28px 80px rgba(0,0,0,.5); overflow: hidden; font-family: var(--mono); font-size: 12px; height: 720px; display: flex; flex-direction: column; }
   .app-top { height: 40px; min-height: 40px; background: var(--panel); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 12px; gap: 8px; flex-shrink: 0; }
   .tb-l, .tb-r { display: flex; align-items: center; gap: 6px; min-width: 0; }
   .c-btn { width: 26px; height: 26px; border-radius: 999px; border: 1px solid var(--border); background: var(--card); color: var(--muted); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; transition: .12s; flex-shrink: 0; }
@@ -142,6 +161,7 @@
   .sb-head { padding: 8px 10px 6px; display: flex; justify-content: space-between; align-items: center; gap: 6px; flex-shrink: 0; }
   .tabs { display: flex; gap: 3px; }
   .tab { background: transparent; border: 1px solid transparent; border-radius: 5px; padding: 2px 7px; font-size: 11px; color: var(--dim); cursor: pointer; }
+  .tab:hover { background: var(--hover); color: var(--text); }
   .tab.active { background: var(--card); border-color: var(--border); color: var(--text); }
   .btn-xs { background: var(--card); border: 1px solid var(--border); border-radius: 6px; padding: 2px 7px; font-size: 11px; color: var(--text); cursor: pointer; white-space: nowrap; }
   .btn-xs:hover { background: var(--hover); }
@@ -154,7 +174,7 @@
   .sb-l:hover .sb-foot .btn-icon, .sb-foot .btn-icon:focus-visible { opacity: 1; }
   .proj-item { padding: 5px 8px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 7px; border: 1px solid transparent; color: var(--muted); }
   .proj-item:hover { background: var(--hover); color: var(--text); }
-  .proj-item.active { background: var(--user-bg); border-color: var(--user-border); color: var(--text); }
+  .proj-item.active { background: var(--active-bg, var(--user-bg)); border-color: var(--active-border, var(--user-border)); color: var(--text); }
   .proj-l { display: flex; align-items: center; gap: 8px; min-width: 0; flex: 1; }
   .proj-badge { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; color: var(--muted); font-size: 9.5px; font-weight: 600; text-transform: uppercase; }
   .proj-badge.let { width: 20px; height: 20px; border-radius: 4px; background: var(--card); border: 1px solid var(--border); }
@@ -176,7 +196,11 @@
   .rs-top { flex: 1 1 0%; display: flex; flex-direction: column; min-height: 0; border-bottom: 1px solid var(--border); }
   .rs-lbl { font-size: 11.5px; color: var(--muted); }
   .file-list { flex: 1 1 0%; overflow-y: auto; padding: 2px 6px 8px; display: flex; flex-direction: column; gap: 2px; }
-  .file-row { padding: 4px 8px; border-radius: 5px; font-size: 11.5px; color: var(--muted); cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .file-row { padding: 4px 8px; border-radius: 5px; font-size: 11.5px; color: var(--muted); cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+  .file-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .file-del { background: transparent; border: none; color: var(--dim); cursor: pointer; font-size: 10px; padding: 1px 4px; border-radius: 4px; display: none; flex-shrink: 0; line-height: 1.2; }
+  .file-row:hover .file-del, .file-del.arm { display: inline-block; }
+  .file-del.arm { color: var(--del-text); background: var(--del-bg); }
   .file-row:hover { background: var(--hover); color: var(--text); }
   .rs-bot { height: 43%; min-height: 160px; display: flex; flex-direction: column; flex-shrink: 0; }
   .act-list { flex: 1 1 0%; padding: 6px 8px; display: flex; flex-direction: column; gap: 5px; overflow-y: auto; }
@@ -192,10 +216,10 @@
   .stream { flex: 1 1 0%; min-height: 0; overflow-y: auto; overflow-x: hidden; padding: 16px 22px 10px; display: flex; flex-direction: column; gap: 11px; }
   .turn-wrap { max-width: 740px; width: 100%; margin: 0 auto; display: flex; flex-direction: column; gap: 10px; }
   .comp-wrap { flex-shrink: 0; padding: 6px 22px 12px; background: var(--bg); }
-  .composer { position: relative; max-width: 740px; margin: 0 auto; background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px 9px; display: flex; flex-direction: column; gap: 9px; }
+  .composer { position: relative; max-width: 740px; margin: 0 auto; background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px 9px; display: flex; flex-direction: column; gap: 8px; }
   .composer:focus-within { border-color: color-mix(in srgb, var(--accent) 50%, var(--border)); }
-  .composer input { width: 100%; background: transparent; border: none; color: var(--text); font-size: 12px; padding: 2px 0; }
-  .composer input::placeholder { color: var(--muted); opacity: 0.65; }
+  .composer textarea { width: 100%; background: transparent; border: none; outline: none; resize: none; min-height: 36px; max-height: 180px; line-height: 1.45; color: var(--text); font-size: 12px; padding: 0; }
+  .composer textarea::placeholder { color: var(--muted); opacity: 0.48; }
 
   .empty-state { margin: 80px auto 0; text-align: center; color: var(--muted); max-width: 520px; line-height: 1.55; }
   .empty-title { font-size: 21px; font-weight: 600; letter-spacing: -0.02em; color: var(--text); text-wrap: balance; }
@@ -263,32 +287,65 @@
   .send-btn { width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--border); background: var(--panel); color: var(--muted); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
   .send-btn.ready { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); }
 
-  /* Modals */
-  .frame-modal { position: absolute; inset: 0; background: rgba(0,0,0,.64); display: none; align-items: center; justify-content: center; z-index: 45; padding: 14px; }
+  /* Modals (ui.html parity) */
+  .frame-modal { position: absolute; inset: 0; background: rgba(0,0,0,.68); display: none; align-items: center; justify-content: center; z-index: 45; padding: 14px; }
   .frame-modal.open { display: flex; }
   .fm-box { width: 470px; max-width: 96%; max-height: 92%; background: var(--panel); border: 1px solid var(--border); border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 24px 60px rgba(0,0,0,.6); }
-  .fm-box.wide { width: 730px; height: 500px; }
-  .fm-head { padding: 11px 15px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; font-weight: 600; font-size: 12.5px; flex-shrink: 0; }
-  .fm-body { padding: 14px; overflow-y: auto; display: flex; flex-direction: column; gap: 11px; }
-  .fm-pre { margin: 0; padding: 10px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; overflow-x: auto; font-size: 11px; line-height: 1.45; }
+  .fm-box.wide { width: 760px; height: 540px; }
+  .fm-head { padding: 12px 16px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; font-weight: 600; font-size: 13px; flex-shrink: 0; }
+  .fm-body { padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
+  .fm-pre { margin: 0; padding: 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; overflow-x: auto; font-size: 11.5px; line-height: 1.45; }
 
   .modal-body { flex: 1 1 0%; display: flex; min-height: 0; }
-  .modal-nav { width: 178px; border-right: 1px solid var(--border); padding: 10px 8px; display: flex; flex-direction: column; gap: 2px; background: color-mix(in srgb, var(--bg) 55%, var(--panel)); flex-shrink: 0; }
-  .nav-group { font-size: 10px; color: var(--dim); padding: 6px 10px 4px; font-weight: 600; letter-spacing: .08em; }
-  .nav-btn + .nav-group { margin-top: 6px; padding-top: 10px; border-top: 1px solid color-mix(in srgb, var(--border) 65%, transparent); }
-  .nav-btn { text-align: left; background: transparent; border: 1px solid transparent; padding: 6px 10px; border-radius: 6px; cursor: pointer; color: var(--muted); font-size: 11.5px; }
+  .modal-nav { width: 190px; border-right: 1px solid var(--border); padding: 10px 8px; display: flex; flex-direction: column; align-items: stretch; justify-content: flex-start; margin: 0; gap: 2px; background: color-mix(in srgb, var(--bg) 55%, var(--panel)); flex-shrink: 0; }
+  .lbl-bar { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .lbl-chip { display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border-radius: 999px; font-size: 11px; border: 1px solid var(--border); background: var(--card); color: var(--text); cursor: pointer; }
+  .lbl-chip:hover { border-color: var(--cyan); }
+  .nav-group { font-size: 10px; color: var(--muted); opacity: 0.58; padding: 6px 10px 4px; font-weight: 600; letter-spacing: .08em; }
+  .nav-btn + .nav-group { margin-top: 8px; padding-top: 12px; border-top: 1px solid color-mix(in srgb, var(--border) 65%, transparent); }
+  .nav-btn { text-align: left; background: transparent; border: 1px solid transparent; padding: 7px 10px; border-radius: 6px; cursor: pointer; color: color-mix(in srgb, var(--text) 78%, var(--muted)); font-size: 12px; }
   .nav-btn:hover { background: var(--hover); color: var(--text); }
-  .nav-btn.active { background: color-mix(in srgb, var(--accent) 14%, transparent); border-color: color-mix(in srgb, var(--accent) 45%, transparent); color: var(--accent); font-weight: 600; }
-  .modal-pane { flex: 1 1 0%; padding: 16px 18px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
-  .s-row { display: flex; justify-content: space-between; align-items: center; padding: 9px 11px; background: var(--card); border: 1px solid var(--border); border-radius: 8px; gap: 12px; font-size: 11.5px; }
-  .s-row.active-slot { border-color: color-mix(in srgb, var(--accent) 50%, transparent); background: color-mix(in srgb, var(--accent) 10%, var(--card)); }
-  .s-sub { font-size: 10.5px; color: var(--muted); margin-top: 2px; }
-  .s-sel { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 4px 8px; font-size: 11px; color: var(--text); cursor: pointer; }
+  .nav-btn.active { background: color-mix(in srgb, var(--accent) 14%, transparent); border-color: color-mix(in srgb, var(--accent) 45%, transparent); color: var(--accent); font-weight: 500; }
+  .modal-pane { flex: 1 1 0%; padding: 18px 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
+  .s-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: var(--card); border: 1px solid var(--border); border-radius: 8px; gap: 12px; font-size: 12px; }
+  .s-row.active-slot { border-color: color-mix(in srgb, var(--accent) 50%, transparent); background: color-mix(in srgb, var(--accent) 12%, transparent); }
+  .s-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .s-sel { background: var(--card); border: 1px solid var(--border); border-radius: 6px; padding: 4px 8px; font-size: 11.5px; color: var(--text); cursor: pointer; }
+  .s-sel:hover { background: var(--hover); border-color: color-mix(in srgb, var(--accent) 40%, var(--border)); }
   .switch { width: 32px; height: 18px; border-radius: 99px; border: 1px solid var(--border); background: var(--bg); position: relative; cursor: pointer; flex-shrink: 0; transition: .15s; }
   .switch::after { content: ""; position: absolute; top: 2px; left: 2px; width: 12px; height: 12px; border-radius: 50%; background: var(--muted); transition: .15s; }
   .switch.on { background: var(--accent); border-color: var(--accent); }
   .switch.on::after { transform: translateX(14px); background: var(--accent-fg); }
-  .tag-pill { display: inline-block; padding: 1px 6px; border-radius: 999px; font-size: 10px; border: 1px solid var(--border); background: var(--panel); color: var(--muted); margin-right: 4px; }
+  
+  .theme-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .theme-card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 9px 10px; cursor: pointer; display: flex; align-items: center; gap: 9px; text-align: left; min-width: 0; position: relative; }
+  .theme-card:hover { background: var(--hover); }
+  .theme-card.active { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, transparent); }
+  .theme-swatch { width: 20px; height: 20px; border-radius: 50%; border: 1px solid var(--border); flex-shrink: 0; }
+  .theme-meta { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .theme-name { font-size: 12px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .theme-tag { font-size: 10px; color: var(--dim); }
+  .theme-del { margin-left: auto; background: transparent; border: none; color: var(--dim); cursor: pointer; font-size: 10px; padding: 2px 5px; border-radius: 4px; display: none; flex-shrink: 0; }
+  .theme-card:hover .theme-del, .noc-row:hover .theme-del { display: inline-flex; align-items: center; }
+  .theme-del:hover { color: var(--del-text); background: var(--del-bg); }
+  .noc-list { display: flex; flex-direction: column; gap: 6px; }
+  .noc-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 10px; background: var(--card); border: 1px solid var(--border); border-radius: 8px; cursor: pointer; }
+  .noc-row:hover { background: var(--hover); }
+  .noc-row.active { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, transparent); }
+  .noc-swatches { display: inline-flex; align-items: center; gap: 4px; flex-shrink: 0; }
+  .noc-dot { width: 14px; height: 14px; border-radius: 50%; border: 1px solid var(--border); }
+  .ap-tabs { display: inline-flex; gap: 4px; }
+  .ap-tab { background: transparent; border: 1px solid transparent; border-radius: 5px; padding: 3px 8px; font-size: 11px; color: var(--dim); cursor: pointer; font-weight: 500; }
+  .ap-tab:hover { color: var(--text); }
+  .ap-tab.active { background: var(--panel); border-color: var(--border); color: var(--text); }
+
+    .tag-btn { background: var(--panel); border: 1px solid var(--border); border-radius: 999px; padding: 1px 7px; font-size: 10.5px; color: var(--muted); cursor: pointer; display: inline-flex; align-items: center; gap: 4px; margin-right: 4px; }
+  .tag-btn:hover { background: var(--hover); color: var(--text); }
+  .tag-x { background: transparent; border: none; padding: 0 2px; cursor: pointer; color: var(--dim); font-size: 10px; line-height: 1; border-radius: 4px; }
+  .tag-x:hover { color: var(--text); }
+  .tag-x.arm { color: var(--del-text); background: var(--del-bg); padding: 1px 4px; }
+  .tag-pill { display: inline-block; padding: 1px 7px; border-radius: 999px; font-size: 10.5px; border: 1px solid var(--border); background: var(--panel); color: var(--muted); margin-right: 4px; }
+
 
   .bot-grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 7px; }
   .bot-opt { height: 42px; background: var(--card); border: 1px solid var(--border); border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--muted); transition: .12s; }
@@ -298,6 +355,18 @@
   .collab-chip { height: 26px; padding: 0 9px; border-radius: 999px; border: 1px solid var(--border); background: var(--card); color: var(--muted); font-size: 11px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
   .collab-chip:hover { background: var(--hover); color: var(--text); }
   .collab-chip.on { background: color-mix(in srgb, var(--accent) 14%, transparent); border-color: var(--accent); color: var(--accent); font-weight: 500; }
+
+  
+  .np-field { display: flex; flex-direction: column; gap: 5px; }
+  .np-lbl { font-size: 11.5px; color: var(--muted); }
+  .np-inp, .np-sel { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 7px 10px; font-size: 12px; color: var(--text); }
+  .np-inp:focus, .np-sel:focus { border-color: var(--accent); }
+  .dir-box { display: none; flex-direction: column; gap: 6px; padding: 8px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; }
+  .dir-box.open { display: flex; }
+  .dir-bar { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--muted); }
+  .dir-list { max-height: 120px; overflow-y: auto; display: flex; flex-direction: column; gap: 2px; }
+  .dir-row { background: transparent; border: none; border-radius: 5px; padding: 4px 7px; text-align: left; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-size: 11.5px; color: var(--text); }
+  .dir-row:hover { background: var(--hover); }
 
   .call-route { display: flex; align-items: center; gap: 8px; }
   .call-node { flex: 1; background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 7px 10px; display: flex; align-items: center; gap: 8px; font-size: 11.5px; }
@@ -322,7 +391,7 @@
     .hero-card { padding: 26px 20px; background-image: linear-gradient(180deg, rgba(27,29,46,0.92) 40%, rgba(27,29,46,0.74) 100%), url("assets/banner-eldritch.png"); }
   }
   @media (max-width: 640px) {
-    .sb-l { display: none; } .frame { height: 540px; } .spec-grid { grid-template-columns: 1fr; }
+    .wrap { padding: 0 14px; } .sb-l { display: none; } .frame { height: 540px; } .spec-grid { grid-template-columns: 1fr; }
     .modal-body { flex-direction: column; }
     .modal-nav { width: 100%; flex-direction: row; overflow-x: auto; border-right: none; border-bottom: 1px solid var(--border); }
     .nav-group { display: none; }
@@ -334,7 +403,7 @@
   <!-- Screen 1: Clean Banner Overview + Spec Bar -->
   <section class="overview-sec" id="overview">
     <nav>
-      <div class="brand"><img src="assets/logo-eldritch.svg" alt="RailBot" width="24" height="24" /><span>RailBot</span></div>
+      <div class="brand"><img src="assets/logo-eldritch.svg" alt="RailBot" width="24" height="24" /><span>RailBot</span><a class="ver-badge" href="https://github.com/j5onrf/railbot/releases" title="View releases on GitHub">v0.4.2</a></div>
       <a class="pill-link" href="https://github.com/j5onrf/railbot">GitHub ↗</a>
     </nav>
 
@@ -434,12 +503,12 @@
           <div class="comp-wrap">
             <div class="composer">
               <div class="ac-pop" id="ac-pop"></div>
-              <input id="d-input" placeholder="Ask surogate37... (/ commands, /call peer)" />
+              <textarea id="d-input" rows="1" placeholder="Message chatbot... (/ commands)"></textarea>
               <div class="comp-bar">
                 <div class="comp-l">
-                  <button type="button" class="m-pill" id="d-model">Surogate3.7-35B-A3B · local</button>
+                  <button type="button" class="m-pill" id="d-model">LFM3-1.7B · local</button>
                   <div class="pop-wrap">
-                    <button type="button" class="m-pill muted" id="btn-reason"><span id="r-val">200</span> ⌄</button>
+                    <button type="button" class="m-pill muted" id="btn-reason"><span id="r-val">250</span> ⌄</button>
                     <div class="pop" id="pop-r"></div>
                   </div>
                   <div class="pop-wrap" id="sec-wrap">
@@ -500,8 +569,50 @@
 
 <script>
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-let activeTab = "providers", botPage = 0, activeProj = "surogate37";
-let rsTab = "acts", allowAll = false, useLetters = false, compactSidebar = false, expandSteps = false;
+let activeTab = "providers", botPage = 0, activeProj = "chatbot";
+let rsTab = "acts", allowAll = false, compactSidebar = false, expandSteps = false;
+let badgeMode = "vector", iconStyle = "solid", uiFont = "JetBrains Mono", uiSize = 13, codeFont = "JetBrains Mono", codeSize = 12;
+let demoThemeId = "custom:eldritch", nocBrowse = false, nocMode = "dark", nocFilter = "";
+const LIVE_THEMES = [
+  { id:"omarchy",  name:"Omarchy",  source:"live", mode:"light", bg:"#ffffff", panel:"#f8f9fa", card:"#f1f3f4", border:"#dadce0", text:"#1f1f1f", muted:"#5f6368", accent:"#1a73e8", cyan:"#1a73e8" },
+  { id:"noctalia", name:"Noctalia", source:"live", mode:"dark",  bg:"#09090b", panel:"#0f0f12", card:"#16161a", border:"#232329", text:"#ececef", muted:"#8e8e98", accent:"#1a73e8", cyan:"#669df6", active_bg:"#151923", active_border:"#28344d" }
+];
+const CUSTOM_THEMES = [
+  { id:"custom:eldritch", name:"Eldritch", source:"custom", mode:"dark", bg:"#1b1d2e", panel:"#23253a", card:"#2c2f48", border:"#3f4362", text:"#ebfafa", muted:"#a4b1cd", accent:"#37f499", cyan:"#04d1f9" }
+];
+const NOC_CATALOG = [
+  { name:"Catppuccin",  dark:{ bg:"#1e1e2e", panel:"#272839", card:"#313244", border:"#585b70", text:"#cdd6f4", muted:"#a6adc8", accent:"#cba6f7", cyan:"#89b4fa" }, light:{ bg:"#eff1f5", panel:"#e6e9ef", card:"#ccd0da", border:"#9ca0b0", text:"#4c4f69", muted:"#6c6f85", accent:"#8839ef", cyan:"#1e66f5" } },
+  { name:"Tokyo-Night", dark:{ bg:"#1a1b26", panel:"#1f2335", card:"#24283b", border:"#414868", text:"#c0caf5", muted:"#a9b1d6", accent:"#7aa2f7", cyan:"#7dcfff" }, light:{ bg:"#e1e2e7", panel:"#d5d6db", card:"#c8c9d0", border:"#a8aecb", text:"#343b58", muted:"#6172b0", accent:"#2e7de9", cyan:"#007197" } },
+  { name:"Gruvbox",     dark:{ bg:"#282828", panel:"#2d2c2c", card:"#32302f", border:"#504945", text:"#ebdbb2", muted:"#a89984", accent:"#a9b665", cyan:"#7db2ba" }, light:{ bg:"#fbf1c7", panel:"#f2e5bc", card:"#ebdbb2", border:"#bdae93", text:"#3c3836", muted:"#665c54", accent:"#79740e", cyan:"#427b58" } },
+  { name:"Nord",        dark:{ bg:"#2e3440", panel:"#353b49", card:"#3b4252", border:"#4c566a", text:"#eceff4", muted:"#d8dee9", accent:"#88c0d0", cyan:"#81a1c1" }, light:{ bg:"#eceff4", panel:"#e5e9f0", card:"#d8dee9", border:"#b8c2d1", text:"#2e3440", muted:"#4c566a", accent:"#5e81ac", cyan:"#4c7b8b" } },
+  { name:"Dracula",     dark:{ bg:"#282a36", panel:"#313443", card:"#44475a", border:"#6272a4", text:"#f8f8f2", muted:"#b6bfd9", accent:"#bd93f9", cyan:"#8be9fd" }, light:{ bg:"#fffbeb", panel:"#f4efe0", card:"#e8e3d5", border:"#cfcfde", text:"#1f1f1f", muted:"#6c664b", accent:"#644ac9", cyan:"#036a96" } },
+  { name:"Rosé Pine",   dark:{ bg:"#191724", panel:"#1f1d2e", card:"#26233a", border:"#403d52", text:"#e0def4", muted:"#908caa", accent:"#ebbcba", cyan:"#9ccfd8" }, light:{ bg:"#faf4ed", panel:"#fffaf3", card:"#f2e9e1", border:"#dfdad9", text:"#575279", muted:"#797593", accent:"#d7827e", cyan:"#56949f" } },
+  { name:"Ayu",         dark:{ bg:"#0b0e14", panel:"#131720", card:"#1e222a", border:"#3d424d", text:"#d1d1c7", muted:"#8e959e", accent:"#ffb454", cyan:"#39bae6" }, light:{ bg:"#f8f9fa", panel:"#eff1f3", card:"#e4e6e9", border:"#c9cdd2", text:"#42474c", muted:"#6e757c", accent:"#ff8f40", cyan:"#55b4d4" } }
+];
+function applyDemoTheme(id) {
+  demoThemeId = id;
+  const t = [...LIVE_THEMES, ...CUSTOM_THEMES].find(x => x.id === id) || CUSTOM_THEMES[0];
+  const f = document.getElementById("demo-frame").style;
+  const light = t.mode === "light";
+  const r = parseInt(t.accent.slice(1,3),16)||0, g = parseInt(t.accent.slice(3,5),16)||0, b = parseInt(t.accent.slice(5,7),16)||0;
+  const fg = ((r*299 + g*587 + b*114)/1000 > 145) ? "#05140a" : "#ffffff";
+  f.setProperty("--bg", t.bg); f.setProperty("--panel", t.panel); f.setProperty("--card", t.card);
+  f.setProperty("--hover", `color-mix(in srgb, ${t.text} 6%, ${t.card})`);
+  f.setProperty("--border", t.border); f.setProperty("--text", t.text); f.setProperty("--muted", t.muted);
+  f.setProperty("--dim", `color-mix(in srgb, ${t.muted} 82%, ${t.bg})`);
+  f.setProperty("--accent", t.accent); f.setProperty("--cyan", t.cyan); f.setProperty("--accent-fg", fg);
+  f.setProperty("--user-bg", `color-mix(in srgb, ${t.accent} ${light?"20%":"22%"}, ${t.panel})`);
+  f.setProperty("--user-border", `color-mix(in srgb, ${t.accent} ${light?"34%":"42%"}, ${t.border})`);
+  f.setProperty("--active-bg", t.active_bg || `color-mix(in srgb, ${t.accent} 16%, ${t.panel})`);
+  f.setProperty("--active-border", t.active_border || `color-mix(in srgb, ${t.accent} 48%, ${t.border})`);
+  f.setProperty("--add-bg", light ? "rgba(22,163,74,0.12)" : "rgba(34,197,94,0.14)");
+  f.setProperty("--add-text", light ? "#15803d" : "#86efac");
+  f.setProperty("--del-bg", light ? "rgba(220,38,38,0.12)" : "rgba(239,68,68,0.14)");
+  f.setProperty("--del-text", light ? "#dc2626" : "#fca5a5");
+  f.setProperty("--syn-kw", light ? "#1d4ed8" : "#8ab4f8");
+  f.setProperty("--syn-str", light ? "#15803d" : "#86efac");
+  f.setProperty("--syn-num", light ? "#b45309" : "#fcd34d");
+}
 let activeProvider = "LOCAL", maxTokens = 8192, maxRounds = 15, activeSkills = [], extraTurns = [];
 
 const CHAT_BOT_MASK = 0x8010;
@@ -544,6 +655,19 @@ function hashBotMask(name) {
 }
 const projMask = (name) => (PROJECTS.find(x => x.name === name)?.customMask) || hashBotMask(name);
 function botSvgFromMask(mask, size = 18) {
+  if (badgeMode === "pixel") {
+    const r = [];
+    if (mask === CHAT_BOT_MASK) {
+      for (const [x, y] of [[1,0],[2,0],[3,0],[0,1],[2,1],[4,1],[0,2],[1,2],[2,2],[3,2],[4,2],[1,3],[2,3],[3,3],[1,4]])
+        r.push(`<rect x="${3+x*2}" y="${3+y*2}" width="2" height="2" rx="0.4"/>`);
+    } else {
+      for (let y = 0; y < 5; y++) for (let x = 0; x < 3; x++) if ((mask >> (y*3+x)) & 1 || (y===1 && x===1)) {
+        r.push(`<rect x="${3+x*2}" y="${3+y*2}" width="2" height="2" rx="0.4"/>`);
+        if (x < 2) r.push(`<rect x="${11-x*2}" y="${3+y*2}" width="2" height="2" rx="0.4"/>`);
+      }
+    }
+    return `<svg width="${size}" height="${size}" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">${r.join("")}</svg>`;
+  }
   const g = vecParts(mask);
   if (g.preset) return `<svg width="${size}" height="${size}" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">${g.preset}</svg>`;
   const base = VEC_BASES[g.bIdx];
@@ -649,6 +773,130 @@ function openCallModal(prefTarget) {
   box.querySelector("#call-ta").focus();
 }
 
+
+function openNewWorkspaceModal() {
+  const box = document.getElementById("fm-box");
+  box.classList.remove("wide");
+  const profOpts = ["flint", ...PROFILES.map(pr => pr.name).filter(n => n !== "flint")];
+  const sampleTree = {
+    "~": [
+      { name:"dev", path:"~/dev", git:false },
+      { name:"rust", path:"~/rust", git:false },
+      { name:"Notes", path:"~/Notes", git:false }
+    ],
+    "~/dev": [
+      { name:"rust-cli", path:"~/dev/rust-cli", git:true },
+      { name:"my-app", path:"~/dev/my-app", git:true },
+      { name:"api-gateway", path:"~/dev/api-gateway", git:false }
+    ],
+    "~/rust": [
+      { name:"rail-kernel", path:"~/rust/rail-kernel", git:true },
+      { name:"gguf-bench", path:"~/rust/gguf-bench", git:true }
+    ],
+    "~/Notes": [
+      { name:"research", path:"~/Notes/research", git:false }
+    ]
+  };
+  let curDir = "~", dirtySlug = false;
+  box.innerHTML = `
+    <div class="fm-head"><span>New Workspace</span><button type="button" class="btn-xs" id="fm-close">✕</button></div>
+    <div class="fm-body">
+      <div class="np-field">
+        <label class="np-lbl">Folder Path (optional — leave blank for sandbox)</label>
+        <div style="display:flex;gap:6px;">
+          <input class="np-inp" id="np-path" placeholder="e.g. ~/dev/my-app" style="flex:1;min-width:0;" />
+          <button type="button" class="btn-xs" id="np-browse" style="padding:0 11px;">Browse</button>
+        </div>
+      </div>
+      <div class="dir-box" id="np-browser">
+        <div class="dir-bar">
+          <button type="button" class="btn-xs" id="np-up" title="Parent folder">↑</button>
+          <span id="np-cur" style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">~</span>
+          <button type="button" class="btn-primary" id="np-use" style="padding:3px 9px;font-size:11px;">Use</button>
+        </div>
+        <div class="dir-list" id="np-dirs"></div>
+      </div>
+      <div class="np-field">
+        <label class="np-lbl">Project Name (lowercase slug)</label>
+        <input class="np-inp" id="np-name" placeholder="e.g. rust-cli" />
+      </div>
+      <div class="np-field">
+        <label class="np-lbl">Profile</label>
+        <select class="np-sel" id="np-prof">${profOpts.map(n => `<option value="${esc(n)}">${esc(n)}</option>`).join("")}</select>
+      </div>
+      <div style="font-size:11px;color:var(--muted);line-height:1.45;">File tools stay locked inside the workspace folder; dangerous shell commands prompt first.</div>
+      <div id="np-err" style="font-size:11px;color:var(--del-text);display:none;"></div>
+      <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:2px;">
+        <button type="button" class="btn-xs" id="np-cancel" style="padding:6px 12px;font-size:12px;">Cancel</button>
+        <button type="button" class="btn-primary" id="np-create" style="padding:6px 14px;font-size:12px;">Create</button>
+      </div>
+    </div>`;
+
+  const pathInp = box.querySelector("#np-path"), nameInp = box.querySelector("#np-name"), profSel = box.querySelector("#np-prof");
+  const browser = box.querySelector("#np-browser"), errEl = box.querySelector("#np-err");
+  const slugify = (s) => String(s || "").trim().replace(/\/+$/, "").split("/").pop().toLowerCase().replace(/[^a-z0-9_-]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 48);
+  const drawDirs = () => {
+    box.querySelector("#np-cur").textContent = curDir;
+    box.querySelector("#np-up").disabled = (curDir === "~");
+    box.querySelector("#np-use").disabled = (curDir === "~");
+    const rows = sampleTree[curDir] || [];
+    const list = box.querySelector("#np-dirs");
+    list.innerHTML = rows.length
+      ? rows.map(d => `<button type="button" class="dir-row" data-p="${esc(d.path)}"><span>📁 ${esc(d.name)}</span>${d.git?'<span style="font-size:10px;color:var(--muted);">git</span>':''}</button>`).join("")
+      : `<div style="padding:4px 6px;font-size:11px;color:var(--dim);">Folder selected — click Use above</div>`;
+    list.querySelectorAll("button").forEach(b => b.onclick = () => { curDir = b.dataset.p; drawDirs(); });
+  };
+
+  box.querySelector("#fm-close").onclick = box.querySelector("#np-cancel").onclick = closeModal;
+  box.querySelector("#np-browse").onclick = () => { if (browser.classList.toggle("open")) drawDirs(); };
+  box.querySelector("#np-up").onclick = () => { curDir = curDir.includes("/") ? curDir.slice(0, curDir.lastIndexOf("/")) || "~" : "~"; drawDirs(); };
+  box.querySelector("#np-use").onclick = () => {
+    pathInp.value = curDir;
+    if (!dirtySlug || !nameInp.value.trim()) nameInp.value = slugify(curDir);
+    browser.classList.remove("open");
+    nameInp.focus();
+  };
+  nameInp.oninput = () => { dirtySlug = Boolean(nameInp.value.trim()); errEl.style.display = "none"; };
+  pathInp.oninput = () => { if (!dirtySlug || !nameInp.value.trim()) nameInp.value = slugify(pathInp.value); };
+
+  const submit = () => {
+    const slug = nameInp.value.trim().toLowerCase();
+    if (!slug || !/^[a-z0-9][a-z0-9_-]{0,47}$/.test(slug)) {
+      errEl.textContent = "Enter a lowercase slug (letters, numbers, - or _).";
+      errEl.style.display = "block";
+      nameInp.focus();
+      return;
+    }
+    if (PROJECTS.some(x => x.name === slug)) {
+      errEl.textContent = `Workspace '${slug}' already exists.`;
+      errEl.style.display = "block";
+      nameInp.focus();
+      return;
+    }
+    const prof = profSel.value, isChat = prof === "chat", extPath = pathInp.value.trim();
+    const isGit = extPath && ["rust-cli","my-app","rail-kernel","gguf-bench"].some(k => extPath.endsWith(k));
+    PROJECTS.push({
+      name: slug, sub: extPath ? "Linked" : prof, prof, files: [], mode: isChat ? "chat" : "agent",
+      hud: isChat ? "no tools" : (prof === "core4" ? "core4" : (prof === "purebash" ? "purebash" : "adp")),
+      cloud: prof === "core4", model: prof === "core4" ? "gemini-3.5-flash-lite" : "LFM3-1.7B",
+      ep: prof === "core4" ? "gemini" : "local", reason: prof === "core4" ? "medium" : "250",
+      pct: "0.0%", ch: "", tps: "", collabs: [], labels: [prof === "core4" ? "cloud" : "local"],
+      empty: true, tagline: extPath ? `Linked workspace (${extPath})` : `Sandboxed ${prof} workspace`,
+      ...(isGit ? { git: "main · clean", dirty: false } : {})
+    });
+    activeProj = slug;
+    extraTurns = [];
+    closeModal();
+    document.getElementById("r-val").textContent = prof === "core4" ? "medium" : "250";
+    renderDemo();
+  };
+  box.querySelector("#np-create").onclick = submit;
+  nameInp.onkeydown = pathInp.onkeydown = (e) => { if (e.key === "Enter") { e.preventDefault(); submit(); } };
+
+  document.getElementById("frame-modal").classList.add("open");
+  nameInp.focus();
+}
+
 function buildBotCandidates(curMask, defMask, taken, page) {
   const out = [curMask], seen = new Set([curMask]), vis = new Set([vecParts(curMask).key]);
   const push = (m) => { const k = vecParts(m).key; if (!seen.has(m) && !vis.has(k)) { vis.add(k); out.push(m); seen.add(m); } };
@@ -693,7 +941,7 @@ function renderBotPicker() {
   box.querySelectorAll("#bp-collabs .collab-chip").forEach(b => b.onclick = () => { const c = b.dataset.c, i = ap.collabs.indexOf(c); if (i >= 0) ap.collabs.splice(i,1); else if (ap.collabs.length < 8) ap.collabs.push(c); renderBotPicker(); renderDemo(); });
 }
 
-function openSettings(tab) { if (tab) activeTab = tab; renderSettingsModal(); document.getElementById("frame-modal").classList.add("open"); }
+function openSettings(tab) { if (tab) activeTab = tab; nocBrowse = false; renderSettingsModal(); document.getElementById("frame-modal").classList.add("open"); }
 function renderSettingsModal() {
   const box = document.getElementById("fm-box"); box.classList.add("wide");
   const nav = [
@@ -703,35 +951,85 @@ function renderSettingsModal() {
   ];
   box.innerHTML = `<div class="fm-head"><span>Settings</span><button type="button" class="btn-xs" id="fm-close">✕</button></div><div class="modal-body"><nav class="modal-nav">${nav.map(n=>n.group?`<div class="nav-group">${n.group}</div>`:`<button type="button" class="nav-btn ${n.id===activeTab?"active":""}" data-tab="${n.id}">${n.label}</button>`).join("")}</nav><div class="modal-pane" id="sm-pane"></div></div>`;
   box.querySelector("#fm-close").onclick = closeModal;
-  box.querySelectorAll(".nav-btn").forEach(b => b.onclick = () => { activeTab = b.dataset.tab; renderSettingsModal(); });
+  box.querySelectorAll(".nav-btn").forEach(b => b.onclick = () => { activeTab = b.dataset.tab; nocBrowse = false; renderSettingsModal(); });
   const pane = box.querySelector("#sm-pane"), ap = curProj();
 
   if (activeTab === "providers") {
-    pane.innerHTML = `<div><div style="font-weight:600">Providers &amp; Runtime Governors</div><div class="s-sub">Click a configured .env slot to activate, or use Local :8080. Keys stay strictly server-side.</div></div>`;
+    pane.innerHTML = `<div style="font-weight:600">Providers &amp; Runtime Governors</div><div class="s-sub" style="margin-top:-6px;">Click a configured .env slot to activate, or disable all to use Local :8080. API keys stay strictly server-side.</div>`;
     PROVIDERS.forEach(s => {
       const on = activeProvider === s.id, row = document.createElement("div");
       row.className = "s-row" + (on ? " active-slot" : "");
-      row.innerHTML = `<div><strong>${esc(s.name)}</strong><div class="s-sub">${esc(s.model)}</div></div><button type="button" class="${on?"btn-primary":"btn-xs"}">${on?"Active":"Activate"}</button>`;
-      row.querySelector("button").onclick = () => { activeProvider = s.id; renderSettingsModal(); renderDemo(); };
+      row.innerHTML = `<div><strong>${esc(s.name)}</strong><div class="s-sub">${esc(s.model)}</div></div><button type="button" class="${on?"btn-primary":"btn-xs"}">${on?"Active (Disable)":"Activate"}</button>`;
+      row.querySelector("button").onclick = () => { activeProvider = on ? "LOCAL" : s.id; renderSettingsModal(); renderDemo(); };
       pane.appendChild(row);
     });
     const gov = document.createElement("div"); gov.className = "s-row";
-    gov.innerHTML = `<div style="flex:1"><div class="s-sub" style="margin-bottom:4px;">Context Budget (AI_MAX_TOKENS)</div><select class="s-sel" id="g-tok" style="width:100%">${[8192,16384,32768,65536,131072].map(v=>`<option value="${v}" ${maxTokens===v?"selected":""}>${v.toLocaleString()}</option>`).join("")}</select></div><div style="flex:1"><div class="s-sub" style="margin-bottom:4px;">Max Steps (AI_MAX_AGENT_ROUNDS)</div><select class="s-sel" id="g-rnd" style="width:100%">${[5,10,15,25,0].map(v=>`<option value="${v}" ${maxRounds===v?"selected":""}>${v===0?"Unlimited":v+" steps"}</option>`).join("")}</select></div>`;
+    gov.innerHTML = `<div style="flex:1"><div class="s-sub" style="margin-bottom:5px;">Context Budget (AI_MAX_TOKENS)</div><select class="s-sel" id="g-tok" style="width:100%">${[4096,8192,16384,32768,65536,131072,1048576].map(v=>`<option value="${v}" ${maxTokens===v?"selected":""}>${v}</option>`).join("")}</select></div><div style="flex:1"><div class="s-sub" style="margin-bottom:5px;">Max Steps (AI_MAX_AGENT_ROUNDS)</div><select class="s-sel" id="g-rnd" style="width:100%">${[5,10,15,20,25,30,50,0].map(v=>`<option value="${v}" ${maxRounds===v?"selected":""}>${v===0?"Unlimited":v+" steps"}</option>`).join("")}</select></div>`;
     pane.appendChild(gov);
     gov.querySelector("#g-tok").onchange = (e) => { maxTokens = +e.target.value; renderDemo(); };
     gov.querySelector("#g-rnd").onchange = (e) => { maxRounds = +e.target.value; renderDemo(); };
   } else if (activeTab === "projects") {
-    pane.innerHTML = `<div><div style="font-weight:600">Projects (${PROJECTS.filter(p=>!p.hidden).length}/${PROJECTS.length} shown)</div><div class="s-sub">Toggle sidebar visibility or assign per-bot peer cloud providers.</div></div>`;
+    const shown = PROJECTS.filter(p => !p.hidden).length;
+    const allLabels = Array.from(new Set(PROJECTS.flatMap(p => p.labels))).filter(l => l !== "chat").sort();
+    const head = document.createElement("div");
+    head.innerHTML = `<div style="font-weight:600">Projects (${shown}/${PROJECTS.length} shown)</div><div class="s-sub">Filter sidebar by group or toggle workspace visibility.</div>
+      <div style="display:flex;gap:6px;margin-top:8px;"><button type="button" class="btn-xs" id="p-show-all">Show All</button><button type="button" class="btn-xs" id="p-hide-all">Hide All</button></div>`;
+    pane.appendChild(head);
+    head.querySelector("#p-show-all").onclick = () => { PROJECTS.forEach(p => p.hidden = false); renderSettingsModal(); renderDemo(); };
+    head.querySelector("#p-hide-all").onclick = () => { PROJECTS.forEach(p => p.hidden = (p.name !== "chatbot" && p.name !== ap.name)); renderSettingsModal(); renderDemo(); };
+
+    if (allLabels.length) {
+      const lbar = document.createElement("div");
+      lbar.className = "lbl-bar";
+      allLabels.forEach(lbl => {
+        const chip = document.createElement("button");
+        chip.type = "button";
+        chip.className = "lbl-chip";
+        chip.title = `Show only '${lbl}' in sidebar`;
+        chip.innerHTML = `<span>${esc(lbl)}</span><span style="opacity:.55;font-size:10px;">✎ ×</span>`;
+        chip.onclick = () => {
+          PROJECTS.forEach(p => { p.hidden = (p.name !== "chatbot" && !p.labels.includes(lbl)); });
+          renderSettingsModal();
+          renderDemo();
+        };
+        lbar.appendChild(chip);
+      });
+      pane.appendChild(lbar);
+    }
+
     PROJECTS.forEach(p => {
       const row = document.createElement("div"); row.className = "s-row" + (p.name === ap.name ? " active-slot" : "");
-      row.innerHTML = `<div style="min-width:0;flex:1;"><div><strong>${esc(p.name)}</strong> <span style="color:var(--muted)">${p.files.length} file(s)</span></div><div style="margin-top:4px;">${p.labels.map(l=>`<span class="tag-pill">${esc(l)}</span>`).join("")}</div></div><div style="display:flex;align-items:center;gap:8px;"><select class="s-sel">${[["","Active (Default)"],["LOCAL","Local (:8080)"],["GEMINI","Google Gemini"],["OPENROUTER","OpenRouter"],["CUSTOM1","TokenHarbor"]].map(([v,l])=>`<option value="${v}" ${(p.peerProv||"")===v?"selected":""}>${l}</option>`).join("")}</select><button type="button" class="switch ${!p.hidden?"on":""}"></button></div>`;
+      const gitTag = p.git
+        ? `<span class="tag-pill" style="display:inline-flex;align-items:center;gap:4px;"><span style="color:${p.dirty?"var(--accent)":"var(--text)"}">git</span><button type="button" class="tag-x git-del" title="Remove .git repository">×</button></span>`
+        : `<button type="button" class="tag-btn git-add" title="Initialize git repository">+ git</button>`;
+      row.innerHTML = `<div style="min-width:0;flex:1;"><div><strong>${esc(p.name)}</strong> <span style="opacity:.5;font-size:10.5px;">✎</span> <span style="color:var(--muted)">${p.files.length} file(s)</span></div><div style="margin-top:5px;display:flex;flex-wrap:wrap;gap:4px 0;align-items:center;">${p.labels.map(l=>`<span class="tag-pill">${esc(l)} ×</span>`).join("")}<span class="tag-pill">+ group</span>${gitTag}<span class="tag-pill">+ desc</span></div></div><div style="display:flex;align-items:center;gap:8px;"><select class="s-sel" style="max-width:142px;">${[["","Active (Default)"],["LOCAL","Local (:8080)"],["GEMINI","Google Gemini"],["OPENROUTER","OpenRouter"],["CUSTOM1","TokenHarbor"]].map(([v,l])=>`<option value="${v}" ${(p.peerProv||"")===v?"selected":""}>${l}</option>`).join("")}</select><button type="button" class="switch ${!p.hidden?"on":""}"></button></div>`;
+      const gDel = row.querySelector(".git-del");
+      if (gDel) gDel.onclick = () => {
+        if (!gDel.classList.contains("arm")) {
+          gDel.classList.add("arm");
+          gDel.textContent = "del?";
+          setTimeout(() => { gDel.classList.remove("arm"); gDel.textContent = "×"; }, 2200);
+          return;
+        }
+        delete p.git;
+        p.dirty = false;
+        renderSettingsModal();
+        renderDemo();
+      };
+      const gAdd = row.querySelector(".git-add");
+      if (gAdd) gAdd.onclick = () => {
+        p.dirty = p.files.length > 0;
+        p.git = p.dirty ? "main · 1" : "main · clean";
+        renderSettingsModal();
+        renderDemo();
+      };
       row.querySelector("select").onchange = (e) => { p.peerProv = e.target.value; renderDemo(); };
       row.querySelector(".switch").onclick = () => { if (p.name === ap.name && !p.hidden) return; p.hidden = !p.hidden; renderSettingsModal(); renderDemo(); };
       pane.appendChild(row);
     });
   } else if (activeTab === "profiles") {
     const locked = ap.mode === "chat";
-    pane.innerHTML = `<div><div style="font-weight:600">Workspace Profile</div><div class="s-sub">${locked?"Chat mode is locked to <code>chat</code>.":"Select which profile in <code>profiles/*.md</code> drives the active bot."}</div></div>`;
+    pane.innerHTML = `<div style="font-weight:600">Workspace Profile</div><div class="s-sub" style="margin-top:-6px;">${locked?"Chat mode is locked to the <code>chat</code> profile. Switch to an agent project to change profiles.":"Select which profile in <code>profiles/*.md</code> drives the active project."}</div>`;
     PROFILES.forEach(pr => {
       const cur = ap.prof === pr.name, row = document.createElement("div");
       row.className = "s-row" + (cur ? " active-slot" : "");
@@ -740,30 +1038,45 @@ function renderSettingsModal() {
       pane.appendChild(row);
     });
   } else if (activeTab === "skills") {
-    pane.innerHTML = `<div><div style="font-weight:600">Skills (${activeSkills.length}/3 active)</div><div class="s-sub">Toggle runtime directives injected into the system prompt and composer bar.</div></div>`;
+    pane.innerHTML = `<div style="font-weight:600">Skills (${activeSkills.length}/3 active)</div><div class="s-sub" style="margin-top:-6px;">Attached skills are injected into the system prompt for the next turn.</div>`;
     SKILLS.forEach(sk => {
       const on = activeSkills.includes(sk.name), full = !on && activeSkills.length >= 3, row = document.createElement("div");
       row.className = "s-row" + (on ? " active-slot" : "");
-      row.innerHTML = `<div><strong>${esc(sk.name)}</strong><div class="s-sub">${esc(sk.desc)}</div></div><button type="button" class="switch ${on?"on":""}" ${full?"disabled":""}></button>`;
+      row.innerHTML = `<div><strong>${esc(sk.name)}</strong><div class="s-sub">~/.config/rs-agent/skills/${esc(sk.name)}.md</div></div><button type="button" class="switch ${on?"on":""}" ${full?"disabled":""}></button>`;
       row.querySelector("button").onclick = () => { const i = activeSkills.indexOf(sk.name); if (i >= 0) activeSkills.splice(i,1); else if (activeSkills.length < 3) activeSkills.push(sk.name); renderSettingsModal(); renderDemo(); };
       pane.appendChild(row);
     });
   } else if (activeTab === "mcp") {
-    pane.innerHTML = `<div><div style="font-weight:600">MCP Servers (plugins/mcp/servers.json)</div><div class="s-sub">Stdio MCP servers attached to profiles via <code>mcp: &lt;name&gt;</code>.</div></div>`;
+    pane.innerHTML = `<div style="font-weight:600">MCP Servers (plugins/mcp/servers.json)</div><div class="s-sub" style="margin-top:-6px;">Servers spawned over stdio by <code>src/mcp.rs</code> when attached to a profile.</div>`;
     MCP_SERVERS.forEach(m => {
       const row = document.createElement("div"); row.className = "s-row";
       row.innerHTML = `<div style="min-width:0"><strong>${esc(m.name)}</strong><div class="s-sub">${esc(m.cmd)} ${esc(m.args.join(" "))}</div></div><button type="button" class="btn-xs">Inspect Tools</button>`;
       row.querySelector("button").onclick = () => openFileModal(`MCP: ${m.name} (${m.tools.length} tools)`, m.tools.map(t => "• " + t).join("\n"));
       pane.appendChild(row);
     });
+    const addBox = document.createElement("div");
+    addBox.className = "s-row"; addBox.style.flexDirection = "column"; addBox.style.alignItems = "stretch";
+    addBox.innerHTML = `<strong>+ Add MCP Server</strong><div style="display:flex;gap:8px;"><input id="dm-name" placeholder="name (e.g. context7)" style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:6px 8px;font-size:11.5px;" /><input id="dm-cmd" placeholder="command (e.g. npx)" style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:6px 8px;font-size:11.5px;" /></div><div style="display:flex;gap:8px;"><input id="dm-args" placeholder="args (space-separated)" style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:6px 8px;font-size:11.5px;" /><button type="button" class="btn-primary" id="dm-add">Add</button></div>`;
+    pane.appendChild(addBox);
+    addBox.querySelector("#dm-add").onclick = () => {
+      const name = addBox.querySelector("#dm-name").value.trim(), cmd = addBox.querySelector("#dm-cmd").value.trim();
+      const args = addBox.querySelector("#dm-args").value.trim().split(/\s+/).filter(Boolean);
+      if (!name || !cmd) return;
+      MCP_SERVERS.push({ name, cmd, args, tools:["custom_tool — User-configured stdio MCP endpoint"] });
+      renderSettingsModal();
+    };
   } else if (activeTab === "commands") {
-    pane.innerHTML = `<div><div style="font-weight:600">Slash Commands</div><div class="s-sub">Type <code>/</code> in the composer or run any command below.</div></div>`;
-    [["/call","Open peer micro-bot picker"],["/tk","Toggle auto-expand thinking steps"],["/export","Export workspace transcript to .md"],["/r","Reset active demo session"]].forEach(([cmd, desc]) => {
+    pane.innerHTML = `<div style="font-weight:600">Slash Commands</div><div class="s-sub" style="margin-top:-6px;">Type <code>/</code> in the composer or run an action below.</div>`;
+    [["/task","Run autonomous goal loop"],["/r","Reset active session"],["/s","Attach or detach skills (max 3)"],["/p","Select agent profile"],["/ms","Providers & models"],["/tk","Toggle auto-expand steps"],["/export","Export transcript to .rs/transcripts/"],["/call","Ask another project bot"]].forEach(([cmd, desc]) => {
       const row = document.createElement("div"); row.className = "s-row";
       row.innerHTML = `<div><strong>${cmd}</strong><div class="s-sub">${desc}</div></div><button type="button" class="btn-xs">Run</button>`;
       row.querySelector("button").onclick = () => {
+        if (cmd === "/p") { activeTab = "profiles"; renderSettingsModal(); return; }
+        if (cmd === "/ms") { activeTab = "providers"; renderSettingsModal(); return; }
+        if (cmd === "/s") { activeTab = "skills"; renderSettingsModal(); return; }
         closeModal();
-        if (cmd === "/call") openCallModal();
+        if (cmd === "/task") { const i = document.getElementById("d-input"); i.value = "/task "; i.focus(); }
+        else if (cmd === "/call") openCallModal();
         else if (cmd === "/tk") { expandSteps = !expandSteps; renderDemo(); }
         else if (cmd === "/export") document.getElementById("btn-demo-export").click();
         else { extraTurns = []; curProj().cleared = true; renderDemo(); }
@@ -771,24 +1084,126 @@ function renderSettingsModal() {
       pane.appendChild(row);
     });
   } else if (activeTab === "appearance") {
-    pane.innerHTML = `<div><div style="font-weight:600">Appearance &amp; Layout</div><div class="s-sub">RailBot icon style, sidebar density, and reasoning step expansion.</div></div>`;
+    if (nocBrowse) {
+      pane.innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <button type="button" class="btn-xs" id="btn-noc-back">← Back</button>
+            <div class="ap-tabs"><button type="button" class="ap-tab active">Built-in</button></div>
+          </div>
+          <div class="ap-tabs">
+            <button type="button" class="ap-tab ${nocMode==="dark"?"active":""}" id="btn-noc-dark">Dark</button>
+            <button type="button" class="ap-tab ${nocMode==="light"?"active":""}" id="btn-noc-light">Light</button>
+          </div>
+        </div>
+        <input id="noc-search" placeholder="Filter built-in palettes..." value="${esc(nocFilter)}" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:6px 9px;font-size:12px;" />
+        <div class="noc-list" id="noc-list"></div>`;
+      pane.querySelector("#btn-noc-back").onclick = () => { nocBrowse = false; renderSettingsModal(); };
+      pane.querySelector("#btn-noc-dark").onclick = () => { nocMode = "dark"; renderSettingsModal(); };
+      pane.querySelector("#btn-noc-light").onclick = () => { nocMode = "light"; renderSettingsModal(); };
+      const drawNoc = () => {
+        const list = pane.querySelector("#noc-list"), q = nocFilter.trim().toLowerCase();
+        const items = NOC_CATALOG.filter(x => !q || x.name.toLowerCase().includes(q));
+        list.innerHTML = "";
+        items.forEach(item => {
+          const slug = item.name.toLowerCase().replace(/[^a-z0-9]+/g, "-") + (nocMode === "light" ? "-light" : "");
+          const id = `custom:${slug}`, sw = item[nocMode];
+          const installed = CUSTOM_THEMES.some(t => t.id === id), isCur = demoThemeId === id;
+          const row = document.createElement("div");
+          row.className = "noc-row" + (isCur ? " active" : "");
+          row.innerHTML = `<div style="display:flex;align-items:center;gap:10px;"><span class="noc-swatches"><span class="noc-dot" style="background:${sw.bg}"></span><span class="noc-dot" style="background:${sw.accent}"></span><span class="noc-dot" style="background:${sw.cyan}"></span></span><span><div class="theme-name">${esc(item.name)}</div><div class="theme-tag">Core</div></span></div><span style="font-size:11px;color:var(--muted);">${isCur?"Active":(installed?"✓ Added":"Add")}</span>`;
+          row.onclick = () => {
+            if (!installed) CUSTOM_THEMES.push({ id, name:item.name, source:"custom", mode:nocMode, ...sw });
+            applyDemoTheme(id);
+            renderSettingsModal();
+          };
+          list.appendChild(row);
+        });
+      };
+      drawNoc();
+      const sInp = pane.querySelector("#noc-search");
+      sInp.oninput = (e) => { nocFilter = e.target.value; drawNoc(); };
+      sInp.focus();
+      return;
+    }
+
+    const buildCard = (t) => {
+      const card = document.createElement("div");
+      card.className = "theme-card" + (demoThemeId === t.id ? " active" : "");
+      const tag = t.source === "live" ? `live ${t.mode}` : `custom ${t.mode}`;
+      const delHtml = (t.source === "custom" && t.id !== "custom:eldritch") ? `<button type="button" class="theme-del" title="Delete theme">✕</button>` : "";
+      card.innerHTML = `<span class="theme-swatch" style="background:linear-gradient(135deg, ${esc(t.bg)} 50%, ${esc(t.accent)} 50%)"></span><span class="theme-meta"><span class="theme-name">${esc(t.name)}</span><span class="theme-tag">${esc(tag)}</span></span>${delHtml}`;
+      card.onclick = () => { applyDemoTheme(t.id); renderSettingsModal(); };
+      const db = card.querySelector(".theme-del");
+      if (db) db.onclick = (e) => {
+        e.stopPropagation();
+        const idx = CUSTOM_THEMES.findIndex(x => x.id === t.id);
+        if (idx >= 0) CUSTOM_THEMES.splice(idx, 1);
+        if (demoThemeId === t.id) applyDemoTheme("custom:eldritch");
+        renderSettingsModal();
+      };
+      return card;
+    };
+
+    const syncHead = document.createElement("div");
+    syncHead.innerHTML = `<div style="font-weight:600">Desktop Sync</div><div class="s-sub">Auto-syncs on focus with your active bar / desktop theme</div>`;
+    const syncGrid = document.createElement("div"); syncGrid.className = "theme-grid";
+    LIVE_THEMES.forEach(t => syncGrid.appendChild(buildCard(t)));
+    pane.appendChild(syncHead); pane.appendChild(syncGrid);
+
+    const thHead = document.createElement("div");
+    thHead.style.cssText = "display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:4px;";
+    thHead.innerHTML = `<div><div style="font-weight:600">Themes</div><div class="s-sub">Fallback + custom <code>plugins/railbot/themes/*.json</code></div></div><div style="display:flex;gap:6px;"><button type="button" class="btn-xs" id="btn-noc-open">+ Noctalia</button><button type="button" class="btn-xs" id="btn-th-rel">Reload</button></div>`;
+    pane.appendChild(thHead);
+    thHead.querySelector("#btn-noc-open").onclick = () => { nocBrowse = true; renderSettingsModal(); };
+    thHead.querySelector("#btn-th-rel").onclick = () => renderSettingsModal();
+
+    const thGrid = document.createElement("div"); thGrid.className = "theme-grid";
+    CUSTOM_THEMES.forEach(t => thGrid.appendChild(buildCard(t)));
+    pane.appendChild(thGrid);
+
+    const isDef = uiFont === "JetBrains Mono" && uiSize === 13 && codeFont === "JetBrains Mono" && codeSize === 12 && iconStyle === "solid" && badgeMode === "vector" && !compactSidebar && !expandSteps && demoThemeId === "custom:eldritch";
+    const ctrlHead = document.createElement("div");
+    ctrlHead.style.cssText = "display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:4px;";
+    ctrlHead.innerHTML = `<div><div style="font-weight:600">Interface &amp; Layout</div><div class="s-sub">Fonts, logo, RailBot style, and sidebar density</div></div><button type="button" class="btn-xs" id="btn-ap-rst" ${isDef?"disabled":""}>↺ Reset defaults</button>`;
+    pane.appendChild(ctrlHead);
+    ctrlHead.querySelector("#btn-ap-rst").onclick = () => {
+      uiFont = "JetBrains Mono"; uiSize = 13; codeFont = "JetBrains Mono"; codeSize = 12;
+      iconStyle = "solid"; badgeMode = "vector"; compactSidebar = false; expandSteps = false;
+      const df = document.getElementById("demo-frame").style;
+      df.fontFamily = "var(--mono)"; df.fontSize = "12px";
+      applyDemoTheme("custom:eldritch"); renderSettingsModal(); renderDemo();
+    };
+
     const addRow = (html) => { const r = document.createElement("div"); r.className = "s-row"; r.innerHTML = html; pane.appendChild(r); return r; };
-    addRow(`<div><strong>RailBot Style</strong><div class="s-sub">Custom mean vector RailBots or letter badges</div></div><div style="display:inline-flex;background:var(--panel);border:1px solid var(--border);border-radius:999px;padding:2px;gap:2px;"><button type="button" class="${!useLetters?"btn-primary":"btn-xs"}" style="border-radius:999px;border:none;" data-b="vec">Vector</button><button type="button" class="${useLetters?"btn-primary":"btn-xs"}" style="border-radius:999px;border:none;" data-b="let">Letters</button></div>`)
-      .querySelectorAll("button").forEach(b => b.onclick = () => { useLetters = b.dataset.b === "let"; renderSettingsModal(); renderDemo(); });
-    addRow(`<div><strong>Sidebar Density</strong><div class="s-sub">Show descriptions or compact single-line rows</div></div><button type="button" class="btn-xs">${compactSidebar?"Compact":"Detailed"}</button>`)
+    const r1 = addRow(`<div><strong>Interface Font &amp; Size</strong><div class="s-sub">Labels, headings, and chat prose</div></div><div style="display:flex;gap:6px;"><select class="s-sel" id="ap-uf">${["JetBrains Mono","Geist","System Sans"].map(f=>`<option ${uiFont===f?"selected":""}>${f}</option>`).join("")}</select><select class="s-sel" id="ap-us">${[11,12,13,14,15].map(n=>`<option value="${n}" ${uiSize===n?"selected":""}>${n}px</option>`).join("")}</select></div>`);
+    r1.querySelector("#ap-uf").onchange = (e) => { uiFont = e.target.value; document.getElementById("demo-frame").style.fontFamily = uiFont === "Geist" ? "var(--sans)" : (uiFont === "System Sans" ? "-apple-system,sans-serif" : "var(--mono)"); };
+    r1.querySelector("#ap-us").onchange = (e) => { uiSize = +e.target.value; document.getElementById("demo-frame").style.fontSize = `${Math.max(11, uiSize - 1)}px`; };
+
+    const r2 = addRow(`<div><strong>Code Font &amp; Size</strong><div class="s-sub">Code blocks, diffs, thinking, and tools (12px = 9pt)</div></div><div style="display:flex;gap:6px;"><select class="s-sel" id="ap-cf">${["JetBrains Mono","Fira Code","System Mono"].map(f=>`<option ${codeFont===f?"selected":""}>${f}</option>`).join("")}</select><select class="s-sel" id="ap-cs">${[9,10,11,12,13,14,15,16].map(n=>`<option value="${n}" ${codeSize===n?"selected":""}>${n}px</option>`).join("")}</select></div>`);
+    r2.querySelector("#ap-cf").onchange = (e) => { codeFont = e.target.value; renderSettingsModal(); };
+    r2.querySelector("#ap-cs").onchange = (e) => { codeSize = +e.target.value; renderSettingsModal(); };
+
+    addRow(`<div><strong>RailBot Icon</strong><div class="s-sub">Topbar icon in solid accent or monochrome</div></div><div class="ap-tabs"><button type="button" class="ap-tab ${iconStyle==="solid"?"active":""}" data-i="solid">Solid</button><button type="button" class="ap-tab ${iconStyle==="mono"?"active":""}" data-i="mono">Monochrome</button></div>`)
+      .querySelectorAll("button").forEach(b => b.onclick = () => { iconStyle = b.dataset.i; renderSettingsModal(); renderDemo(); });
+
+    addRow(`<div><strong>RailBot Style</strong><div class="s-sub">Vector or Pixel RailBots (/call, auto-call), Letters, or None</div></div><div class="ap-tabs">${[["vector","Vector"],["pixel","Pixel"],["letters","Letters"],["none","None"]].map(([k,l])=>`<button type="button" class="ap-tab ${badgeMode===k?"active":""}" data-b="${k}">${l}</button>`).join("")}</div>`)
+      .querySelectorAll("button").forEach(b => b.onclick = () => { badgeMode = b.dataset.b; renderSettingsModal(); renderDemo(); });
+
+    addRow(`<div><strong>Sidebar Density</strong><div class="s-sub">Show descriptions with larger sidebar icons (custom notes always show)</div></div><button type="button" class="btn-xs">${compactSidebar?"Compact":"Detailed"}</button>`)
       .querySelector("button").onclick = () => { compactSidebar = !compactSidebar; renderSettingsModal(); renderDemo(); };
-    addRow(`<div><strong>Auto-Expand Steps</strong><div class="s-sub">Expand reasoning steps by default</div></div><button type="button" class="btn-xs">${expandSteps?"Expanded":"Collapsed"}</button>`)
+
+    addRow(`<div><strong>Auto-Expand Steps</strong><div class="s-sub">Expand reasoning steps by default in RailBot</div></div><button type="button" class="btn-xs">${expandSteps?"Expanded":"Collapsed"}</button>`)
       .querySelector("button").onclick = () => { expandSteps = !expandSteps; renderSettingsModal(); renderDemo(); };
   }
 }
-
 function renderProjects() {
   const list = document.getElementById("proj-list"), hc = document.getElementById("hover-card");
   list.innerHTML = "";
   PROJECTS.filter(p => !p.hidden).forEach(p => {
     const el = document.createElement("div");
     el.className = "proj-item" + (p.name === activeProj ? " active" : "");
-    const badge = useLetters ? `<span class="proj-badge let">${esc(p.name.slice(0,2))}</span>` : `<span class="proj-badge">${botSvg(p.name, compactSidebar?16:22)}</span>`;
+    const badge = badgeMode === "none" ? "" : (badgeMode === "letters" ? `<span class="proj-badge let">${esc(p.name.slice(0,2))}</span>` : `<span class="proj-badge">${botSvg(p.name, compactSidebar?16:22)}</span>`);
     const callHtml = p.name !== activeProj ? `<button type="button" class="proj-call" title="Call ${esc(p.name)}"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 3.5h11v7.5h-6l-3 2.5V11H2.5z"/></svg></button>` : "";
     const metaHtml = compactSidebar ? `<span class="proj-name">${esc(p.name)}</span>` : `<span class="proj-meta"><span class="proj-name">${esc(p.name)}</span><span class="proj-sub">${esc(p.sub)}</span></span>`;
     el.innerHTML = `<div class="proj-l">${badge}${metaHtml}</div><div class="proj-acts">${callHtml}<span class="proj-dot ${p.dirty?"dirty":""}"></span></div>`;
@@ -835,7 +1250,9 @@ function renderDemo() {
   const shownModel = activeProvider !== "LOCAL" ? slotObj.model.split(",")[0].trim() : p.model;
   const shownEp = activeProvider !== "LOCAL" ? slotObj.ep : p.ep;
 
-  document.getElementById("d-brand-icon").innerHTML = botSvg(p.name, 16);
+  const bi = document.getElementById("d-brand-icon");
+  bi.innerHTML = (badgeMode === "vector" || badgeMode === "pixel") ? botSvg(p.name, 16) : `<svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M 7.2 3.5 L 12.7 8 L 7.2 12.5 L 3.7 12.5"/></svg>`;
+  bi.style.color = iconStyle === "mono" ? "var(--text)" : "var(--accent)";
   const parts = p.hud.split(" ").filter(Boolean);
   if (p.mode === "agent" && (p.collabs.length || p.peerProv)) parts.push("mb");
   document.getElementById("d-prof").innerHTML = `<strong>${esc(p.name)}</strong>${parts.map(x => `<span>${esc(x)}</span>`).join("")}`;
@@ -877,8 +1294,30 @@ function renderDemo() {
   document.getElementById("d-input").placeholder = isChat ? `Message ${p.name}... (/ commands)` : `Ask ${p.name}... (/ commands, /call peer)`;
   document.getElementById("d-files-lbl").textContent = `${p.files.length} ${p.files.length === 1 ? "file" : "files"}`;
   const flist = document.getElementById("d-files");
-  flist.innerHTML = p.files.length ? p.files.map(f => `<div class="file-row" data-f="${esc(f)}">${esc(f)}</div>`).join("") : `<div style="padding:4px 8px;font-size:11px;color:var(--dim);">Empty workspace</div>`;
-  flist.querySelectorAll(".file-row").forEach(r => r.onclick = () => openFileModal(r.dataset.f));
+  flist.innerHTML = "";
+  if (!p.files.length) {
+    flist.innerHTML = `<div style="padding:4px 8px;font-size:11px;color:var(--dim);">Empty workspace</div>`;
+  } else {
+    p.files.forEach(f => {
+      const row = document.createElement("div");
+      row.className = "file-row";
+      row.innerHTML = `<span class="file-name" title="${esc(f)}">${esc(f)}</span><button type="button" class="file-del" title="Delete file">✕</button>`;
+      row.onclick = () => openFileModal(f);
+      const del = row.querySelector(".file-del");
+      del.onclick = (e) => {
+        e.stopPropagation();
+        if (!del.classList.contains("arm")) {
+          del.classList.add("arm");
+          del.textContent = "del?";
+          setTimeout(() => { del.classList.remove("arm"); del.textContent = "✕"; }, 2200);
+          return;
+        }
+        p.files = p.files.filter(x => x !== f);
+        renderDemo();
+      };
+      flist.appendChild(row);
+    });
+  }
   renderRightBottom();
 
   const stream = document.getElementById("stream"), wrap = document.getElementById("turn-wrap");
@@ -925,8 +1364,10 @@ function renderDemo() {
 document.getElementById("d-brand-icon").onclick = openBotPicker;
 document.getElementById("btn-demo-settings").onclick = () => openSettings("providers");
 document.getElementById("d-model").onclick = () => openSettings("providers");
+document.getElementById("btn-nav-proj").onclick = () => openSettings("projects");
 document.getElementById("btn-nav-prof").onclick = () => openSettings("profiles");
-document.getElementById("btn-new-ws").onclick = () => openSettings("projects");
+
+document.getElementById("btn-new-ws").onclick = openNewWorkspaceModal;
 document.getElementById("exp-bot").onclick = openBotPicker;
 document.getElementById("exp-set").onclick = () => openSettings("providers");
 document.getElementById("exp-call").onclick = () => openCallModal();
@@ -973,10 +1414,14 @@ function updateAc() {
   acPop.classList.add("open");
 }
 
+const resizeInp = () => {
+  inp.style.height = "auto";
+  inp.style.height = inp.value ? `${Math.min(Math.max(inp.scrollHeight, 36), 180)}px` : "";
+};
 const sendDemo = () => {
   const txt = inp.value.trim();
   if (!txt) return;
-  inp.value = ""; sendBtn.classList.remove("ready"); closePops();
+  inp.value = ""; resizeInp(); sendBtn.classList.remove("ready"); closePops();
   if (txt === "/r") { extraTurns = []; curProj().cleared = true; renderDemo(); return; }
   if (txt === "/p") return openSettings("profiles");
   if (txt === "/ms") return openSettings("providers");
@@ -991,8 +1436,8 @@ const sendDemo = () => {
   extraTurns.push({ kind:"msg", u:txt, a:curProj().mode==="chat" ? "Interactive static preview — run <code>rail</code> locally to stream live responses from <code>llama-server</code> or cloud providers." : "Interactive static preview — locally <strong>RailBot</strong> runs parallel tools, syntax diffs, and <code>/call</code> peer micro-bots inside your workspace sandbox." });
   renderDemo();
 };
-inp.addEventListener("input", () => { sendBtn.classList.toggle("ready", inp.value.trim().length > 0); updateAc(); });
-inp.addEventListener("keydown", (e) => { if (e.key === "Enter") sendDemo(); });
+inp.addEventListener("input", () => { resizeInp(); sendBtn.classList.toggle("ready", inp.value.trim().length > 0); updateAc(); });
+inp.addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendDemo(); } });
 sendBtn.onclick = sendDemo;
 
 renderDemo();
