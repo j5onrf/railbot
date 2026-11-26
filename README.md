@@ -23,11 +23,7 @@
   </a>
 </p>
 
-<p>
-  <a href="https://j5onrf.github.io/railbot/">
-    <img src="https://img.shields.io/badge/Launch_Live_Demo-22c55e?style=for-the-badge&logo=googlechrome&logoColor=white" alt="Launch Live Demo" />
-  </a>
-</p>
+### <a href="https://j5onrf.github.io/railbot/">Launch Interactive Web Demo &rarr;</a>
 
 </div>
 

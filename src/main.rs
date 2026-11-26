@@ -3052,6 +3052,7 @@ async fn handle_client(mut stream: TcpStream, app: Arc<AppRuntime>) -> Result<()
         .await?;
 
         let provider = apply_ctx_override(ProviderConfig::load().await, sess_ctx);
+        body["version"] = json!(env!("CARGO_PKG_VERSION"));
         body["provider"] = json!({
             "model": provider.model,
             "endpoint": format_endpoint(&provider.base_url),

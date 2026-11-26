@@ -506,7 +506,10 @@
 <div class="modal-backdrop" id="modal-settings">
   <div class="modal">
     <div class="modal-head">
-      <span>Settings</span>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span>Settings</span>
+        <span class="tele" id="settings-ver" style="font-size:11px;padding:1px 7px;display:none;"></span>
+      </div>
       <button class="btn btn-sm" id="btn-close-settings">✕</button>
     </div>
     <div class="modal-body">
@@ -974,6 +977,11 @@ async function lazyAutoLabelProjects() {
 function openSettings(tab) {
   if (tab) ACTIVE_TAB = tab;
   noctaliaBrowse = false;
+  const verEl = $("settings-ver");
+  if (verEl && STATE?.version) {
+    verEl.textContent = `v${STATE.version}`;
+    verEl.style.display = "inline-flex";
+  }
   $("modal-settings").classList.add("open");
   renderModalTab();
   if (ACTIVE_TAB === "projects") lazyAutoLabelProjects();
