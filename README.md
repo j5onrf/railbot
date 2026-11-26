@@ -14,7 +14,7 @@
 
 <p>
   <strong>Sub-millisecond native Rust AI desktop &amp; web harness for local GGUF models and frontier cloud endpoints.</strong><br />
-  Parallel micro-bots &nbsp;•&nbsp; Local-first speed &nbsp;•&nbsp; Zero-trust sandbox &nbsp;•&nbsp; Single binary with embedded UI
+  Parallel micro-bots &nbsp;•&nbsp; Local-first private &nbsp;•&nbsp; Zero-trust sandbox &nbsp;•&nbsp; Single binary with embedded UI
 </p>
 
 <p>
@@ -24,7 +24,7 @@
 </p>
 
 <h3>
-  <a href="https://j5onrf.github.io/railbot/">⚡ Try the Live Interactive Web Demo →</a>
+  <a href="https://j5onrf.github.io/railbot/">Live Interactive Web Demo →</a>
 </h3>
 
 </div>
