@@ -3,7 +3,7 @@
 </div>
 
 <h1>
-  <img alt="RailBot Logo" src="assets/logo.svg" width="38" height="38" align="absmiddle" />
+  <img alt="RailBot Logo" src="assets/logo-eldritch.svg" width="38" height="38" align="absmiddle" />
   RailBot
 </h1>
 
@@ -19,7 +19,7 @@
 </p>
 
 <p align="center">
-  <img src="assets/banner.png" alt="RailBot — Parallel Micro-Bots on High-Speed Rails" width="100%" />
+  <img src="assets/banner-eldritch.png" alt="RailBot — Parallel Micro-Bots on High-Speed Rails" width="100%" />
 </p>
 
 ---

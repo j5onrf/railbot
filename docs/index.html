@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <meta name="color-scheme" content="dark" />
 <title>RailBot — Local-First Desktop &amp; Web AI Harness</title>
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3.5' fill='%23050507'/%3E%3Cpath fill='%23f8fafc' fill-rule='evenodd' d='M5.7 1.8h4.6l3.2 3.2v4.4L11 11.9v3H9.4v-2.2H6.6v2.2H5v-3L2.5 9.4V5Zm-1.6 3.9q1.7.7 3.1 1.9-2.1.6-3.1-1.9Zm7.8 0q-1.7.7-3.1 1.9 2.1.6 3.1-1.9Z'/%3E%3C/svg%3E" />
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3.5' fill='%231b1d2e'/%3E%3Cpath fill='%2337f499' fill-rule='evenodd' d='M5.7 1.8h4.6l3.2 3.2v4.4L11 11.9v3H9.4v-2.2H6.6v2.2H5v-3L2.5 9.4V5Zm-1.6 3.9q1.7.7 3.1 1.9-2.1.6-3.1-1.9Zm7.8 0q-1.7.7-3.1 1.9 2.1.6 3.1-1.9Z'/%3E%3C/svg%3E" />
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" />
 <style>
   :root {
@@ -17,53 +17,97 @@
     --warn-bg: rgba(245,158,11,0.10); --warn-border: rgba(245,158,11,0.45); --warn-text: #fcd34d;
     --syn-kw: #8ab4f8; --syn-str: #86efac; --syn-num: #fcd34d; --syn-cmt: #7c85a2;
     --rail-line: rgba(4,209,249,0.045);
-    --hero-fade: #1b1d2e; --hero-fade-mid: rgba(27,29,46,0.35); --hero-img: url("assets/banner-eldritch.jpg");
     --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
     --sans: "Geist", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   }
   * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
   body {
     margin: 0; min-height: 100vh; color: var(--text); font-family: var(--sans); background-color: var(--bg);
     background-image:
       repeating-linear-gradient(150deg, transparent 0 180px, var(--rail-line) 180px 181px, transparent 181px 194px, var(--rail-line) 194px 195px, transparent 195px 420px),
       radial-gradient(65% 40% at 50% 0%, color-mix(in srgb, var(--cyan) 10%, transparent), transparent 72%);
-    transition: background-color .2s, color .2s;
   }
   button, input, select, textarea { font: inherit; color: inherit; outline: none; }
-  .wrap { max-width: 1120px; margin: 0 auto; padding: 20px 24px 44px; }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
 
-  /* Top Nav */
-  nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; gap: 12px; }
-  .brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; font-size: 15px; letter-spacing: -.01em; }
-  .nav-right { display: flex; align-items: center; gap: 8px; }
-  .seg { display: inline-flex; background: var(--panel); border: 1px solid var(--border); border-radius: 999px; padding: 2px; gap: 2px; }
-  .seg button { border: none; background: transparent; color: var(--muted); border-radius: 999px; padding: 4px 11px; font-family: var(--mono); font-size: 11.5px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: .12s; }
-  .seg button.active { background: var(--card); color: var(--text); border: 1px solid var(--border); font-weight: 600; }
-  .swatch { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-  .pill-link { border: 1px solid var(--border); background: var(--panel); color: var(--muted); border-radius: 999px; padding: 5px 12px; font-size: 12px; font-family: var(--mono); text-decoration: none; transition: .15s; }
+  /* Screen 1: Full-Viewport Overview */
+  .overview-sec {
+    min-height: 100vh; display: flex; flex-direction: column; justify-content: center;
+    padding: 28px 0 44px;
+  }
+  nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; gap: 12px; }
+  .brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; font-size: 15px; letter-spacing: -.01em; text-decoration: none; }
+  .pill-link {
+    border: 1px solid var(--border); background: var(--panel); color: var(--muted);
+    border-radius: 999px; padding: 5px 12px; font-size: 12px; font-family: var(--mono);
+    text-decoration: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: .15s;
+  }
   .pill-link:hover { color: var(--text); border-color: var(--cyan); background: var(--card); }
 
-  /* Hero Card with Banner */
+  /* Banner Hero Card */
   .hero-card {
     position: relative; border: 1px solid var(--border); border-radius: 16px;
-    background-color: var(--hero-fade);
-    background-image: linear-gradient(90deg, var(--hero-fade) 32%, var(--hero-fade-mid) 62%, transparent 100%), var(--hero-img);
+    background-color: #1b1d2e;
+    background-image: linear-gradient(90deg, #1b1d2e 32%, rgba(27,29,46,0.35) 62%, transparent 100%), url("assets/banner-eldritch.png");
     background-size: cover; background-position: right center;
-    padding: 38px 44px; margin-bottom: 22px; overflow: hidden;
+    padding: 42px 46px; margin-bottom: 16px; overflow: hidden;
     box-shadow: 0 24px 60px rgba(0, 0, 0, .45);
   }
   .hero-inner { position: relative; z-index: 2; max-width: 500px; display: flex; flex-direction: column; gap: 14px; }
   .hero-title-row { display: flex; align-items: center; gap: 14px; }
   .hero-logo { width: 44px; height: 44px; flex-shrink: 0; }
-  h1 { margin: 0; font-size: clamp(30px, 4.2vw, 44px); line-height: 1.05; letter-spacing: -.03em; color: #f8fafc; }
+  h1 { margin: 0; font-size: clamp(32px, 4.2vw, 46px); line-height: 1.05; letter-spacing: -.03em; color: #f8fafc; }
   .sub { margin: 0; font-size: 14.5px; line-height: 1.55; color: #b6c2d9; }
   .sub code { font-family: var(--mono); font-size: 12.5px; color: #f8fafc; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.14); padding: 1px 6px; border-radius: 5px; }
   .actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
-  .cta { background: var(--accent); color: var(--accent-fg); border: 1px solid var(--accent); border-radius: 9px; padding: 9px 17px; font-weight: 600; font-size: 13px; text-decoration: none; cursor: pointer; }
+  .cta {
+    background: var(--accent); color: var(--accent-fg); border: 1px solid var(--accent);
+    border-radius: 9px; padding: 9px 17px; font-weight: 600; font-size: 13px;
+    text-decoration: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+  }
   .cta:hover { filter: brightness(0.94); }
-  .cmd { border: 1px solid var(--cmd-border, rgba(4,209,249,0.32)); background: var(--cmd-bg, rgba(27,29,46,0.90)); color: #ebfafa; border-radius: 9px; padding: 8px 13px; font-family: var(--mono); font-size: 11.5px; cursor: pointer; display: inline-flex; align-items: center; gap: 10px; }
-  .cmd:hover { border-color: var(--cyan); }
+  .btn-sec {
+    border: 1px solid var(--border); background: rgba(27,29,46,0.78); color: var(--text);
+    border-radius: 9px; padding: 9px 16px; font-weight: 500; font-size: 13px; text-decoration: none; transition: .15s;
+  }
+  .btn-sec:hover { border-color: var(--cyan); background: var(--card); }
+  .cmd {
+    border: 1px solid rgba(4,209,249,0.32); background: rgba(27,29,46,0.90); color: #ebfafa;
+    border-radius: 9px; padding: 8px 13px; font-family: var(--mono); font-size: 11.5px;
+    cursor: pointer; display: inline-flex; align-items: center; gap: 10px; width: fit-content; transition: .15s;
+  }
+  .cmd:hover { border-color: var(--cyan); background: rgba(35,37,58,0.95); }
   .cmd span { color: var(--accent); font-size: 11px; font-weight: 600; }
+
+  /* Spec Bar Under Banner */
+  .spec-bar {
+    border: 1px solid var(--border); border-radius: 14px; background: color-mix(in srgb, var(--panel) 88%, transparent);
+    padding: 18px 22px; display: flex; flex-direction: column; gap: 14px;
+  }
+  .spec-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; }
+  .spec-item { display: flex; flex-direction: column; gap: 4px; }
+  .spec-title { font-size: 12.5px; font-weight: 600; color: var(--text); }
+  .spec-desc { font-family: var(--mono); font-size: 11px; color: var(--muted); line-height: 1.4; }
+  .spec-foot { display: flex; align-items: center; }
+
+  /* Screen 2: Dedicated Demo Section */
+  .demo-sec {
+    border-top: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+    padding: 36px 0 56px;
+  }
+  .demo-nav { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
+  .demo-nav-l { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .demo-nav-r { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .nav-sep { width: 1px; height: 14px; background: var(--border); }
+  .nav-sub { font-size: 12.5px; color: var(--muted); }
+  .cmd-pill {
+    border: 1px solid rgba(4,209,249,0.28); background: var(--panel); color: var(--text);
+    border-radius: 999px; padding: 5px 12px; font-family: var(--mono); font-size: 11.5px;
+    cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: .15s;
+  }
+  .cmd-pill:hover { border-color: var(--cyan); background: var(--card); }
+  .cmd-pill span { color: var(--accent); font-size: 11px; font-weight: 600; }
 
   /* 6px Thin Scrollbars */
   .stream::-webkit-scrollbar, .proj-list::-webkit-scrollbar, .file-list::-webkit-scrollbar, .act-list::-webkit-scrollbar, .modal-pane::-webkit-scrollbar, .fm-body::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -72,8 +116,8 @@
   .stream::-webkit-scrollbar-thumb:hover, .proj-list::-webkit-scrollbar-thumb:hover { background: color-mix(in srgb, var(--muted) 65%, transparent); }
   .stream, .proj-list, .file-list, .act-list, .modal-pane, .fm-body { scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--muted) 35%, transparent) transparent; }
 
-  /* Embedded RailBot Frame */
-  .frame { position: relative; border: 1px solid var(--border); border-radius: 14px; background: var(--bg); box-shadow: 0 28px 80px rgba(0,0,0,.5); overflow: hidden; font-family: var(--mono); font-size: 12px; height: 610px; display: flex; flex-direction: column; }
+  /* Embedded RailBot Frame (720px) */
+  .frame { position: relative; border: 1px solid var(--border); border-radius: 14px; background: var(--bg); box-shadow: 0 28px 80px rgba(0,0,0,.5); overflow: hidden; font-family: var(--mono); font-size: 12px; height: 720px; display: flex; flex-direction: column; }
   .app-top { height: 40px; min-height: 40px; background: var(--panel); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 12px; gap: 8px; flex-shrink: 0; }
   .tb-l, .tb-r { display: flex; align-items: center; gap: 6px; min-width: 0; }
   .c-btn { width: 26px; height: 26px; border-radius: 999px; border: 1px solid var(--border); background: var(--card); color: var(--muted); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; transition: .12s; flex-shrink: 0; }
@@ -143,7 +187,7 @@
   .mem-box { flex: 1 1 0%; margin: 4px 8px 8px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 7px 8px; font-size: 11px; color: var(--text); resize: none; line-height: 1.45; }
   .mem-box:focus { border-color: var(--accent); }
 
-  /* Center Pane: Pure Flexbox (Stream Takes Full Space, Composer Anchored at Bottom) */
+  /* Center Pane: Pure Flexbox */
   .center { flex: 1 1 0%; min-width: 0; min-height: 0; display: flex; flex-direction: column; background: var(--bg); overflow: hidden; }
   .stream { flex: 1 1 0%; min-height: 0; overflow-y: auto; overflow-x: hidden; padding: 16px 22px 10px; display: flex; flex-direction: column; gap: 11px; }
   .turn-wrap { max-width: 740px; width: 100%; margin: 0 auto; display: flex; flex-direction: column; gap: 10px; }
@@ -153,12 +197,10 @@
   .composer input { width: 100%; background: transparent; border: none; color: var(--text); font-size: 12px; padding: 2px 0; }
   .composer input::placeholder { color: var(--muted); opacity: 0.65; }
 
-  /* Startpage Empty State (Centered inside stream) */
-  .empty-state { margin: 70px auto 0; text-align: center; color: var(--muted); max-width: 520px; line-height: 1.55; }
+  .empty-state { margin: 80px auto 0; text-align: center; color: var(--muted); max-width: 520px; line-height: 1.55; }
   .empty-title { font-size: 21px; font-weight: 600; letter-spacing: -0.02em; color: var(--text); text-wrap: balance; }
   .empty-sub { font-size: 12px; color: var(--muted); opacity: 0.72; margin-top: 6px; text-wrap: balance; }
 
-  /* Message & Diff Styles */
   .msg-u { align-self: flex-end; background: var(--user-bg); border: 1px solid var(--user-border); color: var(--text); padding: 7px 11px; border-radius: 8px; max-width: 78%; line-height: 1.48; font-size: 12px; }
   .msg-a { display: flex; flex-direction: column; gap: 7px; }
   .stream.chat-mode .msg-a { align-self: flex-start; max-width: 76%; background: var(--panel); border: 1px solid var(--border); padding: 9px 13px; border-radius: 8px; }
@@ -200,7 +242,6 @@
   .peer-card .t-raw { border-top: 1px solid var(--border); }
   .peer-card.open .t-raw { display: block; }
 
-  /* Composer Controls */
   .comp-bar { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
   .comp-l { display: flex; align-items: center; gap: 6px; position: relative; flex-wrap: wrap; }
   .m-pill { height: 24px; background: var(--panel); border: 1px solid var(--border); border-radius: 999px; padding: 0 9px; font-size: 11px; color: var(--text); cursor: pointer; display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
@@ -274,13 +315,14 @@
   .hover-card.open { display: flex; }
   .hc-row { display: flex; justify-content: space-between; color: var(--muted); gap: 12px; }
 
-  @media (max-width: 920px) { #d-git { display: none; } }
+  @media (max-width: 920px) { #d-git { display: none; } .spec-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
   @media (max-width: 860px) { .sb-r { display: none; } }
   @media (max-width: 720px) {
-    .hero-card { padding: 26px 20px; background-image: linear-gradient(180deg, color-mix(in srgb, var(--hero-fade) 90%, transparent) 40%, color-mix(in srgb, var(--hero-fade) 72%, transparent) 100%), var(--hero-img); }
+    .overview-sec { min-height: auto; padding: 24px 0 36px; }
+    .hero-card { padding: 26px 20px; background-image: linear-gradient(180deg, rgba(27,29,46,0.92) 40%, rgba(27,29,46,0.74) 100%), url("assets/banner-eldritch.png"); }
   }
   @media (max-width: 640px) {
-    .sb-l { display: none; } .frame { height: 520px; }
+    .sb-l { display: none; } .frame { height: 540px; } .spec-grid { grid-template-columns: 1fr; }
     .modal-body { flex-direction: column; }
     .modal-nav { width: 100%; flex-direction: row; overflow-x: auto; border-right: none; border-bottom: 1px solid var(--border); }
     .nav-group { display: none; }
@@ -289,186 +331,178 @@
 </head>
 <body>
 <div class="wrap">
-  <nav>
-    <div class="brand"><img id="nav-logo" src="assets/logo-eldritch.svg" alt="RailBot" width="24" height="24" /><span>RailBot</span></div>
-    <div class="nav-right">
-      <div class="seg" id="theme-seg">
-        <button type="button" data-theme="dark"><span class="swatch" style="background:#f8fafc"></span>Dark</button>
-        <button type="button" data-theme="eldritch" class="active"><span class="swatch" style="background:#37f499"></span>Eldritch</button>
-      </div>
+  <!-- Screen 1: Clean Banner Overview + Spec Bar -->
+  <section class="overview-sec" id="overview">
+    <nav>
+      <div class="brand"><img src="assets/logo-eldritch.svg" alt="RailBot" width="24" height="24" /><span>RailBot</span></div>
       <a class="pill-link" href="https://github.com/j5onrf/railbot">GitHub ↗</a>
-    </div>
-  </nav>
+    </nav>
 
-  <section class="hero-card">
-    <div class="hero-inner">
-      <div class="hero-title-row">
-        <img class="hero-logo" id="hero-logo" src="assets/logo-eldritch.svg" alt="RailBot Logo" />
-        <h1>RailBot</h1>
+    <div class="hero-card">
+      <div class="hero-inner">
+        <div class="hero-title-row">
+          <img class="hero-logo" src="assets/logo-eldritch.svg" alt="RailBot Logo" />
+          <h1>RailBot</h1>
+        </div>
+        <p class="sub">
+          Sub-millisecond native Rust AI desktop &amp; web harness. Parallel micro-bots on high-speed rails for local <code>llama-server</code> and frontier cloud models.
+        </p>
+        <div class="actions">
+          <a class="cta" href="#demo-section">Launch Live Demo ↓</a>
+          <a class="btn-sec" href="https://github.com/j5onrf/railbot">Get Started</a>
+        </div>
+        <button type="button" class="cmd copy-cmd">$ git clone https://github.com/j5onrf/railbot.git <span>Copy</span></button>
       </div>
-      <p class="sub">
-        Sub-millisecond native Rust AI desktop &amp; web harness. Parallel micro-bots on high-speed rails for local <code>llama-server</code> and frontier cloud models.
-      </p>
-      <div class="actions">
-        <a class="cta" href="https://github.com/j5onrf/railbot">Get Started on GitHub</a>
-        <button type="button" class="cmd" id="copy-cmd">$ git clone https://github.com/j5onrf/railbot.git <span>Copy</span></button>
+    </div>
+
+    <div class="spec-bar">
+      <div class="spec-grid">
+        <div class="spec-item">
+          <div class="spec-title">Native Rust</div>
+          <div class="spec-desc">Single binary with embedded UI</div>
+        </div>
+        <div class="spec-item">
+          <div class="spec-title">Adaptive Schemas</div>
+          <div class="spec-desc">6-tool, Core4, PureBash, Chat</div>
+        </div>
+        <div class="spec-item">
+          <div class="spec-title">Peer Dispatch</div>
+          <div class="spec-desc">Read-only /call micro-bots</div>
+        </div>
+        <div class="spec-item">
+          <div class="spec-title">MCP &amp; Skills</div>
+          <div class="spec-desc">Stdio plugins &amp; prompt directives</div>
+        </div>
+      </div>
+      <div class="spec-foot">
+        <a class="pill-link" href="#demo-section">Open Interactive Demo →</a>
       </div>
     </div>
   </section>
 
-  <div class="frame" id="demo-frame">
-    <header class="app-top">
-      <div class="tb-l">
-        <button type="button" class="c-btn" id="btn-sb-l" title="Toggle sidebar"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2.5" width="12" height="11" rx="2"/><line x1="6" y1="2.5" x2="6" y2="13.5"/></svg></button>
-        <button type="button" class="c-btn brand-bot" id="d-brand-icon" title="Bot Setup &amp; Auto-Collaborators"></button>
-        <span class="tele" id="d-prof"></span>
-        <span class="tele" id="d-git" style="display:none"><span class="git-dot" id="d-git-dot"></span><span id="d-git-txt"></span></span>
+  <!-- Screen 2: Dedicated Interactive App Demo -->
+  <section class="demo-sec" id="demo-section">
+    <div class="demo-nav">
+      <div class="demo-nav-l">
+        <div class="brand"><img src="assets/logo-eldritch.svg" alt="RailBot" width="22" height="22" /><span>RailBot</span></div>
+        <span class="nav-sep"></span>
+        <span class="nav-sub">Rust AI Desktop &amp; Web Harness</span>
+        <a class="pill-link" href="#overview">← Overview</a>
       </div>
-      <div class="tb-r">
-        <span class="tele" id="d-ch">99%<span class="ctx-tip"><span class="ctx-bar"><span class="ctx-fill" style="width:99%"></span></span><div><strong>8,110</strong> / 8,192 cached</div></span></span>
-        <span class="tele" id="d-spd">67.5 t/s<span class="ctx-tip"><div><strong>188</strong> generated in <strong>2.8s</strong></div></span></span>
-        <span class="tele" id="d-ctx-pill"><span id="d-ctx">28.3%</span><span class="ctx-tip" id="d-ctx-tip"></span></span>
-        <button type="button" class="c-btn" id="btn-sb-r" title="Toggle workspace panel"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2.5" width="12" height="11" rx="2"/><line x1="10" y1="2.5" x2="10" y2="13.5"/></svg></button>
-        <span class="c-btn close-x" title="Close RailBot">✕</span>
+      <div class="demo-nav-r">
+        <button type="button" class="cmd-pill copy-cmd">$ git clone https://github.com/j5onrf/railbot.git <span>Copy</span></button>
+        <a class="pill-link" href="https://github.com/j5onrf/railbot">GitHub ↗</a>
       </div>
-    </header>
-
-    <div class="app-main">
-      <aside class="sb-l" id="sb-l">
-        <div class="sb-head">
-          <div class="tabs">
-            <button type="button" class="tab active" id="btn-nav-proj">Projects</button>
-            <button type="button" class="tab" id="btn-nav-prof">Profiles</button>
-          </div>
-          <button type="button" class="btn-xs" id="btn-new-ws" title="Manage Projects">+</button>
-        </div>
-        <div class="proj-list" id="proj-list"></div>
-        <div class="sb-foot">
-          <button type="button" class="btn-icon" id="btn-demo-settings" title="Settings">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
-          </button>
-        </div>
-      </aside>
-
-      <section class="center" id="center-pane">
-        <div class="stream" id="stream"><div class="turn-wrap" id="turn-wrap"></div></div>
-        <div class="comp-wrap">
-          <div class="composer">
-            <div class="ac-pop" id="ac-pop"></div>
-            <input id="d-input" placeholder="Ask surogate37... (/ commands, /call peer)" />
-            <div class="comp-bar">
-              <div class="comp-l">
-                <button type="button" class="m-pill" id="d-model">Surogate3.7-35B-A3B · local</button>
-                <div class="pop-wrap">
-                  <button type="button" class="m-pill muted" id="btn-reason"><span id="r-val">200</span> ⌄</button>
-                  <div class="pop" id="pop-r"></div>
-                </div>
-                <div class="pop-wrap" id="sec-wrap">
-                  <button type="button" class="m-pill muted" id="btn-sec" title="Security: Zero Trust">
-                    <span id="sec-ico" style="display:inline-flex;align-items:center;"></span>
-                    <span style="opacity:.65">⌄</span>
-                  </button>
-                  <div class="pop" id="pop-sec" style="min-width:190px;"></div>
-                </div>
-                <button type="button" class="m-pill muted" id="d-img" title="Attach image (cloud models)" style="display:none;padding:0 8px;">
-                  <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2.5" width="12" height="11" rx="2"/><circle cx="5.7" cy="6" r="1"/><path d="M2.5 11.5l3.2-3.2 2.4 2.4 2.1-2.1 3.3 2.9"/></svg>
-                </button>
-                <div id="d-skills-bar" style="display:contents;"></div>
-              </div>
-              <button type="button" class="send-btn" id="d-send" aria-label="Send">↑</button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <aside class="sb-r" id="sb-r">
-        <div class="rs-top">
-          <div class="sb-head">
-            <span class="rs-lbl" id="d-files-lbl">2 files</span>
-            <div style="display:flex;gap:2px;">
-              <button type="button" class="btn-icon" id="btn-demo-reset" title="Reset session"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 8a5.5 5.5 0 1 0 1.6-3.9L2.5 5.7"/><path d="M2.5 2.5v3.2h3.2"/></svg></button>
-              <button type="button" class="btn-icon" id="btn-demo-export" title="Export .md"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2.5v7.5"/><path d="M5 7l3 3 3-3"/><path d="M3 12.5h10"/></svg></button>
-            </div>
-          </div>
-          <div class="file-list" id="d-files"></div>
-        </div>
-        <div class="rs-bot">
-          <div class="sb-head">
-            <div class="tabs">
-              <button type="button" class="tab active" id="rt-acts">Actions</button>
-              <button type="button" class="tab" id="rt-mem">Memory</button>
-            </div>
-          </div>
-          <div class="act-list" id="d-act-body"></div>
-          <textarea class="mem-box" id="d-mem-box" style="display:none;" placeholder="Workspace .rs/memory.md rules...">Always include negative &amp; boundary edge-case tests.</textarea>
-        </div>
-      </aside>
     </div>
 
-    <div class="frame-modal" id="frame-modal"><div class="fm-box" id="fm-box"></div></div>
-  </div>
+    <div class="frame" id="demo-frame">
+      <header class="app-top">
+        <div class="tb-l">
+          <button type="button" class="c-btn" id="btn-sb-l" title="Toggle sidebar"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2.5" width="12" height="11" rx="2"/><line x1="6" y1="2.5" x2="6" y2="13.5"/></svg></button>
+          <button type="button" class="c-btn brand-bot" id="d-brand-icon" title="Bot Setup &amp; Auto-Collaborators"></button>
+          <span class="tele" id="d-prof"></span>
+          <span class="tele" id="d-git" style="display:none"><span class="git-dot" id="d-git-dot"></span><span id="d-git-txt"></span></span>
+        </div>
+        <div class="tb-r">
+          <span class="tele" id="d-ch">99%<span class="ctx-tip"><span class="ctx-bar"><span class="ctx-fill" style="width:99%"></span></span><div><strong>8,110</strong> / 8,192 cached</div></span></span>
+          <span class="tele" id="d-spd">67.5 t/s<span class="ctx-tip"><div><strong>188</strong> generated in <strong>2.8s</strong></div></span></span>
+          <span class="tele" id="d-ctx-pill"><span id="d-ctx">28.3%</span><span class="ctx-tip" id="d-ctx-tip"></span></span>
+          <button type="button" class="c-btn" id="btn-sb-r" title="Toggle workspace panel"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2.5" width="12" height="11" rx="2"/><line x1="10" y1="2.5" x2="10" y2="13.5"/></svg></button>
+          <span class="c-btn close-x" title="Close RailBot">✕</span>
+        </div>
+      </header>
 
-  <div class="explore-bar">
-    <span>Explore:</span>
-    <button type="button" class="exp-btn" id="exp-bot">Bot Picker &amp; Auto-Call</button>
-    <button type="button" class="exp-btn" id="exp-set">Settings Menu</button>
-    <button type="button" class="exp-btn" id="exp-call">Multi-Bot /call</button>
-    <button type="button" class="exp-btn" id="exp-mcp">MCP Plugins</button>
-  </div>
+      <div class="app-main">
+        <aside class="sb-l" id="sb-l">
+          <div class="sb-head">
+            <div class="tabs">
+              <button type="button" class="tab active" id="btn-nav-proj">Projects</button>
+              <button type="button" class="tab" id="btn-nav-prof">Profiles</button>
+            </div>
+            <button type="button" class="btn-xs" id="btn-new-ws" title="Manage Projects">+</button>
+          </div>
+          <div class="proj-list" id="proj-list"></div>
+          <div class="sb-foot">
+            <button type="button" class="btn-icon" id="btn-demo-settings" title="Settings">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+        </aside>
+
+        <section class="center" id="center-pane">
+          <div class="stream" id="stream"><div class="turn-wrap" id="turn-wrap"></div></div>
+          <div class="comp-wrap">
+            <div class="composer">
+              <div class="ac-pop" id="ac-pop"></div>
+              <input id="d-input" placeholder="Ask surogate37... (/ commands, /call peer)" />
+              <div class="comp-bar">
+                <div class="comp-l">
+                  <button type="button" class="m-pill" id="d-model">Surogate3.7-35B-A3B · local</button>
+                  <div class="pop-wrap">
+                    <button type="button" class="m-pill muted" id="btn-reason"><span id="r-val">200</span> ⌄</button>
+                    <div class="pop" id="pop-r"></div>
+                  </div>
+                  <div class="pop-wrap" id="sec-wrap">
+                    <button type="button" class="m-pill muted" id="btn-sec" title="Security: Zero Trust">
+                      <span id="sec-ico" style="display:inline-flex;align-items:center;"></span>
+                      <span style="opacity:.65">⌄</span>
+                    </button>
+                    <div class="pop" id="pop-sec" style="min-width:190px;"></div>
+                  </div>
+                  <button type="button" class="m-pill muted" id="d-img" title="Attach image (cloud models)" style="display:none;padding:0 8px;">
+                    <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2.5" width="12" height="11" rx="2"/><circle cx="5.7" cy="6" r="1"/><path d="M2.5 11.5l3.2-3.2 2.4 2.4 2.1-2.1 3.3 2.9"/></svg>
+                  </button>
+                  <div id="d-skills-bar" style="display:contents;"></div>
+                </div>
+                <button type="button" class="send-btn" id="d-send" aria-label="Send">↑</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <aside class="sb-r" id="sb-r">
+          <div class="rs-top">
+            <div class="sb-head">
+              <span class="rs-lbl" id="d-files-lbl">2 files</span>
+              <div style="display:flex;gap:2px;">
+                <button type="button" class="btn-icon" id="btn-demo-reset" title="Reset session"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 8a5.5 5.5 0 1 0 1.6-3.9L2.5 5.7"/><path d="M2.5 2.5v3.2h3.2"/></svg></button>
+                <button type="button" class="btn-icon" id="btn-demo-export" title="Export .md"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2.5v7.5"/><path d="M5 7l3 3 3-3"/><path d="M3 12.5h10"/></svg></button>
+              </div>
+            </div>
+            <div class="file-list" id="d-files"></div>
+          </div>
+          <div class="rs-bot">
+            <div class="sb-head">
+              <div class="tabs">
+                <button type="button" class="tab active" id="rt-acts">Actions</button>
+                <button type="button" class="tab" id="rt-mem">Memory</button>
+              </div>
+            </div>
+            <div class="act-list" id="d-act-body"></div>
+            <textarea class="mem-box" id="d-mem-box" style="display:none;" placeholder="Workspace .rs/memory.md rules...">Always include negative &amp; boundary edge-case tests.</textarea>
+          </div>
+        </aside>
+      </div>
+
+      <div class="frame-modal" id="frame-modal"><div class="fm-box" id="fm-box"></div></div>
+    </div>
+
+    <div class="explore-bar">
+      <span>Explore:</span>
+      <button type="button" class="exp-btn" id="exp-bot">Bot Picker &amp; Auto-Call</button>
+      <button type="button" class="exp-btn" id="exp-set">Settings Menu</button>
+      <button type="button" class="exp-btn" id="exp-call">Multi-Bot /call</button>
+      <button type="button" class="exp-btn" id="exp-mcp">MCP Plugins</button>
+    </div>
+  </section>
 </div>
 <div class="hover-card" id="hover-card"></div>
 
 <script>
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-let curTheme = "eldritch", activeTab = "providers", botPage = 0, activeProj = "surogate37";
+let activeTab = "providers", botPage = 0, activeProj = "surogate37";
 let rsTab = "acts", allowAll = false, useLetters = false, compactSidebar = false, expandSteps = false;
 let activeProvider = "LOCAL", maxTokens = 8192, maxRounds = 15, activeSkills = [], extraTurns = [];
-
-const THEMES = {
-  dark: {
-    bg: "#09090b", panel: "#0f0f12", card: "#16161a", border: "#232329", text: "#ececef",
-    muted: "#8e8e98", accent: "#f8fafc", cyan: "#94a3b8", fg: "#09090b",
-    userBg: "rgba(248,250,252,0.10)", userBorder: "rgba(248,250,252,0.28)", railLine: "rgba(255,255,255,0.035)",
-    heroFade: "#050508", heroFadeMid: "rgba(5,5,8,0.35)", heroImg: 'url("assets/banner.jpg")',
-    cmdBg: "rgba(14, 15, 20, 0.88)", cmdBorder: "rgba(255, 255, 255, 0.16)",
-    logo: "assets/logo.svg",
-    favicon: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3.5' fill='%23050507'/%3E%3Cpath fill='%23f8fafc' fill-rule='evenodd' d='M5.7 1.8h4.6l3.2 3.2v4.4L11 11.9v3H9.4v-2.2H6.6v2.2H5v-3L2.5 9.4V5Zm-1.6 3.9q1.7.7 3.1 1.9-2.1.6-3.1-1.9Zm7.8 0q-1.7.7-3.1 1.9 2.1.6 3.1-1.9Z'/%3E%3C/svg%3E"
-  },
-  eldritch: {
-    bg: "#1b1d2e", panel: "#23253a", card: "#2c2f48", border: "#3f4362", text: "#ebfafa",
-    muted: "#a4b1cd", accent: "#37f499", cyan: "#04d1f9", fg: "#05140a",
-    userBg: "rgba(55,244,153,0.14)", userBorder: "rgba(55,244,153,0.40)", railLine: "rgba(4,209,249,0.045)",
-    heroFade: "#1b1d2e", heroFadeMid: "rgba(27,29,46,0.35)", heroImg: 'url("assets/banner-eldritch.jpg")',
-    cmdBg: "rgba(27, 29, 46, 0.90)", cmdBorder: "rgba(4, 209, 249, 0.32)",
-    logo: "assets/logo-eldritch.svg",
-    favicon: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3.5' fill='%231b1d2e'/%3E%3Cpath fill='%2337f499' fill-rule='evenodd' d='M5.7 1.8h4.6l3.2 3.2v4.4L11 11.9v3H9.4v-2.2H6.6v2.2H5v-3L2.5 9.4V5Zm-1.6 3.9q1.7.7 3.1 1.9-2.1.6-3.1-1.9Zm7.8 0q-1.7.7-3.1 1.9 2.1.6 3.1-1.9Z'/%3E%3C/svg%3E"
-  }
-};
-
-function setTheme(key) {
-  curTheme = key;
-  const t = THEMES[key] || THEMES.eldritch, r = document.documentElement.style;
-  r.setProperty("--bg", t.bg); r.setProperty("--panel", t.panel); r.setProperty("--card", t.card);
-  r.setProperty("--hover", `color-mix(in srgb, ${t.text} 6%, ${t.card})`);
-  r.setProperty("--border", t.border); r.setProperty("--text", t.text); r.setProperty("--muted", t.muted);
-  r.setProperty("--dim", `color-mix(in srgb, ${t.muted} 82%, ${t.bg})`);
-  r.setProperty("--accent", t.accent); r.setProperty("--cyan", t.cyan); r.setProperty("--accent-fg", t.fg);
-  r.setProperty("--user-bg", t.userBg); r.setProperty("--user-border", t.userBorder); r.setProperty("--rail-line", t.railLine);
-  r.setProperty("--hero-fade", t.heroFade); r.setProperty("--hero-fade-mid", t.heroFadeMid); r.setProperty("--hero-img", t.heroImg);
-  r.setProperty("--cmd-bg", t.cmdBg); r.setProperty("--cmd-border", t.cmdBorder);
-
-  const nl = document.getElementById("nav-logo"), hl = document.getElementById("hero-logo");
-  if (nl) nl.src = t.logo;
-  if (hl) hl.src = t.logo;
-  const fav = document.querySelector('link[rel="icon"]');
-  if (fav && t.favicon) fav.href = t.favicon;
-
-  document.querySelectorAll("#theme-seg button").forEach(b => b.classList.toggle("active", b.dataset.theme === key));
-}
-document.querySelectorAll("#theme-seg button").forEach(b => b.onclick = () => {
-  setTheme(b.dataset.theme);
-  if (document.getElementById("frame-modal").classList.contains("open") && document.getElementById("fm-box").classList.contains("wide")) renderSettingsModal();
-});
 
 const CHAT_BOT_MASK = 0x8010;
 const VEC_PRESETS = {
@@ -498,7 +532,7 @@ const vecEyes = (ey, k) => {
   if (k === 2) return `M4 ${ey-1.5}L8 ${ey-0.2}L12 ${ey-1.5}L11.3 ${ey+0.8}L8 ${ey+1.4}L4.7 ${ey+0.8}Z`;
   return `M4.1 ${ey-1.4}L7.1 ${ey+0.2}L5 ${ey+0.9}ZM11.9 ${ey-0.8}L8.9 ${ey+0.1}L9.3 ${ey+0.7}L11.7 ${ey+0.2}Z`;
 };
-const VEC_TOPS = ["", `<path d="M8 .3Q8 1.5 9.3 1.5Q8 1.5 8 .3Z"/>`, `<path d="M3.8 1 6.2 2.4 5 3.4 3.4 2Zm8.4 0-2.4 1.4 1.2 1 1.6-1.4Z"/>`, `<path d="M4.2 1.2h7.6l-1 1.1H5.2Z"/>`];
+const VEC_TOPS = ["", `<path d="M8 .3Q8 1.5 9.3 1.5Q8 1.5 8 2.7Q8 1.5 6.7 1.5Q8 1.5 8 .3Z"/>`, `<path d="M3.8 1 6.2 2.4 5 3.4 3.4 2Zm8.4 0-2.4 1.4 1.2 1 1.6-1.4Z"/>`, `<path d="M4.2 1.2h7.6l-1 1.1H5.2Z"/>`];
 const vecParts = (m) => (m & 0x8000)
   ? { preset: VEC_PRESETS[m] || VEC_PRESETS[0x8011], key: `p:${m}` }
   : (() => { const b = (m & 0xf) | ((m >> 1) & 0x3ff0), bi = b & 7; return { bIdx: bi, eIdx: (b >> 3) & 3, tIdx: VEC_BASES[bi].top ? ((b >> 5) & 3) : 0, key: `g:${bi}:${(b>>3)&3}:${VEC_BASES[bi].top?((b>>5)&3):0}` }; })();
@@ -737,11 +771,9 @@ function renderSettingsModal() {
       pane.appendChild(row);
     });
   } else if (activeTab === "appearance") {
-    pane.innerHTML = `<div><div style="font-weight:600">Appearance &amp; Layout</div><div class="s-sub">Live themes, RailBot icon style, sidebar density, and step expansion.</div></div>`;
+    pane.innerHTML = `<div><div style="font-weight:600">Appearance &amp; Layout</div><div class="s-sub">RailBot icon style, sidebar density, and reasoning step expansion.</div></div>`;
     const addRow = (html) => { const r = document.createElement("div"); r.className = "s-row"; r.innerHTML = html; pane.appendChild(r); return r; };
-    addRow(`<div><strong>Theme</strong><div class="s-sub">Syncs with the topbar Dark / Eldritch switch</div></div><div class="seg"><button type="button" class="${curTheme==="dark"?"active":""}" data-t="dark">Dark</button><button type="button" class="${curTheme==="eldritch"?"active":""}" data-t="eldritch">Eldritch</button></div>`)
-      .querySelectorAll("button").forEach(b => b.onclick = () => { setTheme(b.dataset.t); renderSettingsModal(); });
-    addRow(`<div><strong>RailBot Style</strong><div class="s-sub">Custom mean vector RailBots or letter badges</div></div><div class="seg"><button type="button" class="${!useLetters?"active":""}" data-b="vec">Vector</button><button type="button" class="${useLetters?"active":""}" data-b="let">Letters</button></div>`)
+    addRow(`<div><strong>RailBot Style</strong><div class="s-sub">Custom mean vector RailBots or letter badges</div></div><div style="display:inline-flex;background:var(--panel);border:1px solid var(--border);border-radius:999px;padding:2px;gap:2px;"><button type="button" class="${!useLetters?"btn-primary":"btn-xs"}" style="border-radius:999px;border:none;" data-b="vec">Vector</button><button type="button" class="${useLetters?"btn-primary":"btn-xs"}" style="border-radius:999px;border:none;" data-b="let">Letters</button></div>`)
       .querySelectorAll("button").forEach(b => b.onclick = () => { useLetters = b.dataset.b === "let"; renderSettingsModal(); renderDemo(); });
     addRow(`<div><strong>Sidebar Density</strong><div class="s-sub">Show descriptions or compact single-line rows</div></div><button type="button" class="btn-xs">${compactSidebar?"Compact":"Detailed"}</button>`)
       .querySelector("button").onclick = () => { compactSidebar = !compactSidebar; renderSettingsModal(); renderDemo(); };
@@ -905,7 +937,11 @@ document.getElementById("btn-sb-l").onclick = () => document.getElementById("sb-
 document.getElementById("btn-sb-r").onclick = () => document.getElementById("sb-r").classList.toggle("hidden");
 document.getElementById("btn-demo-reset").onclick = () => { extraTurns = []; curProj().cleared = true; renderDemo(); };
 document.getElementById("btn-demo-export").onclick = () => openFileModal(".rs/transcripts/chat.md", `# RailBot Transcript — ${curProj().name}\n\nExported static demo transcript for ${curProj().name} (${curProj().model}).`);
-document.getElementById("copy-cmd").onclick = (e) => { navigator.clipboard.writeText("git clone https://github.com/j5onrf/railbot.git"); e.currentTarget.lastElementChild.textContent = "Copied"; };
+document.querySelectorAll(".copy-cmd").forEach(btn => btn.onclick = () => {
+  navigator.clipboard.writeText("git clone https://github.com/j5onrf/railbot.git");
+  document.querySelectorAll(".copy-cmd span").forEach(s => s.textContent = "Copied");
+  setTimeout(() => document.querySelectorAll(".copy-cmd span").forEach(s => s.textContent = "Copy"), 1800);
+});
 
 document.getElementById("btn-reason").onclick = (e) => { e.stopPropagation(); const o = !document.getElementById("pop-r").classList.contains("open"); closePops(); if (o) document.getElementById("pop-r").classList.add("open"); };
 document.getElementById("pop-r").onclick = (e) => { const b = e.target.closest("button"); if (b) { document.getElementById("r-val").textContent = b.dataset.r; closePops(); renderDemo(); } };
@@ -959,7 +995,6 @@ inp.addEventListener("input", () => { sendBtn.classList.toggle("ready", inp.valu
 inp.addEventListener("keydown", (e) => { if (e.key === "Enter") sendDemo(); });
 sendBtn.onclick = sendDemo;
 
-setTheme("eldritch");
 renderDemo();
 </script>
 </body>
