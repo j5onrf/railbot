@@ -13,8 +13,8 @@
 </p>
 
 <p>
-  <strong>Sub-millisecond native Rust AI desktop &amp; web harness for local GGUF models and frontier cloud endpoints.</strong><br />
-  Parallel micro-bots &nbsp;•&nbsp; Local-first private &nbsp;•&nbsp; Zero-trust sandbox &nbsp;•&nbsp; Single binary with embedded UI
+  <strong>Native Rust desktop &amp; web UI built on <a href="https://j5onrf.github.io/rs-agent/">rs-agent</a> for local GGUF and cloud models.</strong><br />
+  Parallel micro-bots &nbsp;&middot;&nbsp; One-turn <code>/sub</code> agents &nbsp;&middot;&nbsp; Zero-trust sandbox &nbsp;&middot;&nbsp; Single binary
 </p>
 
 <p>
@@ -31,13 +31,13 @@
 
 ## Highlights
 
-- **Single Native Binary:** Zero runtime dependencies; web/desktop interface compiled right in (`ui.html`).
-- **Frameless Desktop App:** Launch instantly with `railbot.desktop` via Chrome/Brave/Chromium `--app=` mode or Omarchy.
-- **Parallel Micro-Bots (`/call`):** Consult any peer bot read-only. Assign per-bot cloud providers in Settings → Projects and auto-collaborators in the bot badge menu.
-- **Sub-Agent Delegation (`/sub`):** Injects `delegate_task` for a single turn (`0t` overhead otherwise), clamped to depth 1 with `.env` blocked.
-- **Zero-Trust Sandbox:** Composer shield toggles **Zero Trust** (confirm edits, commands & `/sub`) vs **Allow All** (autonomous, `.env` still locked); supports sandboxed workspaces or external folders via **Browse**.
-- **Themes & Desktop Sync:** Custom JSON palettes (`eldritch`, `darkbot`, `claude`), live Omarchy/Noctalia desktop sync, and a built-in palette catalog browser.
-- **Standalone Server:** Listens on `http://127.0.0.1:24244` by default (override via `RAILBOT_PORT` in `.env`) and is built directly on [rs-agent](https://j5onrf.github.io/rs-agent/).
+- **Single Native Binary:** Web/desktop UI compiled right in (`ui.html`) with zero runtime dependencies.
+- **Frameless Desktop App:** Opens via Chrome/Brave/Chromium `--app=` mode, Omarchy, or `railbot.desktop`.
+- **Parallel Micro-Bots (`/call`):** Consult sibling bots read-only with per-bot cloud providers and auto-collaborators.
+- **One-Off Sub-Agents (`/sub`):** Injects `delegate_task` for one turn (`0t` overhead otherwise), clamped to depth `1`.
+- **Zero-Trust Sandbox:** Composer shield toggles **Zero Trust** vs **Allow All** (`.env` locked); link external folders via **Browse**.
+- **Themes & Desktop Sync:** Live Omarchy/Noctalia sync, `+ Noctalia` catalog browser, and custom JSON palettes (`eldritch`, `darkbot`, `claude`).
+- **Built on [rs-agent](https://j5onrf.github.io/rs-agent/):** Listens on `http://127.0.0.1:24244` (`RAILBOT_PORT` in `.env`); see [rs-agent](https://j5onrf.github.io/rs-agent/) for core engine, profiles, and CLI docs.
 
 ---
 
