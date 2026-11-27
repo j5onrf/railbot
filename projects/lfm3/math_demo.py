@@ -4,28 +4,23 @@ def is_prime(n):
         return False
     if n <= 3:
         return True
-    if n % 2 == 0:
+    if n % 2 == 0 or n % 3 == 0:
         return False
-    i = 3
+    i = 5
     while i * i <= n:
-        if n % i == 0:
+        if n % i == 0 or n % (i + 2) == 0:
             return False
-        i += 2
+        i += 6
     return True
 
 
 if __name__ == "__main__":
-    # Inspect the file: print its path and content summary
+    # Inspect the file itself: print its path and size
     import os
     print(f"File: {os.path.abspath(__file__)}")
-    with open(__file__, "r") as f:
-        lines = f.readlines()
-        print(f"Number of lines: {len(lines)}")
-        # Print first 5 lines
-        for line in lines[:5]:
-            print(line.rstrip())
+    print(f"Size: {os.path.getsize(os.path.abspath(__file__))} bytes")
 
-    # Run the prime check on a few numbers
-    test_numbers = [1, 2, 3, 4, 17, 20, 97]
+    # Example usage
+    test_numbers = [2, 3, 4, 17, 18, 29, 100]
     for num in test_numbers:
         print(f"{num} is prime? {is_prime(num)}")

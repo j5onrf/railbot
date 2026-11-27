@@ -1,32 +1,16 @@
 {
   "show_right_panel": true,
   "bot_mode": true,
-  "last_project": "inkling2",
+  "last_project": "ling-tiny",
   "project_labels": {
-    "inkling2": [
+    "surogate37": [
       "local",
       "railbot"
-    ],
-    "qwen38": [
-      "local"
-    ],
-    "groot": [
-      "local"
-    ],
-    "gem35": [
-      "cloud",
-      "railbot"
-    ],
-    "flint": [
-      "local"
     ],
     "lfm3": [
       "local"
     ],
     "sage": [
-      "local"
-    ],
-    "ling-tiny": [
       "local"
     ],
     "nemo": [
@@ -35,8 +19,24 @@
     "tokenlab": [
       "cloud"
     ],
-    "surogate37": [
+    "inkling2": [
       "local",
+      "railbot"
+    ],
+    "ling-tiny": [
+      "local"
+    ],
+    "qwen38": [
+      "local"
+    ],
+    "groot": [
+      "local"
+    ],
+    "flint": [
+      "local"
+    ],
+    "gem35": [
+      "cloud",
       "railbot"
     ]
   },
@@ -44,7 +44,7 @@
     "chat": "chatbot"
   },
   "project_bots": {
-    "surogate37": "b:1395"
+    "surogate37": "b:31f6"
   },
   "project_collabs": {
     "surogate37": [
@@ -68,5 +68,10 @@
         "desc": "Open peer bot picker"
       }
     ]
+  },
+  "project_security": {
+    "lfm3": "allow",
+    "gem35": "allow",
+    "ling-tiny": "allow"
   }
 }

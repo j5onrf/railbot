@@ -128,6 +128,33 @@
   .cmd-pill:hover { border-color: var(--cyan); background: var(--card); }
   .cmd-pill span { color: var(--accent); font-size: 11px; font-weight: 600; }
 
+  
+  .rb-svg { overflow: visible; display: block; }
+  .rb-eye, .rb-eye-glow { transform-box: fill-box; transform-origin: center; }
+  .rb-eye-glow { opacity: 0; pointer-events: none; }
+
+  @keyframes rbBlink {
+    0%   { transform: scaleY(1); }
+    30%  { transform: scaleY(0.12); }
+    65%  { transform: scaleY(1); }
+    100% { transform: scaleY(1); }
+  }
+  @keyframes rbGlint {
+    0%   { opacity: 0; }
+    35%  { opacity: 0.95; }
+    100% { opacity: 0; }
+  }
+
+  /* Tactical Eye Blink: Chassis stays frozen; only triggers in Solid mode */
+  body:not([data-bot-icon="mono"]) .proj-item:hover .rb-eye,
+  body:not([data-bot-icon="mono"]) #btn-brand-settings:hover .rb-eye {
+    animation: rbBlink .32s ease-in-out 1;
+  }
+  body:not([data-bot-icon="mono"]) .proj-item:hover .rb-eye-glow,
+  body:not([data-bot-icon="mono"]) #btn-brand-settings:hover .rb-eye-glow {
+    animation: rbGlint .42s ease-out 1;
+  }
+
   /* 6px Thin Scrollbars */
   .stream::-webkit-scrollbar, .proj-list::-webkit-scrollbar, .file-list::-webkit-scrollbar, .act-list::-webkit-scrollbar, .modal-pane::-webkit-scrollbar, .fm-body::-webkit-scrollbar { width: 6px; height: 6px; }
   .stream::-webkit-scrollbar-track, .proj-list::-webkit-scrollbar-track, .file-list::-webkit-scrollbar-track, .act-list::-webkit-scrollbar-track, .modal-pane::-webkit-scrollbar-track, .fm-body::-webkit-scrollbar-track { background: transparent; }
@@ -165,6 +192,8 @@
   .tab.active { background: var(--card); border-color: var(--border); color: var(--text); }
   .btn-xs { background: var(--card); border: 1px solid var(--border); border-radius: 6px; padding: 2px 7px; font-size: 11px; color: var(--text); cursor: pointer; white-space: nowrap; }
   .btn-xs:hover { background: var(--hover); }
+    .btn-del-xs { background: var(--del-bg); color: var(--del-text); border: 1px solid rgba(239,68,68,.38); border-radius: 6px; padding: 2px 7px; font-size: 11px; cursor: pointer; flex-shrink: 0; line-height: 1.25; }
+  .btn-del-xs:hover { filter: brightness(1.12); }
   .btn-icon { background: transparent; border: 1px solid transparent; border-radius: 5px; padding: 3px 5px; color: var(--muted); cursor: pointer; display: inline-flex; align-items: center; }
   .btn-icon:hover { background: var(--hover); color: var(--text); }
 
@@ -403,7 +432,7 @@
   <!-- Screen 1: Clean Banner Overview + Spec Bar -->
   <section class="overview-sec" id="overview">
     <nav>
-      <div class="brand"><img src="assets/logo-eldritch.svg" alt="RailBot" width="24" height="24" /><span>RailBot</span><a class="ver-badge" href="https://github.com/j5onrf/railbot/releases" title="View releases on GitHub">v0.5.0</a></div>
+      <div class="brand"><img src="assets/logo-eldritch.svg" alt="RailBot" width="24" height="24" /><span>RailBot</span><a class="ver-badge" href="https://github.com/j5onrf/railbot/releases" title="View releases on GitHub">v0.5.2</a></div>
       <a class="pill-link" href="https://github.com/j5onrf/railbot">GitHub ↗</a>
     </nav>
 
@@ -542,11 +571,14 @@
           </div>
           <div class="rs-bot">
             <div class="sb-head">
-              <div class="tabs">
-                <button type="button" class="tab active" id="rt-acts">Actions</button>
-                <button type="button" class="tab" id="rt-mem">Memory</button>
-              </div>
+            <div class="tabs">
+              <button type="button" class="tab active" id="rt-acts">Actions</button>
+              <button type="button" class="tab" id="rt-mem">Memory</button>
             </div>
+            <button type="button" class="btn-icon" id="btn-add-action" title="Manage Actions" aria-label="Manage Actions">
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="8" y1="3" x2="8" y2="13"/><line x1="3" y1="8" x2="13" y2="8"/></svg>
+            </button>
+          </div>
             <div class="act-list" id="d-act-body"></div>
             <textarea class="mem-box" id="d-mem-box" style="display:none;" placeholder="Workspace .rs/memory.md rules...">Always include negative &amp; boundary edge-case tests.</textarea>
           </div>
@@ -654,6 +686,7 @@ function hashBotMask(name) {
   return (h & 0x7fff) | (1 << 4);
 }
 const projMask = (name) => (PROJECTS.find(x => x.name === name)?.customMask) || hashBotMask(name);
+let maskUid = 0;
 function botSvgFromMask(mask, size = 18) {
   if (badgeMode === "pixel") {
     const r = [];
@@ -666,12 +699,28 @@ function botSvgFromMask(mask, size = 18) {
         if (x < 2) r.push(`<rect x="${11-x*2}" y="${3+y*2}" width="2" height="2" rx="0.4"/>`);
       }
     }
-    return `<svg width="${size}" height="${size}" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">${r.join("")}</svg>`;
+    return `<svg class="rb-svg" width="${size}" height="${size}" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">${r.join("")}</svg>`;
   }
-  const g = vecParts(mask);
-  if (g.preset) return `<svg width="${size}" height="${size}" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">${g.preset}</svg>`;
-  const base = VEC_BASES[g.bIdx];
-  return `<svg width="${size}" height="${size}" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">${VEC_TOPS[g.tIdx]}${base.ex||""}<path fill-rule="evenodd" d="${base.d}${vecEyes(base.ey, g.eIdx)}"/></svg>`;
+  const id = `rbm-${++maskUid}`;
+  let shell = "", eyes = "", crest = "";
+  if (mask & 0x8000) {
+    const pr = VEC_PRESETS[mask] || VEC_PRESETS[0x8011];
+    shell = pr.shell; eyes = pr.eyes;
+  } else {
+    const bits = (mask & 0xf) | ((mask >> 1) & 0x3ff0);
+    const bi = bits & 7, ei = (bits >> 3) & 3, ti = VEC_BASES[bi].top ? ((bits >> 5) & 3) : 0;
+    shell = VEC_BASES[bi].d;
+    eyes = vecEyes(VEC_BASES[bi].ey, ei);
+    crest = VEC_TOPS[ti];
+  }
+  return `<svg class="rb-svg" width="${size}" height="${size}" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+    <defs><mask id="${id}"><rect width="16" height="16" fill="white"/><path class="rb-eye" d="${eyes}" fill="black"/></mask></defs>
+    <g class="rb-bot-grp">
+      ${crest ? `<path class="rb-crest" d="${crest}"/>` : ""}
+      <path class="rb-shell" d="${shell}" mask="url(#${id})"/>
+      <path class="rb-eye-glow" d="${eyes}" fill="var(--accent)"/>
+    </g>
+  </svg>`;
 }
 const botSvg = (name, size = 18) => botSvgFromMask(projMask(name), size);
 
@@ -1220,27 +1269,130 @@ function renderProjects() {
   });
 }
 
+function defaultActionsFor(p) {
+  const defs = [];
+  if (p.mode !== "chat") defs.push({ cmd: "/task", desc: "Start autonomous goal" });
+  defs.push({ cmd: "/call", desc: "Open peer bot picker" });
+  for (const c of (p.collabs || [])) {
+    const cmd = `/call ${c}`;
+    if (!defs.some(a => a.cmd === cmd)) defs.push({ cmd, desc: "Ask peer" });
+  }
+  return defs;
+}
+function getEffectiveActions(p) {
+  return Array.isArray(p.customActions) ? p.customActions : defaultActionsFor(p);
+}
+
+function openManageActions() {
+  const ap = curProj(), box = document.getElementById("fm-box");
+  box.classList.remove("wide");
+  const draw = () => {
+    const actions = getEffectiveActions(ap), isCustom = Array.isArray(ap.customActions);
+    box.innerHTML = `
+      <div class="fm-head"><span>Manage Actions</span><button type="button" class="btn-xs" id="fm-close">✕</button></div>
+      <div class="fm-body">
+        <div class="np-field">
+          <label class="np-lbl">Add Action Shortcut</label>
+          <div style="display:flex;gap:6px;">
+            <input class="np-inp" id="act-in-cmd" maxlength="500" placeholder="e.g. Create a handoff or cargo check" style="flex:1.3;min-width:0;" />
+            <input class="np-inp" id="act-in-desc" maxlength="60" placeholder="Description (optional)" style="flex:1;min-width:0;" />
+            <button type="button" class="btn-primary" id="act-in-add" ${actions.length>=16?"disabled":""}>Add</button>
+          </div>
+          <div id="act-err" style="font-size:11px;color:var(--del-text);display:none;"></div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <span class="np-lbl">Actions for <strong style="color:var(--text);">${esc(ap.name)}</strong></span>
+            ${isCustom ? `<button type="button" class="btn-xs" id="act-reset">Reset defaults</button>` : ""}
+          </div>
+          <div id="act-m-list" style="display:flex;flex-direction:column;gap:5px;max-height:220px;overflow-y:auto;"></div>
+        </div>
+      </div>`;
+    box.querySelector("#fm-close").onclick = closeModal;
+    const cmdInp = box.querySelector("#act-in-cmd"), descInp = box.querySelector("#act-in-desc"), errEl = box.querySelector("#act-err");
+    const mList = box.querySelector("#act-m-list");
+    if (!actions.length) {
+      mList.innerHTML = `<div style="font-size:11px;color:var(--muted);padding:6px 2px;">No actions configured for this workspace.</div>`;
+    } else {
+      actions.forEach(item => {
+        const r = document.createElement("div");
+        r.className = "act-row"; r.style.cursor = "default";
+        r.innerHTML = `<span class="act-cmd" style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(item.cmd)}</span><div style="display:flex;align-items:center;gap:8px;min-width:0;max-width:52%;flex-shrink:0;">${item.desc?`<span class="act-desc" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(item.desc)}</span>`:""}<button type="button" class="btn-del-xs" title="Remove">✕</button></div>`;
+        r.querySelector("button").onclick = () => {
+          const base = Array.isArray(ap.customActions) ? [...ap.customActions] : [...defaultActionsFor(ap)];
+          ap.customActions = base.filter(a => a.cmd !== item.cmd);
+          draw(); renderRightBottom();
+        };
+        mList.appendChild(r);
+      });
+    }
+    const addFn = () => {
+      const cmd = cmdInp.value.replace(/[\r\n\t]+/g, " ").trim().slice(0, 500);
+      const desc = descInp.value.replace(/[\r\n\t]+/g, " ").trim().slice(0, 60);
+      if (!cmd) { errEl.textContent = "Enter a command or prompt."; errEl.style.display = "block"; cmdInp.focus(); return; }
+      const cur = Array.isArray(ap.customActions) ? [...ap.customActions] : [...defaultActionsFor(ap)];
+      if (cur.length >= 16) { errEl.textContent = "Maximum 16 actions per workspace."; errEl.style.display = "block"; return; }
+      if (cur.some(x => x.cmd === cmd)) { errEl.textContent = "That action already exists."; errEl.style.display = "block"; return; }
+      cur.push({ cmd, desc });
+      ap.customActions = cur;
+      draw(); renderRightBottom();
+      box.querySelector("#act-in-cmd").focus();
+    };
+    box.querySelector("#act-in-add").onclick = addFn;
+    cmdInp.onkeydown = descInp.onkeydown = (e) => { if (e.key === "Enter") { e.preventDefault(); addFn(); } };
+    const rst = box.querySelector("#act-reset");
+    if (rst) rst.onclick = () => { delete ap.customActions; draw(); renderRightBottom(); };
+  };
+  draw();
+  document.getElementById("frame-modal").classList.add("open");
+  box.querySelector("#act-in-cmd").focus();
+}
+
 function renderRightBottom() {
   const isActs = rsTab === "acts";
   document.getElementById("rt-acts").classList.toggle("active", isActs);
   document.getElementById("rt-mem").classList.toggle("active", !isActs);
   document.getElementById("d-act-body").style.display = isActs ? "flex" : "none";
   document.getElementById("d-mem-box").style.display = isActs ? "none" : "block";
+  document.getElementById("btn-add-action").style.display = isActs ? "inline-flex" : "none";
   if (!isActs) return;
-  const p = curProj(), body = document.getElementById("d-act-body"), acts = [];
-  if (p.mode !== "chat") acts.push({ cmd: "/task", desc: "Start autonomous goal" });
-  acts.push({ cmd: "/call", desc: "Open peer bot picker" });
-  (p.collabs.length ? p.collabs : ["gem35"]).forEach(c => acts.push({ cmd: `/call ${c}`, desc: "Ask peer", bot: c }));
-  body.innerHTML = acts.map(a => `<div class="act-row"><span class="act-cmd">${a.bot?botSvg(a.bot,12):""}${esc(a.cmd)}</span><span class="act-desc">${esc(a.desc)}</span></div>`).join("");
-  body.querySelectorAll(".act-row").forEach(row => row.onclick = () => {
-    const cmd = row.querySelector(".act-cmd").textContent.trim();
+  const p = curProj(), body = document.getElementById("d-act-body"), acts = getEffectiveActions(p);
+  if (!acts.length) {
+    body.innerHTML = `<div style="padding:4px 2px;font-size:11px;color:var(--muted);">No actions. Click + to add.</div>`;
+    return;
+  }
+  body.innerHTML = acts.map(a => {
+    let botName = "";
+    if (a.cmd.startsWith("/call ")) {
+      const m = a.cmd.slice(6).trim().match(/^@?([a-zA-Z0-9_-]+)/);
+      if (m && PROJECTS.some(x => x.name === m[1])) botName = m[1];
+    }
+    return `<div class="act-row" title="${esc(a.desc ? `${a.cmd} — ${a.desc}` : a.cmd)}"><span class="act-cmd">${botName?botSvg(botName,12):""}${esc(a.cmd)}</span>${a.desc?`<span class="act-desc">${esc(a.desc)}</span>`:""}</div>`;
+  }).join("");
+  body.querySelectorAll(".act-row").forEach((row, idx) => row.onclick = (e) => {
+    const cmd = acts[idx].cmd;
     if (cmd === "/call") return openCallModal();
-    if (cmd.startsWith("/call ")) return openCallModal(cmd.slice(6).trim());
-    const inp = document.getElementById("d-input");
-    inp.value = cmd + " "; document.getElementById("d-send").classList.add("ready"); inp.focus();
+    if (cmd === "/task") {
+      inp.value = inp.value.startsWith("/task") ? inp.value : "/task " + inp.value;
+      resizeInp(); sendBtn.classList.add("ready"); inp.focus();
+      return;
+    }
+    if (cmd.startsWith("/call ") && !/^\/call\s+@?[a-zA-Z0-9_-]+(?::\s*|\s+)\S/.test(cmd)) {
+      const trimmed = cmd.trimEnd(), prefix = trimmed.endsWith(":") ? `${trimmed} ` : `${trimmed}: `;
+      const cur = inp.value.trimStart();
+      inp.value = cur && !cur.startsWith("/") ? `${prefix}${cur}` : prefix;
+      resizeInp(); sendBtn.classList.add("ready"); inp.focus();
+      return;
+    }
+    if (e.shiftKey || cmd.endsWith(":")) {
+      inp.value = cmd.endsWith(" ") ? cmd : `${cmd} `;
+      resizeInp(); sendBtn.classList.add("ready"); inp.focus();
+      return;
+    }
+    inp.value = cmd;
+    sendDemo();
   });
 }
-
 const diffHtml = (lines) => `<div class="diff-box">${lines.map(([num, kind, text]) => `<div class="diff-line ${kind}"><span class="diff-num">${num} ${kind==="add"?"+":kind==="del"?"-":" "}</span><span>${highlightCode(text)}</span></div>`).join("")}</div>`;
 const peerCardHtml = (target, tag, brief, elapsed, bodyHtml, trace) => `<div class="peer-card" onclick="this.classList.toggle('open')"><div class="peer-head"><div class="peer-title">${botSvg(target,14)}<strong>${esc(target)}</strong><span class="peer-tag">${esc(tag)}</span><span class="peer-brief">${esc(brief)}</span></div><span style="color:var(--muted)">${esc(elapsed)}</span></div><div class="peer-body">${bodyHtml}</div><pre class="t-raw">${esc(trace)}</pre></div>`;
 
@@ -1275,7 +1427,7 @@ function renderDemo() {
   document.getElementById("d-ctx-tip").innerHTML = `<span class="ctx-bar"><span class="ctx-fill" style="width:${shownPct}"></span></span><div><strong>${shownPct}</strong> of ${maxTokens.toLocaleString()} context</div>`;
   document.getElementById("btn-demo-reset").style.display = isEmpty ? "none" : "inline-flex";
 
-  document.getElementById("d-model").innerHTML = `<span>${esc(shownModel)}</span> <span style="color:var(--muted)">${esc(shownEp)}</span>`;
+  document.getElementById("d-model").innerHTML = effectiveCloud ? `<span>${esc(shownModel)}</span>` : `<span>${esc(shownModel)}</span> <span style="color:var(--muted)">local</span>`;
   document.getElementById("d-img").style.display = effectiveCloud ? "inline-flex" : "none";
   document.getElementById("sec-wrap").style.display = isChat ? "none" : "inline-flex";
   const secBtn = document.getElementById("btn-sec");
@@ -1372,6 +1524,7 @@ document.getElementById("exp-bot").onclick = openBotPicker;
 document.getElementById("exp-set").onclick = () => openSettings("providers");
 document.getElementById("exp-call").onclick = () => openCallModal();
 document.getElementById("exp-mcp").onclick = () => openSettings("mcp");
+document.getElementById("btn-add-action").onclick = openManageActions;
 document.getElementById("rt-acts").onclick = () => { rsTab = "acts"; renderRightBottom(); };
 document.getElementById("rt-mem").onclick = () => { rsTab = "mem"; renderRightBottom(); };
 document.getElementById("btn-sb-l").onclick = () => document.getElementById("sb-l").classList.toggle("hidden");

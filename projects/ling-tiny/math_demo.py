@@ -16,6 +16,6 @@ def is_prime(n):
 
 
 if __name__ == "__main__":
-    test_numbers = [2, 3, 4, 5, 11, 12, 13, 17, 19, 20, 23, 24, 29]
+    test_numbers = [1, 2, 3, 4, 5, 11, 13, 17, 19, 20, 24, 29]
     for num in test_numbers:
-        print(f"{num} -> {'prime' if is_prime(num) else 'not prime'}")
+        print(f"{num} is {'prime' if is_prime(num) else 'not prime'}")
