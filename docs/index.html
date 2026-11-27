@@ -251,8 +251,12 @@
   .stream { flex: 1 1 0%; min-height: 0; overflow-y: auto; overflow-x: hidden; padding: 16px 22px 10px; display: flex; flex-direction: column; gap: 11px; }
   .turn-wrap { max-width: 740px; width: 100%; margin: 0 auto; display: flex; flex-direction: column; gap: 10px; }
   .comp-wrap { flex-shrink: 0; padding: 6px 22px 12px; background: var(--bg); }
-  .composer { position: relative; max-width: 740px; margin: 0 auto; background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px 9px; display: flex; flex-direction: column; gap: 8px; }
+  .composer { position: relative; max-width: 740px; margin: 0 auto; background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px 9px; display: flex; flex-direction: column; gap: 8px; transition: border-color .15s; }
   .composer:focus-within { border-color: color-mix(in srgb, var(--accent) 50%, var(--border)); }
+  body:not([data-bot-icon="mono"]) .composer.streaming {
+    border-color: rgba(239, 68, 68, 0.45);
+    box-shadow: 0 0 16px rgba(239, 68, 68, 0.12);
+  }
   .composer textarea { width: 100%; background: transparent; border: none; outline: none; resize: none; min-height: 36px; max-height: 180px; line-height: 1.45; color: var(--text); font-size: 12px; padding: 0; }
   .composer textarea::placeholder { color: var(--muted); opacity: 0.48; }
 
@@ -321,6 +325,7 @@
   .ac-item strong { color: var(--text); }
   .send-btn { width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--border); background: var(--panel); color: var(--muted); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
   .send-btn.ready { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); }
+  .send-btn.stop { background: var(--del-bg); border-color: rgba(239,68,68,.45); color: var(--del-text); }
 
   /* Modals (ui.html parity) */
   .frame-modal { position: absolute; inset: 0; background: rgba(0,0,0,.68); display: none; align-items: center; justify-content: center; z-index: 45; padding: 14px; }
@@ -823,8 +828,7 @@ function openCallModal(prefTarget) {
     const target = box.querySelector("#call-sel").value, prompt = box.querySelector("#call-ta").value.trim() || "Review workspace files.";
     const tgt = PROJECTS.find(p => p.name === target) || PROJECTS[2];
     closeModal();
-    extraTurns.push({ kind:"peer", target, ep:tgt.ep, prompt, reply:`Inspected workspace files read-only. <code>is_prime(n)</code> handles <code>n &lt;= 1</code>, <code>2</code>, and <code>3</code> cleanly; adding explicit negative and <code>0/1</code> assertions in <code>test_calc.py</code> locks coverage.` });
-    renderDemo();
+    runDemoTurn(`/call ${target}: ${prompt}`, { kind:"peer", target, ep:tgt.ep, prompt, reply:`Inspected workspace files read-only. <code>is_prime(n)</code> handles <code>n &lt;= 1</code>, <code>2</code>, and <code>3</code> cleanly; adding explicit negative and <code>0/1</code> assertions in <code>test_calc.py</code> locks coverage.` });
   };
   document.getElementById("frame-modal").classList.add("open");
   box.querySelector("#call-ta").focus();
@@ -1265,7 +1269,7 @@ function renderProjects() {
     const callHtml = p.name !== activeProj ? `<button type="button" class="proj-call" title="Call ${esc(p.name)}"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 3.5h11v7.5h-6l-3 2.5V11H2.5z"/></svg></button>` : "";
     const metaHtml = compactSidebar ? `<span class="proj-name">${esc(p.name)}</span>` : `<span class="proj-meta"><span class="proj-name">${esc(p.name)}</span><span class="proj-sub">${esc(p.sub)}</span></span>`;
     el.innerHTML = `<div class="proj-l">${badge}${metaHtml}</div><div class="proj-acts">${callHtml}<span class="proj-dot ${p.dirty?"dirty":""}"></span></div>`;
-    el.onclick = () => { hc.classList.remove("open"); activeProj = p.name; extraTurns = []; document.getElementById("r-val").textContent = p.reason; renderDemo(); };
+    el.onclick = () => { hc.classList.remove("open"); stopDemoStream(); activeProj = p.name; extraTurns = []; document.getElementById("r-val").textContent = p.reason; renderDemo(); };
     el.querySelector(".proj-call")?.addEventListener("click", (e) => { e.stopPropagation(); hc.classList.remove("open"); openCallModal(p.name); });
     el.onmouseenter = () => {
       const rect = el.getBoundingClientRect();
@@ -1525,7 +1529,8 @@ function renderDemo() {
   }
 
   for (const t of extraTurns) {
-    if (t.kind === "peer") wrap.insertAdjacentHTML("beforeend", peerCardHtml(t.target, `prompt only · ${t.ep}`, t.prompt, "1.8s", t.reply, `Model: ${t.target} (${t.ep})\nread_file(math_demo.py)`));
+    if (t.kind === "pending") wrap.insertAdjacentHTML("beforeend", `<div class="msg-u">${esc(t.u)}</div>`);
+    else if (t.kind === "peer") wrap.insertAdjacentHTML("beforeend", peerCardHtml(t.target, `prompt only · ${t.ep}`, t.prompt, "1.8s", t.reply, `Model: ${t.target} (${t.ep})\nread_file(math_demo.py)`));
     else if (t.kind === "sub") wrap.insertAdjacentHTML("beforeend", `<div class="msg-u">${esc(t.u)}</div><div class="t-card" onclick="this.classList.toggle('open')"><div class="t-head"><span class="t-title"><span class="bullet"></span><span class="t-label"><strong>delegate_task</strong> <span style="color:var(--muted)">(${esc(t.goal)})</span></span></span><span style="color:var(--muted)">1.4s</span></div><div class="t-sum">⎿ ${t.gate?"Zero Trust confirmed · ":""}Sub-agent completed (depth 1, .env locked)</div><pre class="t-raw">SubagentDepthGuard: depth=1\nis_env_tool_blocked: active\nGoal: ${esc(t.goal)}</pre></div><div class="msg-a"><div class="ans-row"><span class="bullet"></span><div>${t.a}</div></div></div>`);
     else wrap.insertAdjacentHTML("beforeend", `<div class="msg-u">${esc(t.u)}</div><div class="msg-a"><div class="ans-row"><span class="bullet"></span><div>${t.a}</div></div></div>`);
   }
@@ -1549,7 +1554,7 @@ document.getElementById("rt-acts").onclick = () => { rsTab = "acts"; renderRight
 document.getElementById("rt-mem").onclick = () => { rsTab = "mem"; renderRightBottom(); };
 document.getElementById("btn-sb-l").onclick = () => document.getElementById("sb-l").classList.toggle("hidden");
 document.getElementById("btn-sb-r").onclick = () => document.getElementById("sb-r").classList.toggle("hidden");
-document.getElementById("btn-demo-reset").onclick = () => { extraTurns = []; curProj().cleared = true; renderDemo(); };
+document.getElementById("btn-demo-reset").onclick = () => { stopDemoStream(); extraTurns = []; curProj().cleared = true; renderDemo(); };
 document.getElementById("btn-demo-export").onclick = () => openFileModal(".rs/transcripts/chat.md", `# RailBot Transcript — ${curProj().name}\n\nExported static demo transcript for ${curProj().name} (${curProj().model}).`);
 document.querySelectorAll(".copy-cmd").forEach(btn => btn.onclick = () => {
   navigator.clipboard.writeText("git clone https://github.com/j5onrf/railbot.git");
@@ -1592,7 +1597,37 @@ const resizeInp = () => {
   inp.style.height = "auto";
   inp.style.height = inp.value ? `${Math.min(Math.max(inp.scrollHeight, 36), 180)}px` : "";
 };
+let demoTimer = 0;
+function setDemoStreaming(on) {
+  const comp = document.querySelector(".composer");
+  if (comp) comp.classList.toggle("streaming", on);
+  sendBtn.classList.toggle("stop", on);
+  sendBtn.innerHTML = on
+    ? `<svg width="10" height="10" viewBox="0 0 12 12" fill="currentColor"><rect x="1.5" y="1.5" width="9" height="9" rx="2"/></svg>`
+    : "↑";
+  sendBtn.setAttribute("aria-label", on ? "Stop generation" : "Send");
+}
+function stopDemoStream() {
+  if (!demoTimer) return;
+  clearTimeout(demoTimer);
+  demoTimer = 0;
+  setDemoStreaming(false);
+  if (extraTurns.at(-1)?.kind === "pending") { extraTurns.pop(); renderDemo(); }
+}
+function runDemoTurn(u, turnObj) {
+  stopDemoStream();
+  const idx = extraTurns.push({ kind:"pending", u }) - 1;
+  renderDemo();
+  setDemoStreaming(true);
+  demoTimer = setTimeout(() => {
+    demoTimer = 0;
+    setDemoStreaming(false);
+    extraTurns[idx] = turnObj;
+    renderDemo();
+  }, 650);
+}
 const sendDemo = () => {
+  if (demoTimer) return;
   const txt = inp.value.trim();
   if (!txt) return;
   inp.value = ""; resizeInp(); sendBtn.classList.remove("ready"); closePops();
@@ -1604,24 +1639,21 @@ const sendDemo = () => {
   if (txt === "/call") return openCallModal();
   if (txt.startsWith("/sub ") || txt.startsWith("/delegate ")) {
     const goal = txt.replace(/^\/(sub|delegate)\s+/, "").trim();
-    if (curProj().mode === "chat") {
-      extraTurns.push({ kind:"msg", u:txt, a:"Switch to an agent project (e.g. <code>surogate37</code> or <code>ling-tiny</code>) to run <code>delegate_task</code> sub-agents." });
-    } else {
-      extraTurns.push({ kind:"sub", u:txt, goal, gate:!allowAll, a:`Isolated sub-agent (depth 1, <code>.env</code> locked) completed: <code>${esc(goal)}</code>.` });
-    }
-    renderDemo(); return;
+    const turn = curProj().mode === "chat"
+      ? { kind:"msg", u:txt, a:"Switch to an agent project (e.g. <code>surogate37</code> or <code>ling-tiny</code>) to run <code>delegate_task</code> sub-agents." }
+      : { kind:"sub", u:txt, goal, gate:!allowAll, a:`Isolated sub-agent (depth 1, <code>.env</code> locked) completed: <code>${esc(goal)}</code>.` };
+    runDemoTurn(txt, turn); return;
   }
   if (txt.startsWith("/call ")) {
     const rest = txt.slice(6).trim().split(/\s+/), tgt = PROJECTS.find(p => p.name === rest[0]?.replace(/:$/, ""))?.name || "gem35";
-    extraTurns.push({ kind:"peer", target:tgt, ep:PROJECTS.find(p=>p.name===tgt)?.ep||"local", prompt:rest.slice(1).join(" ")||"Check workspace edge cases.", reply:`Checked read-only. <code>${esc(curProj().files[0]||"workspace")}</code> looks clean.` });
-    renderDemo(); return;
+    runDemoTurn(txt, { kind:"peer", target:tgt, ep:PROJECTS.find(p=>p.name===tgt)?.ep||"local", prompt:rest.slice(1).join(" ")||"Check workspace edge cases.", reply:`Checked read-only. <code>${esc(curProj().files[0]||"workspace")}</code> looks clean.` });
+    return;
   }
-  extraTurns.push({ kind:"msg", u:txt, a:curProj().mode==="chat" ? "Interactive static preview — run <code>rail</code> locally to stream live responses from <code>llama-server</code> or cloud providers." : "Interactive static preview — locally <strong>RailBot</strong> runs parallel tools, syntax diffs, and <code>/call</code> peer micro-bots inside your workspace sandbox." });
-  renderDemo();
+  runDemoTurn(txt, { kind:"msg", u:txt, a:curProj().mode==="chat" ? "Interactive static preview — run <code>rail</code> locally to stream live responses from <code>llama-server</code> or cloud providers." : "Interactive static preview — locally <strong>RailBot</strong> runs parallel tools, syntax diffs, and <code>/call</code> peer micro-bots inside your workspace sandbox." });
 };
-inp.addEventListener("input", () => { resizeInp(); sendBtn.classList.toggle("ready", inp.value.trim().length > 0); updateAc(); });
+inp.addEventListener("input", () => { resizeInp(); if (!demoTimer) sendBtn.classList.toggle("ready", inp.value.trim().length > 0); updateAc(); });
 inp.addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendDemo(); } });
-sendBtn.onclick = sendDemo;
+sendBtn.onclick = () => { if (demoTimer) stopDemoStream(); else sendDemo(); };
 
 renderDemo();
 </script>
