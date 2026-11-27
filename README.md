@@ -34,9 +34,10 @@
 - **Single Native Binary:** Zero runtime dependencies; web/desktop interface compiled right in (`ui.html`).
 - **Frameless Desktop App:** Launch instantly with `railbot.desktop` via Chrome/Brave/Chromium `--app=` mode or Omarchy.
 - **Parallel Micro-Bots (`/call`):** Consult any peer bot read-only. Assign per-bot cloud providers in Settings → Projects and auto-collaborators in the bot badge menu.
-- **Zero-Trust Sandbox:** Security boundary traps directory traversals, blocks `.env` reads/writes, and gates mutating commands.
-- **Themes & Desktop Sync:** themes (`eldritch`, `claude`), custom JSON palettes, live Omarchy/Noctalia desktop sync, and a built-in palette catalog browser.
-- **Application:** RailBot is running on `http://127.0.0.1:24244` and built directly on <a href="https://j5onrf.github.io/rs-agent/">rs-agent</a>.
+- **Sub-Agent Delegation (`/sub`):** Injects `delegate_task` for a single turn (`0t` overhead otherwise), clamped to depth 1 with `.env` blocked.
+- **Zero-Trust Sandbox:** Composer shield toggles **Zero Trust** (confirm edits, commands & `/sub`) vs **Allow All** (autonomous, `.env` still locked); supports sandboxed workspaces or external folders via **Browse**.
+- **Themes & Desktop Sync:** Custom JSON palettes (`eldritch`, `darkbot`, `claude`), live Omarchy/Noctalia desktop sync, and a built-in palette catalog browser.
+- **Standalone Server:** Listens on `http://127.0.0.1:24244` by default (override via `RAILBOT_PORT` in `.env`) and is built directly on [rs-agent](https://j5onrf.github.io/rs-agent/).
 
 ---
 
