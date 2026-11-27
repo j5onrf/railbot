@@ -31,13 +31,13 @@
 
 ## Highlights
 
-- **Single Native Binary:** Web/desktop UI compiled right in (`ui.html`) with zero runtime dependencies.
+- **Single Native Binary:** Web/desktop UI compiled right in (`ui.html`).
 - **Frameless Desktop App:** Opens via Chrome/Brave/Chromium `--app=` mode, Omarchy, or `railbot.desktop`.
-- **Parallel Micro-Bots (`/call`):** Consult sibling bots read-only with per-bot cloud providers and auto-collaborators.
+- **Parallel Micro-Bots (`/call`):** Consult peer micro-bots read-only via `/call`.
 - **One-Off Sub-Agents (`/sub`):** Injects `delegate_task` for one turn (`0t` overhead otherwise), clamped to depth `1`.
-- **Zero-Trust Sandbox:** Composer shield toggles **Zero Trust** vs **Allow All** (`.env` locked); link external folders via **Browse**.
+- **Zero-Trust Sandbox:** Composer shield toggles **Zero Trust** vs **Allow All** (`.env` locked).
 - **Themes & Desktop Sync:** Live Omarchy/Noctalia sync, `+ Noctalia` catalog browser, and custom JSON palettes (`eldritch`, `darkbot`, `claude`).
-- **Built on [rs-agent](https://j5onrf.github.io/rs-agent/):** Listens on `http://127.0.0.1:24244` (`RAILBOT_PORT` in `.env`); see [rs-agent](https://j5onrf.github.io/rs-agent/) for core engine, profiles, and CLI docs.
+- **Built on [rs-agent](https://j5onrf.github.io/rs-agent/):** Listens on `http://127.0.0.1:24244` (`RAILBOT_PORT` in `.env`); see [rs-agent](https://j5onrf.github.io/rs-agent/) for core engine.
 
 ---
 

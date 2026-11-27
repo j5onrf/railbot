@@ -3,41 +3,41 @@
   "bot_mode": true,
   "last_project": "ling-tiny",
   "project_labels": {
-    "qwen38": [
-      "local"
-    ],
-    "lfm3": [
-      "local"
-    ],
-    "inkling2": [
-      "local",
-      "railbot"
-    ],
-    "surogate37": [
-      "local",
-      "railbot"
-    ],
-    "gem35": [
-      "cloud",
-      "railbot"
-    ],
-    "flint": [
-      "local"
-    ],
-    "nemo": [
-      "cloud"
-    ],
     "groot": [
       "local"
     ],
     "sage": [
       "local"
     ],
-    "ling-tiny": [
+    "flint": [
       "local"
+    ],
+    "lfm3": [
+      "local"
+    ],
+    "gem35": [
+      "cloud",
+      "railbot"
+    ],
+    "surogate37": [
+      "local",
+      "railbot"
     ],
     "tokenlab": [
       "cloud"
+    ],
+    "qwen38": [
+      "local"
+    ],
+    "ling-tiny": [
+      "local"
+    ],
+    "nemo": [
+      "cloud"
+    ],
+    "inkling2": [
+      "local",
+      "railbot"
     ]
   },
   "project_names": {
