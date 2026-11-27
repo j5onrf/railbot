@@ -33,9 +33,10 @@
 
 - **Single Native Binary:** Zero runtime dependencies; web/desktop interface compiled right in (`ui.html`).
 - **Frameless Desktop App:** Launch instantly with `railbot.desktop` via Chrome/Brave/Chromium `--app=` mode or Omarchy.
-- **Parallel Micro-Bots (`/call`):** Consult sibling bots read-only for verification, reviews, and second opinions across workspaces.
+- **Parallel Micro-Bots (`/call`):** Consult any peer bot read-only. Assign per-bot cloud providers in Settings → Projects and auto-collaborators in the bot badge menu.
 - **Zero-Trust Sandbox:** Security boundary traps directory traversals, blocks `.env` reads/writes, and gates mutating commands.
-- **Themes & Desktop Sync:** themes (`Eldritch`, `Claude`), custom JSON palettes, live Omarchy/Noctalia desktop sync, and a built-in palette catalog browser.
+- **Themes & Desktop Sync:** themes (`eldritch`, `claude`), custom JSON palettes, live Omarchy/Noctalia desktop sync, and a built-in palette catalog browser.
+- **Application:** RailBot is running on `http://127.0.0.1:24243` and built directly on <a href="https://j5onrf.github.io/rs-agent/">rs-agent</a>.
 
 ---
 
