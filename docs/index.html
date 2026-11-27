@@ -237,10 +237,12 @@
   .file-row:hover { background: var(--hover); color: var(--text); }
   .rs-bot { height: 43%; min-height: 160px; display: flex; flex-direction: column; flex-shrink: 0; }
   .act-list { flex: 1 1 0%; padding: 6px 8px; display: flex; flex-direction: column; gap: 5px; overflow-y: auto; }
-  .act-row { padding: 6px 8px; border-radius: 6px; border: 1px solid var(--border); background: var(--card); display: flex; align-items: center; justify-content: space-between; gap: 8px; cursor: pointer; font-size: 11px; }
+  .act-row { padding: 6px 8px; border-radius: 6px; border: 1px solid var(--border); background: var(--card); display: flex; align-items: center; justify-content: space-between; gap: 8px; cursor: pointer; font-size: 11px; min-width: 0; }
   .act-row:hover { background: var(--hover); border-color: color-mix(in srgb, var(--accent) 40%, var(--border)); }
-  .act-cmd { font-weight: 600; color: var(--text); display: inline-flex; align-items: center; gap: 5px; }
-  .act-desc { color: var(--dim); font-size: 10px; }
+  .act-cmd { font-weight: 600; color: var(--text); display: inline-flex; align-items: center; gap: 5px; min-width: 0; flex: 0 1 auto; }
+  .act-row:has(> .act-desc) .act-cmd { max-width: 62%; }
+  .act-cmd > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .act-desc { color: var(--dim); font-size: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; text-align: right; flex: 1 1 0; }
   .mem-box { flex: 1 1 0%; margin: 4px 8px 8px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 7px 8px; font-size: 11px; color: var(--text); resize: none; line-height: 1.45; }
   .mem-box:focus { border-color: var(--accent); }
 
@@ -1122,7 +1124,7 @@ function renderSettingsModal() {
     };
   } else if (activeTab === "commands") {
     pane.innerHTML = `<div style="font-weight:600">Slash Commands</div><div class="s-sub" style="margin-top:-6px;">Type <code>/</code> in the composer or run an action below.</div>`;
-    [["/task","Run autonomous goal loop"],["/r","Reset active session"],["/s","Attach or detach skills (max 3)"],["/p","Select agent profile"],["/ms","Providers & models"],["/tk","Toggle auto-expand steps"],["/export","Export transcript to .rs/transcripts/"],["/call","Ask another project bot"]].forEach(([cmd, desc]) => {
+    [["/task","Run autonomous goal loop"],["/sub","Run turn with isolated sub-agent delegation"],["/r","Reset active session"],["/s","Attach or detach skills (max 3)"],["/p","Select agent profile"],["/ms","Providers & models"],["/tk","Toggle auto-expand steps"],["/export","Export transcript to .rs/transcripts/"],["/call","Ask another project bot"]].forEach(([cmd, desc]) => {
       const row = document.createElement("div"); row.className = "s-row";
       row.innerHTML = `<div><strong>${cmd}</strong><div class="s-sub">${desc}</div></div><button type="button" class="btn-xs">Run</button>`;
       row.querySelector("button").onclick = () => {
@@ -1131,6 +1133,7 @@ function renderSettingsModal() {
         if (cmd === "/s") { activeTab = "skills"; renderSettingsModal(); return; }
         closeModal();
         if (cmd === "/task") { const i = document.getElementById("d-input"); i.value = "/task "; i.focus(); }
+        else if (cmd === "/sub") { const i = document.getElementById("d-input"); i.value = "/sub "; i.focus(); }
         else if (cmd === "/call") openCallModal();
         else if (cmd === "/tk") { expandSteps = !expandSteps; renderDemo(); }
         else if (cmd === "/export") document.getElementById("btn-demo-export").click();
@@ -1277,7 +1280,10 @@ function renderProjects() {
 
 function defaultActionsFor(p) {
   const defs = [];
-  if (p.mode !== "chat") defs.push({ cmd: "/task", desc: "Start autonomous goal" });
+  if (p.mode !== "chat") {
+    defs.push({ cmd: "/task", desc: "Start autonomous goal" });
+    defs.push({ cmd: "/sub", desc: "Delegate sub-task" });
+  }
   defs.push({ cmd: "/call", desc: "Open peer bot picker" });
   for (const c of (p.collabs || [])) {
     const cmd = `/call ${c}`;
@@ -1323,12 +1329,13 @@ function openManageActions() {
       actions.forEach(item => {
         const r = document.createElement("div");
         r.className = "act-row"; r.style.cursor = "default";
-        r.innerHTML = `<span class="act-cmd" style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(item.cmd)}</span><div style="display:flex;align-items:center;gap:8px;min-width:0;max-width:52%;flex-shrink:0;">${item.desc?`<span class="act-desc" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(item.desc)}</span>`:""}<button type="button" class="btn-del-xs" title="Remove">✕</button></div>`;
-        r.querySelector("button").onclick = () => {
+        const keep = item.cmd === "/task" || item.cmd === "/sub";
+        r.innerHTML = `<span class="act-cmd"><span>${esc(item.cmd)}</span></span><div style="display:flex;align-items:center;gap:8px;min-width:0;max-width:52%;flex-shrink:0;">${item.desc?`<span class="act-desc">${esc(item.desc)}</span>`:""}${keep?"":`<button type="button" class="btn-del-xs" title="Remove">✕</button>`}</div>`;
+        r.querySelector("button")?.addEventListener("click", () => {
           const base = Array.isArray(ap.customActions) ? [...ap.customActions] : [...defaultActionsFor(ap)];
           ap.customActions = base.filter(a => a.cmd !== item.cmd);
           draw(); renderRightBottom();
-        };
+        });
         mList.appendChild(r);
       });
     }
@@ -1373,13 +1380,18 @@ function renderRightBottom() {
       const m = a.cmd.slice(6).trim().match(/^@?([a-zA-Z0-9_-]+)/);
       if (m && PROJECTS.some(x => x.name === m[1])) botName = m[1];
     }
-    return `<div class="act-row" title="${esc(a.desc ? `${a.cmd} — ${a.desc}` : a.cmd)}"><span class="act-cmd">${botName?botSvg(botName,12):""}${esc(a.cmd)}</span>${a.desc?`<span class="act-desc">${esc(a.desc)}</span>`:""}</div>`;
+    return `<div class="act-row" title="${esc(a.desc ? `${a.cmd} — ${a.desc}` : a.cmd)}"><span class="act-cmd">${botName?botSvg(botName,12):""}<span>${esc(a.cmd)}</span></span>${a.desc?`<span class="act-desc">${esc(a.desc)}</span>`:""}</div>`;
   }).join("");
   body.querySelectorAll(".act-row").forEach((row, idx) => row.onclick = (e) => {
     const cmd = acts[idx].cmd;
     if (cmd === "/call") return openCallModal();
     if (cmd === "/task") {
       inp.value = inp.value.startsWith("/task") ? inp.value : "/task " + inp.value;
+      resizeInp(); sendBtn.classList.add("ready"); inp.focus();
+      return;
+    }
+    if (cmd === "/sub") {
+      inp.value = inp.value.startsWith("/sub ") ? inp.value : "/sub " + inp.value.replace(/^(\/sub|\/delegate)\s*/, "");
       resizeInp(); sendBtn.classList.add("ready"); inp.focus();
       return;
     }
@@ -1514,6 +1526,7 @@ function renderDemo() {
 
   for (const t of extraTurns) {
     if (t.kind === "peer") wrap.insertAdjacentHTML("beforeend", peerCardHtml(t.target, `prompt only · ${t.ep}`, t.prompt, "1.8s", t.reply, `Model: ${t.target} (${t.ep})\nread_file(math_demo.py)`));
+    else if (t.kind === "sub") wrap.insertAdjacentHTML("beforeend", `<div class="msg-u">${esc(t.u)}</div><div class="t-card" onclick="this.classList.toggle('open')"><div class="t-head"><span class="t-title"><span class="bullet"></span><span class="t-label"><strong>delegate_task</strong> <span style="color:var(--muted)">(${esc(t.goal)})</span></span></span><span style="color:var(--muted)">1.4s</span></div><div class="t-sum">⎿ ${t.gate?"Zero Trust confirmed · ":""}Sub-agent completed (depth 1, .env locked)</div><pre class="t-raw">SubagentDepthGuard: depth=1\nis_env_tool_blocked: active\nGoal: ${esc(t.goal)}</pre></div><div class="msg-a"><div class="ans-row"><span class="bullet"></span><div>${t.a}</div></div></div>`);
     else wrap.insertAdjacentHTML("beforeend", `<div class="msg-u">${esc(t.u)}</div><div class="msg-a"><div class="ans-row"><span class="bullet"></span><div>${t.a}</div></div></div>`);
   }
   stream.scrollTop = stream.scrollHeight;
@@ -1552,7 +1565,7 @@ document.getElementById("frame-modal").onclick = (e) => { if (e.target.id === "f
 document.addEventListener("click", (e) => { if (!e.target.closest(".composer")) closePops(); });
 document.addEventListener("keydown", (e) => { if (e.key === "Escape") { closePops(); closeModal(); } });
 
-const SLASH = [["/task","Run autonomous goal loop"],["/call","Consult a peer micro-bot"],["/p","Open workspace profiles"],["/ms","Open providers & models"],["/s","Attach or detach skills"],["/tk","Toggle auto-expand steps"],["/r","Reset active demo session"]];
+const SLASH = [["/task","Run autonomous goal loop"],["/sub","Run turn with isolated sub-agent delegation"],["/call","Consult a peer micro-bot"],["/p","Open workspace profiles"],["/ms","Open providers & models"],["/s","Attach or detach skills"],["/tk","Toggle auto-expand steps"],["/r","Reset active demo session"]];
 const inp = document.getElementById("d-input"), sendBtn = document.getElementById("d-send"), acPop = document.getElementById("ac-pop");
 function updateAc() {
   const v = inp.value;
@@ -1569,6 +1582,7 @@ function updateAc() {
     else if (cmd === "/s") openSettings("skills");
     else if (cmd === "/tk") { expandSteps = !expandSteps; renderDemo(); }
     else if (cmd === "/r") { extraTurns = []; curProj().cleared = true; renderDemo(); }
+    else if (cmd === "/sub") { inp.value = "/sub "; resizeInp(); sendBtn.classList.add("ready"); inp.focus(); }
     else { inp.value = "/task "; inp.focus(); }
   });
   acPop.classList.add("open");
@@ -1588,6 +1602,15 @@ const sendDemo = () => {
   if (txt === "/s") return openSettings("skills");
   if (txt === "/tk") { expandSteps = !expandSteps; renderDemo(); return; }
   if (txt === "/call") return openCallModal();
+  if (txt.startsWith("/sub ") || txt.startsWith("/delegate ")) {
+    const goal = txt.replace(/^\/(sub|delegate)\s+/, "").trim();
+    if (curProj().mode === "chat") {
+      extraTurns.push({ kind:"msg", u:txt, a:"Switch to an agent project (e.g. <code>surogate37</code> or <code>ling-tiny</code>) to run <code>delegate_task</code> sub-agents." });
+    } else {
+      extraTurns.push({ kind:"sub", u:txt, goal, gate:!allowAll, a:`Isolated sub-agent (depth 1, <code>.env</code> locked) completed: <code>${esc(goal)}</code>.` });
+    }
+    renderDemo(); return;
+  }
   if (txt.startsWith("/call ")) {
     const rest = txt.slice(6).trim().split(/\s+/), tgt = PROJECTS.find(p => p.name === rest[0]?.replace(/:$/, ""))?.name || "gem35";
     extraTurns.push({ kind:"peer", target:tgt, ep:PROJECTS.find(p=>p.name===tgt)?.ep||"local", prompt:rest.slice(1).join(" ")||"Check workspace edge cases.", reply:`Checked read-only. <code>${esc(curProj().files[0]||"workspace")}</code> looks clean.` });
