@@ -37,7 +37,7 @@
 - **One-Off Sub-Agents (`/sub`):** Injects `delegate_task` for one turn (`0t` overhead otherwise), clamped to depth `1`.
 - **Zero-Trust Sandbox:** Composer shield toggles **Zero Trust** vs **Allow All** (`.env` locked).
 - **Themes & Desktop Sync:** Live Omarchy/Noctalia sync, `+ Noctalia` catalog browser, and custom JSON palettes (`eldritch`, `darkbot`, `claude`).
-- **Built on [rs-agent](https://j5onrf.github.io/rs-agent/):** Listens on `http://127.0.0.1:24244` (`RAILBOT_PORT` in `.env`); see [rs-agent](https://j5onrf.github.io/rs-agent/) for core engine.
+- **Built on [rs-agent](https://github.com/j5onrf/rs-agent):** Listens on `http://127.0.0.1:24244` (`RAILBOT_PORT` in `.env`); see [rs-agent](https://github.com/j5onrf/rs-agent) for core engine.
 
 ---
 
