@@ -32,10 +32,10 @@
 ## Highlights
 
 - **Single Native Binary:** Zero runtime dependencies; web/desktop interface compiled right in (`ui.html`).
-- **Frameless Desktop App:** Launch instantly with `rail` or `rr` via Chrome/Brave/Chromium `--app=` mode or Omarchy.
+- **Frameless Desktop App:** Launch instantly with `railbot.desktop` via Chrome/Brave/Chromium `--app=` mode or Omarchy.
 - **Parallel Micro-Bots (`/call`):** Consult sibling bots read-only for verification, reviews, and second opinions across workspaces.
 - **Zero-Trust Sandbox:** Security boundary traps directory traversals, blocks `.env` reads/writes, and gates mutating commands.
-- **Themes & Desktop Sync:** Fallback themes (`Dark Default`, `Pure Light`), custom JSON palettes, live Omarchy/Noctalia desktop sync, and a built-in palette catalog browser.
+- **Themes & Desktop Sync:** themes (`Eldritch`, `Claude`), custom JSON palettes, live Omarchy/Noctalia desktop sync, and a built-in palette catalog browser.
 
 ---
 
