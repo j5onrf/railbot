@@ -6,7 +6,7 @@
 </h1>
 
 <p>
-  <a href="https://github.com/j5onrf/railbot/releases"><img src="https://shieldcn.dev/badge/version-v0.5.0.svg?variant=secondary" alt="Version"></a>
+  <a href="https://github.com/j5onrf/railbot/releases"><img src="https://shieldcn.dev/badge/version-v0.5.2.svg?variant=secondary" alt="Version"></a>
   <a href="https://github.com/j5onrf/railbot"><img src="https://shieldcn.dev/badge/Rust.svg?variant=branded&brand=rust" alt="Rust"></a>
   <a href="https://github.com/j5onrf/railbot/blob/main/LICENSE"><img src="https://shieldcn.dev/badge/license-MIT.svg?variant=secondary" alt="License"></a>
   <a href="https://j5onrf.github.io/railbot/"><img src="https://shieldcn.dev/badge/demo-live-22c55e.svg?variant=secondary" alt="Live Demo"></a>

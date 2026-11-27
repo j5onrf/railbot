@@ -1,0 +1,238 @@
+# CODEBASE ARCHITECTURE MAP
+# Root: /home/j5/.config/railbot
+# Target: /home/j5/.config/railbot
+# Purpose: Sub-millisecond native Rust AI desktop &amp; web harness for local GGUF models and frontier cloud endpoints.
+# Dependencies: anyhow, dirs, eventsource-stream, futures-util, regex, reqwest, serde, serde_json, tokio
+# --------------------------------------------------
+
+# Active Architecture Tree:
+#   ├── Cargo.toml                       - name = "railbot"
+#   ├── README.md                        - Sub-millisecond native Rust AI desktop &amp; web harness for local GGUF models a
+#   ├── assets/banner-eldritch.jpg
+#   ├── assets/banner.jpg
+#   ├── config.json                      - "show_right_panel": true,
+#   ├── docs/assets/banner-eldritch.jpg
+#   ├── docs/assets/banner.jpg
+#   ├── docs/index.html                  - RailBot — Local-First Desktop &amp; Web AI Harness
+#   ├── launch.sh                        - #!/usr/bin/env bash
+#   ├── plugins/mcp/Readme.md            - # Model Context Protocol (MCP) Integration: `plugins/mcp/`
+#   ├── plugins/mcp/photocraft/Readme.md - Headless and live-bridge image editing engine for `railbot` via the Model Contex
+#   ├── plugins/mcp/photocraft/mcp-bridge.sh - #!/usr/bin/env bash
+#   ├── plugins/mcp/servers.json         - "servers": {
+#   ├── profiles/artcraft/photocraft-c.md - PhotoCraft Visual Engine & Automation Specialist (Cloud Model)
+#   ├── profiles/artcraft/photocraft-l.md - PhotoCraft Automation Engineer (Native MCP)
+#   ├── profiles/chat.md                 - Adaptive Conversation
+#   ├── profiles/flint.md                - Recursive Flint 40B-A2.5B Autonomous Systems Architect
+#   ├── profiles/gem35.md                - Google Gemini 3.5 Flash Lite High-Speed Conversational & Systems Engineer
+#   ├── profiles/gem4.md                 - Google Gemini 4 Hydrogen High-Speed Systems & Coding Engineer
+#   ├── profiles/groot/groot.md          - Groot-19B-A3B Autonomous Systems Engineer
+#   ├── profiles/groot/groot2.md         - Groot-19B-A3B Autonomous Systems Engineer
+#   ├── profiles/inkling2.md             - Inkling-2-Mini 26B-A3.4B Autonomous Systems Agent
+#   ├── profiles/lfm3.md                 - Liquid-lora AI LFM3-1.7B Ultra-Fast Edge Systems Engineer
+#   ├── profiles/lingtiny.md             - Ling-3.0-tiny Autonomous Systems Engineer
+#   ├── profiles/nemo.md                 - NVIDIA Nemotron Ultra & Lightning Autonomous Systems Architect
+#   ├── profiles/purebash.md             - Pure Bash LFM Minimalist Shell Agent
+#   ├── profiles/qwen38.md               - Qwen3.8-35B-Distill (Local)
+#   ├── profiles/sage.md                 - InternScience Sage-A1.5 35B Autonomous Systems Architect & Verification Agent
+#   ├── profiles/surogate37.md           - Surogate 3.7 35B-A3B Autonomous Systems Agent
+#   ├── profiles/tokenlab.md             - AMD Token Lab DeepSeek-V4.1-Flash Systems & Coding Engineer
+#   ├── projects/flint/math_demo.py      - def is_prime(n):
+#   ├── projects/gem35/helper.py         - def add(a, b):
+#   ├── projects/groot/math_demo.py      - def is_prime(n):
+#   ├── projects/inkling2/math_demo.py   - def is_prime(n):
+#   ├── projects/lfm3/math_demo.py       - def is_prime(n):
+#   ├── projects/ling-tiny/math_demo.py  - #!/usr/bin/env python3
+#   ├── projects/nemo/math_utils.py      - #!/usr/bin/env python3
+#   ├── projects/sage/test_calc.py       - def add(a, b):
+#   ├── projects/surogate37/math_demo.py - #!/usr/bin/env python3
+#   ├── projects/surogate37/test_calc.py - #!/usr/bin/env python3
+#   ├── projects/tokenlab/calc.py        - def add(a, b):
+#   ├── railbot.desktop                  - [Desktop Entry]
+#   ├── skills/ponytail.md               - Ponytail Architecture Directive for Rust
+#   ├── src/adapter.rs                   - fn: strip_line_gutters, normalize_params, heal_json_args
+#   ├── src/client.rs                    - types: UsageStats, ChatMessage, LlmClient
+#   ├── src/config.rs                    - types: ToolTier, WorkspaceConfig, ContextCeilings
+#   ├── src/lib.rs
+#   ├── src/main.rs                      - CLI Entrypoint & Runtime Loop
+#   ├── src/mcp.rs                       - types: McpServerConfig
+#   ├── src/profile.rs                   - types: ReasoningSetting, Profile
+#   ├── src/security.rs                  - types: SecurityBoundary
+#   ├── src/skill.rs                     - types: Skill
+#   ├── src/state.rs                     - types: WorkspaceSession
+#   ├── src/tools.rs                     - fn: is_env_tool_blocked, is_read_only_tool, get_tools_schema
+#   ├── src/ui.html                      - --bg: #0c0c0e;
+#   ├── system_instructions.md           - Global System Instructions (identical to .cursorrules or CLAUDE.md):
+#   ├── themes/claude.json               - "name": "Claude",
+#   └── themes/eldritch.json             - "accent": "#37f499",
+# --------------------------------------------------
+
+## Rust API Skeleton:
+
+### `src/lib.rs`
+```rust
+  L001: pub mod adapter;
+  L002: pub mod client;
+  L003: pub mod config;
+  L004: pub mod mcp;
+  L005: pub mod profile;
+  L006: pub mod security;
+  L007: pub mod skill;
+  L008: pub mod state;
+  L009: pub mod tools;
+```
+
+### `src/main.rs`
+```rust
+  L070: impl Default for RailConfig {
+    L071: fn default() -> Self;
+  }
+  L4265: async fn main() -> Result<()>;
+  L4285: mod tests;
+```
+
+### `src/adapter.rs`
+```rust
+  L001: pub fn strip_line_gutters(text: &str) -> String; // Strips copied line gutters (e.g. "12: ", " 42 | ") while preserving timestamps (12:30:00) and code literals.
+  L049: pub fn normalize_params(map: &mut serde_json :: Map<String, serde_json :: Value>);
+  L139: pub fn heal_json_args(raw_args: &str) -> serde_json :: Value;
+  L276: pub fn repair_tool_args(_fn_name: &str, raw_args: &str) -> String;
+  L284: mod tests;
+```
+
+### `src/client.rs`
+```rust
+  L019: pub struct UsageStats { pub prompt_tokens: usize, pub completion_tokens: usize, pub reasoning_tokens: usize, pub cached_tokens: usize }
+  L027: pub struct ChatMessage { pub role: String, pub content: Value, pub reasoning_content: Option<String>, ... (5 fields) }
+  L039: impl ChatMessage {
+    L040: pub fn system(content: impl Into<String>) -> Self;
+    L050: pub fn user(content: impl Into<String>) -> Self;
+    L060: pub fn assistant(content: impl Into<String>) -> Self;
+    L070: pub fn assistant_with_reasoning(content: impl Into<String>, reasoning: Option<String>) -> Self;
+    L080: pub fn tool_response(tool_call_id: String, content: String) -> Self;
+    L090: pub fn content_as_str(&self) -> &str;
+  }
+  L095: pub struct LlmClient
+  L102: pub fn is_local_endpoint(url: &str) -> bool;
+  L115: pub fn format_endpoint(base_url: &str) -> String;
+  L403: impl LlmClient {
+    L404: pub fn set_reasoning(&self, setting: Option<ReasoningSetting>);
+    L414: pub fn last_model(&self) -> String;
+    L418: pub fn new(config: ProviderConfig) -> Self;
+    L786: pub async fn stream_chat_raw_with_reasoning<F>(&self, messages: &[ChatMessage], tools: Option<Value>, cancel_flag: Option<Arc<AtomicBool>>, reasoning_override: Option<Option<ReasoningSetting>>, mut on_chunk: F ,) -> Result<(String, Option<String>, Option<Vec<Value>>, UsageStats)>where F: FnMut(&str, bool) + Send ,;
+    L846: pub async fn stream_chat_raw<F>(&self, messages: &[ChatMessage], tools: Option<Value>, cancel_flag: Option<Arc<AtomicBool>>, on_chunk: F ,) -> Result<(String, Option<String>, Option<Vec<Value>>, UsageStats)>where F: FnMut(&str, bool) + Send ,;
+  }
+  L922: mod tests;
+```
+
+### `src/config.rs`
+```rust
+  L006: pub fn strip_inline_comment(s: &str) -> &str;
+  L049: pub enum ToolTier { PureBash, Core4, Smol }
+  L056: pub struct WorkspaceConfig { pub profile_name: String, pub is_agent: bool, pub tier: ToolTier, ... (5 fields) }
+  L067: impl Default for WorkspaceConfig {
+    L068: fn default() -> Self;
+  }
+  L073: impl WorkspaceConfig {
+    L074: pub fn load_or_default<P: AsRef<Path>>(workspace: P) -> Self;
+    L084: pub fn save<P: AsRef<Path>>(&self, workspace: P) -> Result<()>;
+  }
+  L098: pub struct ContextCeilings { pub max_tokens: usize, pub line_ceiling: usize, pub char_cap: usize, ... (5 fields) }
+  L107: pub fn get_env_path() -> PathBuf;
+  L113: pub fn set_profile_max_tokens(val: Option<usize>);
+  L117: pub fn get_max_tokens() -> usize;
+  L139: pub fn get_max_rounds() -> usize;
+  L148: pub fn get_context_ceilings() -> ContextCeilings;
+  L161: pub struct ProviderConfig { pub base_url: String, pub api_key: String, pub model: String, ... (5 fields) }
+  L201: impl ProviderConfig {
+    L202: pub async fn load() -> Self;
+    L206: pub async fn load_with_max_tokens(ctx_override: Option<usize>) -> Self;
+  }
+  L284: pub fn load_global_instructions() -> Option<String>;
+  L306: mod tests;
+```
+
+### `src/mcp.rs`
+```rust
+  L013: pub struct McpServerConfig { pub command: String, pub args: Vec<String>, pub env: HashMap<String, String> }
+  L034: pub fn load_servers_config() -> HashMap<String, McpServerConfig>;
+  L076: impl McpSession {
+    L077: pub async fn spawn(cfg: &McpServerConfig) -> Result<Self>;
+    L206: pub async fn list_tools(&mut self) -> Result<Vec<Value>>;
+    L212: pub async fn call_tool(&mut self, tool_name: &str, arguments: &Value) -> Result<String>;
+  }
+  L265: pub async fn get_server_tools_schema(server_name: &str) -> Result<Vec<Value>, String>;
+  L303: pub async fn call_tool(server_name: &str, tool_name: &str, arguments: &Value) -> Result<String, String>;
+  L311: mod tests;
+```
+
+### `src/profile.rs`
+```rust
+  L006: pub enum ReasoningSetting { Tokens(usize), Tier(String) }
+  L012: impl ReasoningSetting {
+    L013: pub fn parse(raw: &str) -> Option<Self>;
+    L025: pub fn to_local_tokens(&self) -> usize;
+    L039: pub fn to_cloud_tier(&self, is_google: bool, model: &str) -> String;
+  }
+  L076: pub struct Profile { pub reasoning_budget: Option<ReasoningSetting>, pub tier: ToolTier, pub adapters: bool, ... (9 fields) }
+  L089: impl Profile {
+    L090: pub fn parse(raw_content: &str) -> Self;
+    L196: pub fn hud_summary(&self, is_agent: bool) -> String;
+    L236: pub fn profile_dirs() -> Vec<PathBuf>;
+    L245: pub fn load(profile_name: &str) -> Option<Self>;
+    L316: pub fn list_available() -> Vec<String>;
+    L366: pub fn find_workspace_candidates(ws_name: &str, available: &[String]) -> Vec<String>;
+  }
+  L395: pub fn build_system_prompt(profile: &Profile, workspace: &Path, is_agent: bool, active_skills: &[String]) -> String;
+  L425: mod tests;
+```
+
+### `src/security.rs`
+```rust
+  L122: pub struct SecurityBoundary { pub root: PathBuf, pub headless: bool }
+  L127: impl SecurityBoundary {
+    L128: pub fn new<P: AsRef<Path>>(workspace: P) -> Self;
+    L133: pub fn new_headless<P: AsRef<Path>>(workspace: P) -> Self;
+    L139: pub fn child<P: AsRef<Path>>(&self, workspace: P) -> Self;
+    L145: pub fn resolve_path(&self, target: &str) -> PathBuf;
+    L156: pub fn is_outside(&self, path: &Path) -> bool; // Walk up to closest existing ancestor to canonicalize.
+    L258: pub fn check_command(&self, cmd: &str) -> Option<&'static str>;
+    L335: pub fn authorize(&self, _violation: &str) -> bool;
+  }
+  L341: mod tests;
+```
+
+### `src/skill.rs`
+```rust
+  L004: pub struct Skill { pub name: String, pub content: String }
+  L010: impl Skill {
+    L011: pub fn parse(name: &str, raw_content: &str) -> Self;
+    L023: pub fn skill_dirs() -> Vec<PathBuf>;
+    L032: pub fn list_available() -> Vec<String>;
+    L058: pub fn load(skill_name: &str) -> Option<Self>;
+  }
+```
+
+### `src/state.rs`
+```rust
+  L006: pub struct WorkspaceSession { pub messages: Vec<ChatMessage>, pub ui_history: Option<serde_json :: Value>, pub last_stats: Option<serde_json :: Value>, ... (5 fields) }
+  L020: pub fn load_workspace_session(workspace: &Path) -> WorkspaceSession;
+  L027: pub fn save_workspace_session(workspace: &Path, session: &WorkspaceSession);
+  L050: pub fn clear_workspace_session(workspace: &Path);
+  L054: mod tests;
+```
+
+### `src/tools.rs`
+```rust
+  L044: pub fn is_env_tool_blocked(fn_name: &str, args: &Value, boundary: &SecurityBoundary) -> bool;
+  L068: pub fn is_read_only_tool(name: &str) -> bool;
+  L073: pub fn get_tools_schema(tier: &ToolTier, delegate: bool) -> Value;
+  L104: pub async fn get_tools_schema_with_mcp(tier: &ToolTier, delegate: bool, mcp_servers: &[String], mcp_tools: &[String] ,) -> Value;
+  L290: impl Drop for SubagentDepthGuard {
+    L291: fn drop(&mut self);
+  }
+  L296: pub fn read_task_spec(target_dir: &Path) -> Option<String>;
+  L311: pub fn is_task_complete(text: &str) -> bool;
+  L349: pub fn resilient_replace(original: &str, old_str: &str, new_str: &str) -> Result<String, String>; // 3-Stage Resilient Replacer (Exact -> Indent-Delta Whitespace -> Fuzzy)
+  L489: pub async fn execute_tool_with_auth(name: &str, raw_args: &str, workspace: &Path, boundary: &SecurityBoundary, preauthorized_cmd: bool ,) -> Result<String, String>;
+  L904: mod tests;
+```

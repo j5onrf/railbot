@@ -147,12 +147,16 @@
 
   /* Tactical Eye Blink: Chassis stays frozen; only triggers in Solid mode */
   body:not([data-bot-icon="mono"]) .proj-item:hover .rb-eye,
-  body:not([data-bot-icon="mono"]) #btn-brand-settings:hover .rb-eye {
+  body:not([data-bot-icon="mono"]) #d-brand-icon:hover .rb-eye {
     animation: rbBlink .32s ease-in-out 1;
   }
   body:not([data-bot-icon="mono"]) .proj-item:hover .rb-eye-glow,
-  body:not([data-bot-icon="mono"]) #btn-brand-settings:hover .rb-eye-glow {
+  body:not([data-bot-icon="mono"]) #d-brand-icon:hover .rb-eye-glow {
     animation: rbGlint .42s ease-out 1;
+  }
+  #d-brand-icon .rb-eye-glow,
+  .proj-item.active .rb-eye-glow {
+    fill: var(--text);
   }
 
   /* 6px Thin Scrollbars */
@@ -702,7 +706,7 @@ function botSvgFromMask(mask, size = 18) {
     return `<svg class="rb-svg" width="${size}" height="${size}" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">${r.join("")}</svg>`;
   }
   const id = `rbm-${++maskUid}`;
-  let shell = "", eyes = "", crest = "";
+  let shell = "", eyes = "", crest = "", extra = "";
   if (mask & 0x8000) {
     const pr = VEC_PRESETS[mask] || VEC_PRESETS[0x8011];
     shell = pr.shell; eyes = pr.eyes;
@@ -710,6 +714,7 @@ function botSvgFromMask(mask, size = 18) {
     const bits = (mask & 0xf) | ((mask >> 1) & 0x3ff0);
     const bi = bits & 7, ei = (bits >> 3) & 3, ti = VEC_BASES[bi].top ? ((bits >> 5) & 3) : 0;
     shell = VEC_BASES[bi].d;
+    extra = VEC_BASES[bi].ex || "";
     eyes = vecEyes(VEC_BASES[bi].ey, ei);
     crest = VEC_TOPS[ti];
   }
@@ -717,6 +722,7 @@ function botSvgFromMask(mask, size = 18) {
     <defs><mask id="${id}"><rect width="16" height="16" fill="white"/><path class="rb-eye" d="${eyes}" fill="black"/></mask></defs>
     <g class="rb-bot-grp">
       ${crest ? `<path class="rb-crest" d="${crest}"/>` : ""}
+      ${extra}
       <path class="rb-shell" d="${shell}" mask="url(#${id})"/>
       <path class="rb-eye-glow" d="${eyes}" fill="var(--accent)"/>
     </g>
@@ -1233,7 +1239,7 @@ function renderSettingsModal() {
     r2.querySelector("#ap-cf").onchange = (e) => { codeFont = e.target.value; renderSettingsModal(); };
     r2.querySelector("#ap-cs").onchange = (e) => { codeSize = +e.target.value; renderSettingsModal(); };
 
-    addRow(`<div><strong>RailBot Icon</strong><div class="s-sub">Topbar icon in solid accent or monochrome</div></div><div class="ap-tabs"><button type="button" class="ap-tab ${iconStyle==="solid"?"active":""}" data-i="solid">Solid</button><button type="button" class="ap-tab ${iconStyle==="mono"?"active":""}" data-i="mono">Monochrome</button></div>`)
+    addRow(`<div><strong>RailBot Icons</strong><div class="s-sub">Accent color with eye blink on hover, or static monochrome</div></div><div class="ap-tabs"><button type="button" class="ap-tab ${iconStyle==="solid"?"active":""}" data-i="solid">Live</button><button type="button" class="ap-tab ${iconStyle==="mono"?"active":""}" data-i="mono">Static</button></div>`)
       .querySelectorAll("button").forEach(b => b.onclick = () => { iconStyle = b.dataset.i; renderSettingsModal(); renderDemo(); });
 
     addRow(`<div><strong>RailBot Style</strong><div class="s-sub">Vector or Pixel RailBots (/call, auto-call), Letters, or None</div></div><div class="ap-tabs">${[["vector","Vector"],["pixel","Pixel"],["letters","Letters"],["none","None"]].map(([k,l])=>`<button type="button" class="ap-tab ${badgeMode===k?"active":""}" data-b="${k}">${l}</button>`).join("")}</div>`)
@@ -1402,6 +1408,7 @@ function renderDemo() {
   const shownModel = activeProvider !== "LOCAL" ? slotObj.model.split(",")[0].trim() : p.model;
   const shownEp = activeProvider !== "LOCAL" ? slotObj.ep : p.ep;
 
+  document.body.dataset.botIcon = iconStyle;
   const bi = document.getElementById("d-brand-icon");
   bi.innerHTML = (badgeMode === "vector" || badgeMode === "pixel") ? botSvg(p.name, 16) : `<svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M 7.2 3.5 L 12.7 8 L 7.2 12.5 L 3.7 12.5"/></svg>`;
   bi.style.color = iconStyle === "mono" ? "var(--text)" : "var(--accent)";
