@@ -13,7 +13,7 @@
 </p>
 
 <p>
-  <strong>Native Rust desktop &amp; web UI built on <a href="https://j5onrf.github.io/rs-agent/">rs-agent</a> for local GGUF and cloud models.</strong><br />
+  <strong>Native Rust desktop &amp; web UI built on <a href="https://github.com/j5onrf/rs-agent">rs-agent</a> for local GGUF and cloud models.</strong><br />
   Parallel micro-bots &nbsp;&middot;&nbsp; One-turn <code>/sub</code> agents &nbsp;&middot;&nbsp; Zero-trust sandbox &nbsp;&middot;&nbsp; Single binary
 </p>
 
