@@ -9,35 +9,35 @@
     "lfm3": [
       "local"
     ],
-    "ling-tiny": [
-      "local"
-    ],
-    "nemo": [
-      "cloud"
-    ],
-    "tokenlab": [
-      "cloud"
-    ],
     "inkling2": [
       "local",
       "railbot"
     ],
-    "flint": [
-      "local"
+    "surogate37": [
+      "local",
+      "railbot"
     ],
     "gem35": [
       "cloud",
       "railbot"
     ],
-    "sage": [
+    "flint": [
       "local"
+    ],
+    "nemo": [
+      "cloud"
     ],
     "groot": [
       "local"
     ],
-    "surogate37": [
-      "local",
-      "railbot"
+    "sage": [
+      "local"
+    ],
+    "ling-tiny": [
+      "local"
+    ],
+    "tokenlab": [
+      "cloud"
     ]
   },
   "project_names": {
@@ -47,11 +47,11 @@
     "surogate37": "b:31f6"
   },
   "project_collabs": {
-    "gem35": [
-      "surogate37"
-    ],
     "surogate37": [
       "gem35"
+    ],
+    "gem35": [
+      "surogate37"
     ],
     "inkling2": [
       "surogate37"

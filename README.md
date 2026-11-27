@@ -6,7 +6,7 @@
 </h1>
 
 <p>
-  <a href="https://github.com/j5onrf/railbot/releases"><img src="https://shieldcn.dev/badge/version-v0.5.2.svg?variant=secondary" alt="Version"></a>
+  <a href="https://github.com/j5onrf/railbot/releases"><img src="https://shieldcn.dev/badge/version-v0.5.3.svg?variant=secondary" alt="Version"></a>
   <a href="https://github.com/j5onrf/railbot"><img src="https://shieldcn.dev/badge/Rust.svg?variant=branded&brand=rust" alt="Rust"></a>
   <a href="https://github.com/j5onrf/railbot/blob/main/LICENSE"><img src="https://shieldcn.dev/badge/license-MIT.svg?variant=secondary" alt="License"></a>
   <a href="https://j5onrf.github.io/railbot/"><img src="https://shieldcn.dev/badge/demo-live-22c55e.svg?variant=secondary" alt="Live Demo"></a>
@@ -36,7 +36,7 @@
 - **Parallel Micro-Bots (`/call`):** Consult any peer bot read-only. Assign per-bot cloud providers in Settings → Projects and auto-collaborators in the bot badge menu.
 - **Zero-Trust Sandbox:** Security boundary traps directory traversals, blocks `.env` reads/writes, and gates mutating commands.
 - **Themes & Desktop Sync:** themes (`eldritch`, `claude`), custom JSON palettes, live Omarchy/Noctalia desktop sync, and a built-in palette catalog browser.
-- **Application:** RailBot is running on `http://127.0.0.1:24243` and built directly on <a href="https://j5onrf.github.io/rs-agent/">rs-agent</a>.
+- **Application:** RailBot is running on `http://127.0.0.1:24244` and built directly on <a href="https://j5onrf.github.io/rs-agent/">rs-agent</a>.
 
 ---
 

@@ -39,7 +39,18 @@ elif [ ! -x "$BIN" ] && [ -f "$APP_DIR/Cargo.toml" ]; then
     cargo build --release --manifest-path "$APP_DIR/Cargo.toml"
 fi
 
-PORT="${RAILBOT_PORT:-${RS_RAIL_PORT:-24243}}"
+ENV_FILE="$DATA_DIR/.env"
+[ -f "$ENV_FILE" ] || ENV_FILE="$APP_DIR/.env"
+if [ -z "${RAILBOT_PORT:-}" ] && [ -z "${RS_RAIL_PORT:-}" ] && [ -f "$ENV_FILE" ]; then
+    for k in RAILBOT_PORT RS_RAIL_PORT; do
+        ENV_PORT=$(awk -F= -v k="$k" '$0 ~ "^[[:space:]]*" k "[[:space:]]*=" {v=substr($0, index($0,"=")+1); sub(/#.*/,"",v); gsub(/["'\''[:space:]]/,"",v); if (v ~ /^[0-9]+$/) {print v; exit}}' "$ENV_FILE" || true)
+        if [ -n "$ENV_PORT" ]; then
+            export RAILBOT_PORT="$ENV_PORT"
+            break
+        fi
+    done
+fi
+PORT="${RAILBOT_PORT:-${RS_RAIL_PORT:-24244}}"
 MODE="app"
 TARGET_PATH="$PWD"
 
