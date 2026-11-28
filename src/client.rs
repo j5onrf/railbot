@@ -334,11 +334,38 @@ fn parse_usage_and_timings(json: &Value, stats: &mut UsageStats) {
 fn accumulate_tool_calls(delta: &Value, tool_calls_map: &mut BTreeMap<usize, (String, String, String, Option<Value>)>) {
     if let Some(tc_array) = delta.get("tool_calls").and_then(|v| v.as_array()) {
         for tc in tc_array {
-            let idx = tc.get("index").and_then(|v| v.as_u64()).unwrap_or(0) as usize;
+            let tc_id = tc.get("id").and_then(|v| v.as_str()).filter(|s| !s.is_empty());
+            let tc_fn = tc.get("function");
+            let tc_fn_name = tc_fn.and_then(|f| f.get("name")).and_then(|v| v.as_str()).filter(|s| !s.is_empty());
+
+            // Resilient index resolution: handle standard OpenAI index or Google's missing index
+            let idx = if let Some(i) = tc.get("index").and_then(|v| v.as_u64()) {
+                i as usize
+            } else if let Some(id) = tc_id {
+                if let Some((&existing_idx, _)) = tool_calls_map.iter().find(|(_, entry)| entry.0 == id) {
+                    existing_idx
+                } else if tool_calls_map.is_empty() {
+                    0
+                } else {
+                    tool_calls_map.keys().max().map_or(0, |m| m + 1)
+                }
+            } else if let Some(name) = tc_fn_name {
+                if let Some((&last_idx, last_entry)) = tool_calls_map.iter().next_back() {
+                    if !last_entry.1.is_empty() && (!last_entry.2.is_empty() || last_entry.1 != name) {
+                        last_idx + 1
+                    } else {
+                        last_idx
+                    }
+                } else {
+                    0
+                }
+            } else {
+                tool_calls_map.keys().next_back().copied().unwrap_or(0)
+            };
+
             let entry = tool_calls_map.entry(idx).or_insert_with(|| {
                 (
-                    tc.get("id")
-                        .and_then(|v| v.as_str())
+                    tc_id
                         .map(ToString::to_string)
                         .unwrap_or_else(|| format!("call_{idx}")),
                     String::new(),
@@ -347,19 +374,21 @@ fn accumulate_tool_calls(delta: &Value, tool_calls_map: &mut BTreeMap<usize, (St
                 )
             });
 
-            if let Some(id) = tc.get("id").and_then(|v| v.as_str()) {
-                if !id.is_empty() {
-                    entry.0 = id.to_string();
-                }
+            if let Some(id) = tc_id {
+                entry.0 = id.to_string();
             }
-            if let Some(fn_obj) = tc.get("function") {
-                if let Some(name) = fn_obj.get("name").and_then(|v| v.as_str()) {
-                    if !name.is_empty() {
-                        entry.1 = name.to_string();
-                    }
-                }
+            if let Some(name) = tc_fn_name {
+                entry.1 = name.to_string();
+            }
+            if let Some(fn_obj) = tc_fn {
                 if let Some(args) = fn_obj.get("arguments").and_then(|v| v.as_str()) {
                     entry.2.push_str(args);
+                } else if let Some(params) = fn_obj.get("parameters") {
+                    if let Some(s) = params.as_str() {
+                        entry.2.push_str(s);
+                    } else if params.is_object() {
+                        entry.2.push_str(&params.to_string());
+                    }
                 }
             }
             if let Some(ec) = tc.get("extra_content") {
@@ -458,9 +487,33 @@ impl LlmClient {
 
         if is_google {
             if let Some(arr) = sanitized_messages.as_array_mut() {
+                let mut tool_names: std::collections::HashMap<String, String> = std::collections::HashMap::new();
                 for msg in arr {
-                    if msg.get("role").and_then(|r| r.as_str()) == Some("assistant") {
+                    if let Some(obj) = msg.as_object_mut() {
+                        obj.remove("reasoning_content");
+                    }
+                    let role = msg.get("role").and_then(|r| r.as_str()).unwrap_or("").to_string();
+                    if role == "assistant" {
                         if let Some(tcs) = msg.get_mut("tool_calls").and_then(|v| v.as_array_mut()) {
+                            for tc in tcs.iter_mut() {
+                                let tc_id = tc.get("id").and_then(|v| v.as_str()).unwrap_or("").to_string();
+                                if let Some(fn_obj) = tc.get_mut("function").and_then(|f| f.as_object_mut()) {
+                                    if let Some(name) = fn_obj.get("name").and_then(|v| v.as_str()) {
+                                        if !tc_id.is_empty() {
+                                            tool_names.insert(tc_id, name.to_string());
+                                        }
+                                    }
+                                    if let Some(args_val) = fn_obj.get_mut("arguments") {
+                                        let needs_heal = match args_val.as_str() {
+                                            Some(s) => s.trim().is_empty() || serde_json::from_str::<Value>(s).is_err(),
+                                            None => true,
+                                        };
+                                        if needs_heal {
+                                            *args_val = Value::String("{}".to_string());
+                                        }
+                                    }
+                                }
+                            }
                             // Gemini 4 parallel tool turns carry thought_signature only on the first call
                             let first_has_sig = tcs
                                 .first()
@@ -482,6 +535,13 @@ impl LlmClient {
                                         }),
                                     );
                                 }
+                            }
+                        }
+                    } else if role == "tool" {
+                        if let Some(obj) = msg.as_object_mut() {
+                            let call_id = obj.get("tool_call_id").and_then(|v| v.as_str()).unwrap_or("");
+                            if let Some(name) = tool_names.get(call_id) {
+                                obj.insert("name".to_string(), Value::String(name.clone()));
                             }
                         }
                     }
@@ -714,7 +774,7 @@ impl LlmClient {
 
                         if delta.get("tool_calls").and_then(|v| v.as_array()).is_some_and(|a| !a.is_empty()) {
                             has_emitted = true;
-                                                        accumulate_tool_calls(delta, &mut tool_calls_map);
+                            accumulate_tool_calls(delta, &mut tool_calls_map);
                         }
                     }
                 }
@@ -764,7 +824,10 @@ impl LlmClient {
             Some(
                 tool_calls_map
                     .into_values()
-                    .map(|(id, name, args, extra_content)| {
+                    .map(|(id, name, mut args, extra_content)| {
+                        if args.trim().is_empty() {
+                            args = "{}".to_string();
+                        }
                         let mut call = serde_json::json!({
                             "id": id,
                             "type": "function",
@@ -1100,5 +1163,66 @@ mod tests {
         assert_eq!(entry.0, "call_1");
         assert_eq!(entry.1, "read_file");
         assert_eq!(entry.2, r#"{"path":"a.rs"}"#);
+    }
+
+    #[test]
+    fn test_accumulate_tool_calls_gemini_missing_index() {
+        let mut map = BTreeMap::new();
+        // Chunk 1: first tool call without index
+        accumulate_tool_calls(
+            &serde_json::json!({
+                "tool_calls": [{
+                    "id": "call_read",
+                    "function": { "name": "read_file", "arguments": r#"{"path":"math_demo.py"}"# }
+                }]
+            }),
+            &mut map,
+        );
+        // Chunk 2: second tool call without index
+        accumulate_tool_calls(
+            &serde_json::json!({
+                "tool_calls": [{
+                    "id": "call_bash",
+                    "function": { "name": "run_command", "arguments": r#"{"command":"python3 math_demo.py"}"# }
+                }]
+            }),
+            &mut map,
+        );
+
+        assert_eq!(map.len(), 2);
+        assert_eq!(map.get(&0).unwrap().1, "read_file");
+        assert_eq!(map.get(&0).unwrap().2, r#"{"path":"math_demo.py"}"#);
+        assert_eq!(map.get(&1).unwrap().1, "run_command");
+        assert_eq!(map.get(&1).unwrap().2, r#"{"command":"python3 math_demo.py"}"#);
+    }
+
+    #[test]
+    fn test_build_request_body_heals_corrupted_tool_args_for_google() {
+        let cfg = ProviderConfig {
+            base_url: "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions".into(),
+            api_key: "test".into(),
+            model: "gemini-3.5-flash-lite".into(),
+            fallback_models: Vec::new(),
+            max_tokens: 65536,
+        };
+        let client = LlmClient::new(cfg);
+        let mut assistant = ChatMessage::assistant("");
+        assistant.tool_calls = Some(serde_json::json!([
+            {
+                "id": "call_bash",
+                "type": "function",
+                "function": { "name": "run_command", "arguments": r#"{"path":"demo.py"}{"command":"python3"}"# }
+            }
+        ]));
+        let msgs = vec![
+            ChatMessage::user("run"),
+            assistant,
+            ChatMessage::tool_response("call_bash".into(), "err".into()),
+        ];
+
+        let body = client.build_request_body(&msgs, None);
+        let tcs = body["messages"][1]["tool_calls"].as_array().unwrap();
+        assert_eq!(tcs[0]["function"]["arguments"], "{}");
+        assert_eq!(body["messages"][2]["name"], "run_command");
     }
 }
